@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
-import { GameModal } from './GameModal';
 
 interface TimedMatchingGameProps {
   words: Word[];
@@ -13,7 +12,6 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [showModal, setShowModal] = useState(true);
   const [selectedEnglishCard, setSelectedEnglishCard] = useState<number | null>(null);
   const [selectedTurkishCard, setSelectedTurkishCard] = useState<number | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -156,18 +154,7 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
 
   return (
     <div className="p-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg border border-indigo-100">
-      <GameModal
-        isOpen={!showResult && showModal}
-        onClose={() => setShowModal(false)}
-        onStart={() => {
-          setShowModal(false);
-          startNewGame();
-        }}
-        title="Zamanlı Eşleştirme Oyunu"
-        description="İngilizce ve Türkçe kelimeleri en kısa sürede eşleştirin! Her doğru eşleştirme için temel puan, süre bonusu ve streak bonusu kazanın. Yanlış eşleştirmeler puanınızı düşürür. En iyi sürenizi ve puanınızı geçmeye çalışın!"
-        icon="⏱️"
-      />
-      {!showResult && !showModal ? (
+      {!showResult ? (
         <>
           <div className="flex justify-between items-center mb-6">
             <div className="flex flex-col gap-2">
@@ -194,7 +181,7 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
                 Deneme: {attempts}
               </div>
               <button
-                onClick={() => setShowModal(true)}
+                onClick={startNewGame}
                 className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg
                   transform transition-all duration-300 hover:scale-105 hover:shadow-md
                   active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"

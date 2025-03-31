@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../../data/words';
-import { GameModal } from './GameModal';
+npimport { Word } from '../../data/words';
 
 interface WordHuntGameProps {
   words: Word[];
@@ -14,7 +13,6 @@ export function WordHuntGame({ words, unit }: WordHuntGameProps) {
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showModal, setShowModal] = useState(true);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [streak, setStreak] = useState(0);
   const [bestScore, setBestScore] = useState(0);
@@ -101,18 +99,7 @@ export function WordHuntGame({ words, unit }: WordHuntGameProps) {
 
   return (
     <div className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-100">
-      <GameModal
-        isOpen={!isPlaying && showModal}
-        onClose={() => setShowModal(false)}
-        onStart={() => {
-          setShowModal(false);
-          startGame();
-        }}
-        title="Kelime Avı"
-        description="60 saniye içinde İngilizce kelimelerin Türkçe karşılıklarını doğru bir şekilde yazın! Her doğru cevap için puan kazanın. Streak bonusu ve kalan süre bonusu ile puanınızı katlayın. İpucu kullanabilir veya zor kelimeleri atlayabilirsiniz, ancak bunlar puanınızı düşürür."
-        icon="🎯"
-      />
-      {!isPlaying && !showModal ? (
+      {!isPlaying ? (
         <div className="text-center space-y-6">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
             Kelime Avı
@@ -123,9 +110,7 @@ export function WordHuntGame({ words, unit }: WordHuntGameProps) {
             </p>
           )}
           <button
-            onClick={() => {
-              setShowModal(true);
-            }}
+            onClick={startGame}
             className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg
               transform transition-all duration-300 hover:scale-105 hover:shadow-lg
               active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"

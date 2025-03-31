@@ -3,7 +3,7 @@ import { Word } from '../../data/words';
 import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 
 interface AddWordProps {
-  unit: string;
+  unit: number;
 }
 
 export function AddWord({ unit }: AddWordProps) {
@@ -13,14 +13,14 @@ export function AddWord({ unit }: AddWordProps) {
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const savedWords = localStorage.getItem('customWords');
+    const savedWords = localStorage.getItem(`customWords_unit_${unit}`);
     if (savedWords) {
       setCustomWords(JSON.parse(savedWords));
     }
   }, []);
 
   const saveToLocalStorage = (words: Word[]) => {
-    localStorage.setItem('customWords', JSON.stringify(words));
+    localStorage.setItem(`customWords_unit_${unit}`, JSON.stringify(words));
     setCustomWords(words);
   };
 
@@ -31,7 +31,8 @@ export function AddWord({ unit }: AddWordProps) {
     const newWord: Word = {
       english: english.trim(),
       turkish: turkish.trim(),
-      unit
+      unit,
+      id: Date.now().toString()
     };
 
     if (editIndex !== null) {

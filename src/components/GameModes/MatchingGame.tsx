@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
-import { GameModal } from './GameModal';
-
 interface MatchingGameProps {
   words: Word[];
   unit: string;
@@ -14,7 +12,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [showModal, setShowModal] = useState(true);
+
   const [selectedEnglishCard, setSelectedEnglishCard] = useState<number | null>(null);
   const [selectedTurkishCard, setSelectedTurkishCard] = useState<number | null>(null);
 
@@ -111,18 +109,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   return (
     <div className="p-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg border border-indigo-100">
-      <GameModal
-        isOpen={!showResult && showModal}
-        onClose={() => setShowModal(false)}
-        onStart={() => {
-          setShowModal(false);
-          startNewGame();
-        }}
-        title="Eşleştirme Oyunu"
-        description="İngilizce ve Türkçe kelimeleri doğru şekilde eşleştirin! Her doğru eşleştirme için puan kazanın. Tüm kelimeleri eşleştirerek oyunu tamamlayın. Yanlış eşleştirmeler kırmızı renkte gösterilir ve doğru eşleştirmeyi bulmanız için size zaman tanınır."
-        icon="🔄"
-      />
-      {!showResult && !showModal ? (
+      {!showResult ? (
         <>
           <div className="flex justify-between items-center mb-6">
             <div className="flex flex-col gap-2">
@@ -134,7 +121,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
               </div>
             </div>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={startNewGame}
               className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg
                 transform transition-all duration-300 hover:scale-105 hover:shadow-md
                 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
@@ -217,7 +204,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           </p>
           <button
             onClick={startNewGame}
-            className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+            className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg
+              transform transition-all duration-300 hover:scale-105 hover:shadow-md
+              active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
           >
             Yeniden Başla
           </button>

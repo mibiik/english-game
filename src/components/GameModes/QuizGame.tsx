@@ -43,33 +43,36 @@ export function QuizGame({ words, unit }: QuizGameProps) {
     setShowCorrectAnswer(false);
   };
 
-  const handleOptionSelect = (index: number) => {
+  const handleOptionSelect = async (index: number) => {
     if (selectedOption !== null || !currentWord) return;
 
-    setSelectedOption(index);
-    const isAnswerCorrect = options[index] === currentWord.turkish;
-    setIsCorrect(isAnswerCorrect);
+    try {
+      setSelectedOption(index);
+      const isAnswerCorrect = options[index] === currentWord.turkish;
+      setIsCorrect(isAnswerCorrect);
 
-    if (isAnswerCorrect) {
-      const streakBonus = Math.floor(streak / 2);
-      const points = 10 + streakBonus;
-      setScore(prev => prev + points);
-      setStreak(prev => prev + 1);
-      if (score + points > bestScore) {
-        setBestScore(score + points);
+      if (isAnswerCorrect) {
+        const streakBonus = Math.floor(streak / 2);
+        const points = 10 + streakBonus;
+        setScore(prev => prev + points);
+        setStreak(prev => prev + 1);
+        setBestScore(prev => Math.max(prev, score + points));
+      } else {
+        setStreak(0);
+        setScore(prev => Math.max(0, prev - 5));
+        setShowCorrectAnswer(true);
       }
-    } else {
-      setStreak(0);
-      setScore(prev => Math.max(0, prev - 5));
-      setShowCorrectAnswer(true);
-    }
 
-    setAttempts(prev => prev + 1);
+      setAttempts(prev => prev + 1);
 
-    // 2 saniye sonra yeni soruya geç
-    setTimeout(() => {
+      // 2 saniye sonra yeni soruya geç
+      await new Promise(resolve => setTimeout(resolve, 2000));
       startNewQuestion(words.filter(word => word.unit === unit));
-    }, 2000);
+    } catch (error) {
+      console.error('Seçenek seçme hatası:', error);
+      setSelectedOption(null);
+      setIsCorrect(null);
+    }
   };
 
   const startGame = () => {
@@ -115,10 +118,9 @@ export function QuizGame({ words, unit }: QuizGameProps) {
                 <button
                   key={index}
                   onClick={() => handleOptionSelect(index)}
-                  disabled={selectedOption !== null}
                   className={`
                     p-4 rounded-lg text-lg font-medium text-center
-                    transform transition-all duration-300
+                    transform transition-all duration-300 cursor-pointer
                     ${selectedOption === index
                       ? isCorrect
                         ? 'bg-green-100 text-green-800 scale-105 shadow-lg ring-2 ring-green-400'

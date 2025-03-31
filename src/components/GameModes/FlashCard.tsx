@@ -3,7 +3,7 @@ import { Word } from '../../data/words';
 
 interface FlashCardProps {
   words: Word[];
-  unit: string;
+  unit: number;
 }
 
 export function FlashCard({ words, unit }: FlashCardProps) {
@@ -22,17 +22,19 @@ export function FlashCard({ words, unit }: FlashCardProps) {
 
   const handleNextCard = () => {
     if (currentIndex < unitWords.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
       setIsFlipped(false);
-      setProgress(((currentIndex + 1) / unitWords.length) * 100);
+      setProgress((nextIndex / (unitWords.length - 1)) * 100);
     }
   };
 
   const handlePrevCard = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(prevIndex);
       setIsFlipped(false);
-      setProgress((currentIndex / unitWords.length) * 100);
+      setProgress((prevIndex / (unitWords.length - 1)) * 100);
     }
   };
 
