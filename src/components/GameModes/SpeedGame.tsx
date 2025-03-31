@@ -53,12 +53,12 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
   };
 
   return (
-    <div className="p-8 bg-white rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl">
-      <div className="flex justify-between mb-6">
-        <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+    <div className="p-3 sm:p-4 md:p-6 bg-white rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl">
+      <div className="flex justify-between mb-3 sm:mb-4">
+        <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
           Skor: {score}
         </div>
-        <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+        <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
           Süre: {timeLeft}s
         </div>
       </div>
@@ -66,15 +66,15 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       {!isPlaying ? (
         <button
           onClick={startGame}
-          className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
+          className="w-full py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
             transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-            active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+            active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-sm sm:text-base md:text-lg"
         >
           Oyunu Başlat
         </button>
       ) : (
         <div>
-          <div className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+          <div className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8 bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
             {currentWord?.english}
           </div>
           <form onSubmit={handleSubmit}>
@@ -82,17 +82,17 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="w-full p-4 border-2 rounded-lg mb-4 transition-all duration-300
+              className="w-full p-2.5 sm:p-3 md:p-4 border-2 rounded-lg mb-2 sm:mb-3 md:mb-4 transition-all duration-300
                 border-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
-                transform hover:scale-102"
+                transform hover:scale-102 text-sm sm:text-base md:text-lg"
               placeholder="Türkçe çevirisini yazın..."
               autoFocus
             />
             <button
               type="submit"
-              className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
+              className="w-full py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
                 transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-sm sm:text-base md:text-lg"
             >
               Gönder
             </button>

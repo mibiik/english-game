@@ -108,12 +108,12 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   };
 
   return (
-    <div className="p-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg border border-indigo-100">
+    <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg border border-indigo-100">
       {!showResult ? (
         <>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
             <div className="flex flex-col gap-2">
-              <div className="text-2xl font-bold text-indigo-800">
+              <div className="text-xl sm:text-2xl font-bold text-indigo-800">
                 Eşleşmeler: {score}/12
               </div>
               <div className="text-sm font-medium text-purple-600">
@@ -122,18 +122,18 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             </div>
             <button
               onClick={startNewGame}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg
+              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg
                 transform transition-all duration-300 hover:scale-105 hover:shadow-md
-                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-sm sm:text-base"
             >
               Yeniden Başla
             </button>
           </div>
 
-          <div className="flex gap-8">
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-700 mb-4 text-center">İngilizce Kelimeler</h3>
-              <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+            <div className="w-full md:flex-1">
+              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 sm:mb-4 text-center">İngilizce Kelimeler</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
                 {selectedWords
                   .filter(word => word.type === 'english')
                   .map((word, index) => (
@@ -141,9 +141,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
                       key={index}
                       onClick={() => handleCardClick(selectedWords.findIndex(w => w.id === word.id))}
                       className={`
-                        rounded-lg cursor-pointer p-4 text-center
+                        rounded-lg cursor-pointer p-2 sm:p-4 text-center
                         transform transition-all duration-300
-                        min-h-[100px] flex items-center justify-center
+                        min-h-[60px] sm:min-h-[80px] md:min-h-[100px] flex items-center justify-center text-sm sm:text-base
                         ${matchedPairs.includes(selectedWords.findIndex(w => w.id === word.id))
                           ? 'bg-green-100 text-green-800 scale-105 shadow-lg'
                           : selectedEnglishCard === selectedWords.findIndex(w => w.id === word.id)
@@ -161,11 +161,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
               </div>
             </div>
 
-            <div className="w-px bg-gray-200 self-stretch"></div>
+            <div className="w-full h-px md:w-px md:h-auto bg-gray-200"></div>
 
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-700 mb-4 text-center">Türkçe Kelimeler</h3>
-              <div className="grid grid-cols-3 gap-4">
+            <div className="w-full md:flex-1">
+              <h3 className="text-base sm:text-lg font-medium text-gray-700 mb-3 sm:mb-4 text-center">Türkçe Kelimeler</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
                 {selectedWords
                   .filter(word => word.type === 'turkish')
                   .map((word, index) => (
@@ -173,9 +173,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
                       key={index}
                       onClick={() => handleCardClick(selectedWords.findIndex(w => w.id === word.id))}
                       className={`
-                        rounded-lg cursor-pointer p-4 text-center
+                        rounded-lg cursor-pointer p-2 sm:p-4 text-center
                         transform transition-all duration-300
-                        min-h-[100px] flex items-center justify-center
+                        min-h-[60px] sm:min-h-[80px] md:min-h-[100px] flex items-center justify-center text-sm sm:text-base
                         ${matchedPairs.includes(selectedWords.findIndex(w => w.id === word.id))
                           ? 'bg-green-100 text-green-800 scale-105 shadow-lg'
                           : selectedEnglishCard === selectedWords.findIndex(w => w.id === word.id)
