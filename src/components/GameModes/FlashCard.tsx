@@ -23,8 +23,8 @@ export function FlashCard({ words, unit }: FlashCardProps) {
   const handleNextCard = () => {
     if (currentIndex < unitWords.length - 1) {
       const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
       setIsFlipped(false);
+      setCurrentIndex(nextIndex);
       setProgress((nextIndex / (unitWords.length - 1)) * 100);
     }
   };
@@ -32,8 +32,8 @@ export function FlashCard({ words, unit }: FlashCardProps) {
   const handlePrevCard = () => {
     if (currentIndex > 0) {
       const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
       setIsFlipped(false);
+      setCurrentIndex(prevIndex);
       setProgress((prevIndex / (unitWords.length - 1)) * 100);
     }
   };
@@ -41,8 +41,8 @@ export function FlashCard({ words, unit }: FlashCardProps) {
   if (unitWords.length === 0) return null;
 
   return (
-    <div className="min-h-[100vh] sm:min-h-[600px] flex flex-col justify-center items-center p-4 sm:p-6 md:p-8">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8">
+    <div className="min-h-[80vh] sm:min-h-[600px] flex flex-col justify-center items-center p-2 sm:p-4 md:p-6">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-3 sm:p-4 md:p-6">
         <div className="mb-8">
           <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
             <div
@@ -62,8 +62,8 @@ export function FlashCard({ words, unit }: FlashCardProps) {
 
         <div
           className={`
-            relative w-full aspect-[4/3] md:aspect-[3/2] mx-auto
-            perspective-1000 cursor-pointer
+            relative w-full aspect-[3/2] sm:aspect-[4/3] md:aspect-[3/2] mx-auto
+            [perspective:1000px] cursor-pointer
             group
           `}
           onClick={() => setIsFlipped(!isFlipped)}
@@ -71,8 +71,8 @@ export function FlashCard({ words, unit }: FlashCardProps) {
           <div
             className={`
               absolute inset-0 w-full h-full
-              transform-gpu transition-all duration-700 ease-out
-              ${isFlipped ? 'rotate-y-180' : ''}
+              [transform-style:preserve-3d] transition-transform duration-100 ease-out
+              ${isFlipped ? '[transform:rotateY(180deg)]' : '[transform:rotateY(0deg)]'}
             `}
           >
             <div
@@ -81,15 +81,16 @@ export function FlashCard({ words, unit }: FlashCardProps) {
                 flex flex-col items-center justify-center
                 bg-gradient-to-br from-white to-gray-50
                 shadow-lg rounded-2xl p-8
-                backface-hidden
+                [backface-visibility:hidden]
                 group-hover:shadow-xl
                 transition-shadow duration-300
+                border border-gray-100
               `}
             >
-              <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#4B8B9F] text-center break-words">
+              <span className="text-lg sm:text-2xl md:text-4xl font-bold text-[#4B8B9F] text-center break-words">
                 {unitWords[currentIndex].english}
               </span>
-              <span className="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-500">Çevirmek için tıkla</span>
+              <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">Çevirmek için tıkla</span>
             </div>
 
             <div
@@ -98,15 +99,16 @@ export function FlashCard({ words, unit }: FlashCardProps) {
                 flex flex-col items-center justify-center
                 bg-gradient-to-br from-white to-gray-50
                 shadow-lg rounded-2xl p-8
-                backface-hidden rotate-y-180
+                [backface-visibility:hidden] [transform:rotateY(180deg)]
                 group-hover:shadow-xl
                 transition-shadow duration-300
+                border border-gray-100
               `}
             >
-              <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#FF8C42] text-center break-words">
+              <span className="text-lg sm:text-2xl md:text-4xl font-bold text-[#FF8C42] text-center break-words">
                 {unitWords[currentIndex].turkish}
               </span>
-              <span className="mt-2 sm:mt-4 text-xs sm:text-sm text-gray-500">Çevirmek için tıkla</span>
+              <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">Çevirmek için tıkla</span>
             </div>
           </div>
         </div>

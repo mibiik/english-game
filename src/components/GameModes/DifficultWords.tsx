@@ -62,42 +62,38 @@ export function DifficultWords({ words, unit }: DifficultWordsProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 animate-fadeIn">
-      <h2 className="text-2xl font-bold text-center text-gray-700 mb-8">
-        Zorlu Kelimeler
-      </h2>
-
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div className="max-w-3xl mx-auto p-4 sm:p-8 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-8">
         {selectedWord && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center">
-              <h3 className="text-xl font-semibold mb-2">{selectedWord.word.english}</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="text-3xl sm:text-4xl font-bold mb-4">{selectedWord.word.english}</h3>
+              <p className="text-base sm:text-lg text-gray-600">
                 Bu kelimeyi {selectedWord.wrongAttempts} kez yanlış yaptınız
                 ({Math.round((selectedWord.wrongAttempts / selectedWord.totalAttempts) * 100)}% hata oranı)
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <input
                 type="text"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
                 placeholder="Türkçe karşılığını yazın"
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full p-4 text-xl border-2 rounded-xl focus:ring-4 focus:ring-purple-500 focus:border-transparent"
                 onKeyPress={(e) => e.key === 'Enter' && handleAnswerSubmit()}
               />
 
-              <div className="flex justify-between gap-4">
+              <div className="flex justify-between gap-6">
                 <button
                   onClick={handleAnswerSubmit}
-                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                  className="flex-1 bg-purple-600 text-white py-4 px-6 text-lg rounded-xl hover:bg-purple-700 transition-colors"
                 >
                   Kontrol Et
                 </button>
                 <button
                   onClick={() => setShowAnswer(!showAnswer)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="flex-1 bg-gray-200 text-gray-700 py-4 px-6 text-lg rounded-xl hover:bg-gray-300 transition-colors"
                 >
                   {showAnswer ? 'Cevabı Gizle' : 'Cevabı Göster'}
                 </button>
@@ -106,22 +102,22 @@ export function DifficultWords({ words, unit }: DifficultWordsProps) {
 
             {feedback && (
               <div
-                className={`text-center p-3 rounded-lg ${feedback.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                className={`text-center p-4 text-lg rounded-xl ${feedback.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
               >
                 {feedback.message}
               </div>
             )}
 
             {showAnswer && (
-              <div className="text-center p-3 bg-gray-100 rounded-lg">
-                <p className="font-medium">Cevap: {selectedWord.word.turkish}</p>
+              <div className="text-center p-4 bg-gray-100 rounded-xl">
+                <p className="text-xl font-medium">Cevap: {selectedWord.word.turkish}</p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
         {difficultWords.map((word) => (
           <button
             key={word.word.english}
@@ -131,12 +127,12 @@ export function DifficultWords({ words, unit }: DifficultWordsProps) {
               setShowAnswer(false);
               setFeedback(null);
             }}
-            className={`p-4 rounded-lg text-sm transition-all ${selectedWord === word
-              ? 'bg-purple-600 text-white shadow-lg transform scale-105'
-              : 'bg-white text-gray-700 shadow hover:shadow-md hover:scale-102'}`}
+            className={`p-6 rounded-xl text-lg transition-all ${selectedWord === word
+              ? 'bg-purple-600 text-white shadow-xl transform scale-105'
+              : 'bg-white text-gray-700 shadow-lg hover:shadow-xl hover:scale-102'}`}
           >
-            <div className="font-medium">{word.word.english}</div>
-            <div className="text-xs mt-1 opacity-75">
+            <div className="font-bold text-xl">{word.word.english}</div>
+            <div className="text-sm mt-2 opacity-75">
               {Math.round((word.wrongAttempts / word.totalAttempts) * 100)}% hata
             </div>
           </button>

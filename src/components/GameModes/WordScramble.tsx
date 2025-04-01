@@ -68,11 +68,15 @@ export function WordScramble({ words, unit }: WordScrambleProps) {
 
     if (isAnswerCorrect) {
       setScore(score + 1);
-      setTimeout(() => nextWord(), 1000);
+      setTimeout(() => {
+        nextWord();
+        setIsCorrect(null);
+      }, 1000);
     } else {
       if (!wrongWords.includes(currentWord)) {
         setWrongWords([...wrongWords, currentWord]);
       }
+      setInput('');
     }
   };
 
@@ -105,8 +109,16 @@ export function WordScramble({ words, unit }: WordScrambleProps) {
             </div>
           </div>
 
-          <div className="text-3xl font-bold text-center mb-8 animate-slideDown bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-            {scrambledWord}
+          <div className="space-y-4 mb-8">
+            <div className="text-3xl font-bold text-center animate-slideDown bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+              {scrambledWord}
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div
+                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${(currentWordIndex / gameWords.length) * 100}%` }}
+              ></div>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit}>
@@ -136,8 +148,14 @@ export function WordScramble({ words, unit }: WordScrambleProps) {
               İpucu: {currentWord?.turkish}
             </div>
             {isCorrect === false && (
-              <div className="text-red-500">
-                Yanlış! Tekrar deneyin.
+              <div className="text-center mt-4 text-xl animate-fadeIn">
+                <p className="text-red-600 font-semibold text-2xl mb-2">Yanlış! Doğru cevap:</p>
+                <p className="font-bold text-green-600 text-2xl">{currentWord?.english}</p>
+              </div>
+            )}
+            {isCorrect === true && (
+              <div className="text-center mt-4 text-xl animate-bounce">
+                <p className="text-green-600 font-bold text-3xl">DOĞRU!</p>
               </div>
             )}
           </div>

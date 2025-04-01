@@ -26,7 +26,6 @@ function App() {
 
   const gameModes = [
     { id: 'matching', name: 'Eşleştirme Oyunu', icon: Layout },
-
     { id: 'timed-matching', name: 'Zamanlı Eşleştirme', icon: Clock },
     { id: 'multiple-choice', name: 'Çoktan Seçmeli', icon: Book },
     { id: 'speed', name: 'Hız Oyunu', icon: Timer },
@@ -40,7 +39,6 @@ function App() {
     switch (gameMode) {
       case 'matching':
         return <MatchingGame words={words} unit={currentUnit} />;
-
       case 'timed-matching':
         return <TimedMatchingGame words={words} unit={currentUnit} />;
       case 'multiple-choice':
@@ -59,33 +57,40 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-rose-100 p-8 relative overflow-hidden animate-gradient-xy">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImEiIGN4PSIxMDAlIiBjeT0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIuNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSI4MCIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] animate-sparkle opacity-50"></div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-pink-100 to-rose-100 p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="text-center p-6 rounded-2xl bg-white shadow-lg transition-transform duration-300 hover:scale-102 border border-purple-100">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h1 className="text-4xl font-bold text-[#6A4C93] flex items-center gap-3">
-              <Sparkles className="w-10 h-10 text-[#4B8B9F] animate-pulse" />
-              KOÇ ÜNİVERSİTESİ INTERMEDIATE KELİME ALIŞTIRMASI
-            </h1>
-            <div className="relative">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <button
+            onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+            className="lg:hidden fixed bottom-4 right-4 z-50 p-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full shadow-lg"
+          >
+            Menü
+          </button>
+
+          <div className={`fixed lg:relative inset-0 lg:inset-auto z-40 lg:z-auto ${showUnitDropdown ? 'flex' : 'hidden lg:flex'} lg:w-72 bg-white p-6 rounded-xl shadow-lg border border-purple-100 lg:h-fit lg:sticky lg:top-6 flex-col`}>
+            <div className="w-full mb-4 p-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-center">
+              <h1 className="text-lg font-bold">Koç Üniversitesi Intermediate Words</h1>
+            </div>
+            <div className="flex justify-between items-center lg:block mb-4">
+              <h2 className="text-xl font-bold text-[#6A4C93]">Oyun Modları</h2>
               <button
-                onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl
-                  flex items-center gap-2 font-medium hover:shadow-md transition-all duration-300"
+                onClick={() => setShowUnitDropdown(false)}
+                className="lg:hidden text-gray-500 hover:text-gray-700"
               >
-                <span>Ünite {currentUnit}</span>
-                <svg
-                  className={`w-4 h-4 transition-transform duration-300 ${showUnitDropdown ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
+            </div>
+            <div className="relative mb-4">
+              <button
+                onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+                className="w-full p-4 rounded-xl bg-purple-500 text-white shadow-lg"
+              >
+                Ünite {currentUnit}
+              </button>
               {showUnitDropdown && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-purple-100 py-2 z-10">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-purple-100 py-2 z-10">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((unit) => (
                     <button
                       key={unit}
@@ -93,8 +98,7 @@ function App() {
                         setCurrentUnit(unit.toString());
                         setShowUnitDropdown(false);
                       }}
-                      className={`w-full px-4 py-2 text-left hover:bg-purple-50 transition-colors duration-200
-                        ${currentUnit === unit.toString() ? 'text-purple-600 font-medium' : 'text-gray-700'}`}
+                      className={`w-full px-4 py-2 text-left hover:bg-purple-50 transition-colors duration-200 ${currentUnit === String(unit) ? "text-purple-600 font-medium" : "text-gray-700"}`}
                     >
                       Ünite {unit}
                     </button>
@@ -102,25 +106,15 @@ function App() {
                 </div>
               )}
             </div>
-          </div>
-          <p className="text-[#4B8B9F] text-lg font-medium">Kelime haznenizi geliştirmek için bir oyun modu seçin!</p>
-        </div>
-
-        <div className="flex gap-8">
-          <div className="w-72 bg-white p-6 rounded-xl shadow-lg border border-purple-100 h-fit sticky top-6">
-            <h2 className="text-xl font-bold text-[#6A4C93] mb-4">Oyun Modları</h2>
             <div className="flex flex-col gap-3">
               {gameModes.map(({ id, name, icon: Icon }) => (
                 <button
                   key={id}
-                  onClick={() => setGameMode(id as GameMode)}
-                  className={`
-                    p-4 rounded-xl transition-all duration-300 flex items-center gap-3
-                    transform hover:scale-102 hover:shadow-md w-full
-                    ${gameMode === id 
-                      ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' 
-                      : 'bg-purple-50 text-[#6A4C93] hover:bg-purple-100'}
-                  `}
+                  onClick={() => {
+                    setGameMode(id as GameMode);
+                    setShowUnitDropdown(false);
+                  }}
+                  className={`p-4 rounded-xl transition-all duration-300 flex items-center gap-3 transform hover:scale-102 hover:shadow-md w-full ${gameMode === id ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' : 'bg-purple-50 text-[#6A4C93] hover:bg-purple-100'}`}
                 >
                   <Icon className={`w-6 h-6 transition-transform ${gameMode === id ? 'text-white' : 'text-purple-500'}`} />
                   <span className="text-base font-medium">{name}</span>
