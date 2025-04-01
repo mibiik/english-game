@@ -82,14 +82,14 @@ export function QuizGame({ words, unit }: QuizGameProps) {
   if (!currentWord) return null;
 
   return (
-    <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-xl border border-blue-100">
+    <div className="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-xl border border-blue-100">
       <div className="flex flex-col space-y-6">
         <div className="flex justify-between items-center">
           <div className="space-y-2">
-            <div className="text-2xl font-bold text-blue-800">
+            <div className="text-3xl sm:text-2xl font-bold text-blue-800">
               Skor: {score}
             </div>
-            <div className="text-sm font-medium">
+            <div className="text-base sm:text-sm font-medium">
               <span className="text-blue-600">Streak: {streak} 🔥</span>
               <span className="mx-2 text-gray-400">|</span>
               <span className="text-indigo-600">En İyi Streak: {bestStreak}</span>
@@ -97,7 +97,7 @@ export function QuizGame({ words, unit }: QuizGameProps) {
           </div>
           <button
             onClick={startNewGame}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg
+            className="px-6 py-3 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg text-lg sm:text-base
               transform transition-all duration-300 hover:scale-105 hover:shadow-lg
               active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
           >
@@ -113,19 +113,19 @@ export function QuizGame({ words, unit }: QuizGameProps) {
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-lg border border-blue-50">
-          <div className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-indigo-600
+          <div className="text-4xl sm:text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-indigo-600
             text-transparent bg-clip-text animate-pulse">
             {currentWord.english}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => handleAnswer(option)}
                 disabled={!!selectedOption}
                 className={`
-                  p-4 rounded-xl text-lg font-medium text-center
+                  p-6 sm:p-4 rounded-xl text-xl sm:text-lg font-medium text-center
                   transform transition-all duration-300
                   ${selectedOption
                     ? option === currentWord.turkish
