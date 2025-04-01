@@ -12,6 +12,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [usedWords, setUsedWords] = useState<string[]>([]);
 
   const [selectedEnglishCard, setSelectedEnglishCard] = useState<number | null>(null);
   const [selectedTurkishCard, setSelectedTurkishCard] = useState<number | null>(null);
@@ -22,9 +23,20 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   const startNewGame = () => {
     const unitWords = words.filter(word => word.unit === unit);
-    const gameWords = [...unitWords]
+    const availableWords = unitWords.filter(word => !usedWords.includes(word.english));
+    
+    // Eğer kullanılmamış kelime sayısı 12'den azsa, kullanılan kelimeleri sıfırla
+    if (availableWords.length < 12) {
+      setUsedWords([]);
+    }
+    
+    // Yeni kelimeler seç
+    const gameWords = [...(availableWords.length >= 12 ? availableWords : unitWords)]
       .sort(() => Math.random() - 0.5)
       .slice(0, 12);
+    
+    // Seçilen kelimeleri kullanılanlar listesine ekle
+    setUsedWords(prev => [...prev, ...gameWords.map(word => word.english)]);
     
     const englishCards = gameWords.map(word => ({ ...word, id: Math.random(), type: 'english' }));
     const turkishCards = gameWords.map(word => ({ ...word, id: Math.random(), type: 'turkish' }));

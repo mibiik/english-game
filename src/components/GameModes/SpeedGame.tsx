@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
-import { updateWordDifficulty } from '../../data/difficultWords';
 
 interface SpeedGameProps {
   words: Word[];
@@ -11,16 +10,14 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [input, setInput] = useState('');
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(120); // 120 saniye
   const [isPlaying, setIsPlaying] = useState(false);
-  const [unitWords, setUnitWords] = useState<Word[]>([]);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [highestStreak, setHighestStreak] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
-
-  useEffect(() => {
-    setUnitWords(words);
-  }, [words]);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [bonusPoints, setBonusPoints] = useState(0);
 
   useEffect(() => {
     if (isPlaying && timeLeft > 0) {
@@ -33,10 +30,20 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
     }
   }, [isPlaying, timeLeft]);
 
+  const calculateBonusPoints = (currentStreak: number) => {
+    if (currentStreak >= 5) return 5;
+    if (currentStreak >= 3) return 3;
+    return 1;
+  };
+
   const startGame = () => {
     setScore(0);
-    setTimeLeft(60);
+    setTimeLeft(120);
     setIsPlaying(true);
+    setStreak(0);
+    setHighestStreak(0);
+    setTotalAttempts(0);
+    setBonusPoints(0);
     nextWord();
   };
 
@@ -44,114 +51,151 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
     const randomIndex = Math.floor(Math.random() * words.length);
     setCurrentWord(words[randomIndex]);
     setInput('');
+    setShowCorrectAnswer(false);
+    setIsCorrect(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPlaying || !currentWord) return;
 
-    setTotalAttempts(totalAttempts + 1);
-    const isAnswerCorrect = input.toLowerCase() === currentWord.turkish.toLowerCase();
+    setTotalAttempts(prev => prev + 1);
+    const userInput = input.toLowerCase().trim();
+    const correctAnswer = currentWord.turkish.toLowerCase().trim();
+    const isAnswerCorrect = userInput === correctAnswer || correctAnswer.includes(userInput) || userInput.includes(correctAnswer);
     setIsCorrect(isAnswerCorrect);
 
     if (isAnswerCorrect) {
-      setScore(score + 1);
-      setShowCorrectAnswer(false);
-      updateWordDifficulty(currentWord, true);
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      setHighestStreak(Math.max(highestStreak, newStreak));
+      const bonus = calculateBonusPoints(newStreak);
+      setBonusPoints(prev => prev + bonus);
+      setScore(prev => prev + bonus);
+      
       setTimeout(() => {
         nextWord();
-        setIsCorrect(null);
       }, 1000);
     } else {
+      setStreak(0);
       setShowCorrectAnswer(true);
-      updateWordDifficulty(currentWord, false);
+      setTimeout(() => {
+        setShowCorrectAnswer(false);
+      }, 2000);
     }
   };
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 bg-white rounded-xl shadow-lg transform transition-all duration-300 hover:shadow-xl">
-      <div className="flex justify-between items-center mb-3 sm:mb-4">
-        <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-          Skor: {score}
+    <div className="p-6 bg-gradient-to-br from-teal-50 to-emerald-50 rounded-2xl shadow-xl transform transition-all duration-300 hover:shadow-2xl border border-teal-100">
+      <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 text-transparent bg-clip-text animate-pulse">
+            Skor: {score}
+          </div>
+          <div className="text-lg font-semibold text-teal-600 animate-bounce">
+            Bonus: +{bonusPoints}
+          </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="group px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer relative transform hover:scale-105">
-            <span className="font-medium text-white flex items-center gap-2">
-              Ünite: {unit}
-              <svg
-                className="w-5 h-5 transform transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </span>
+          <div className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 text-transparent bg-clip-text animate-pulse">
+            {timeLeft}s
           </div>
-          <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-            Süre: {timeLeft}s
+          <div className="text-lg font-semibold text-teal-600">
+            Seri: {streak} 🔥
           </div>
         </div>
       </div>
 
       {!isPlaying ? (
-        <button
-          onClick={startGame}
-          className="w-full py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
-            transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-            active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-sm sm:text-base md:text-lg"
-        >
-          Oyunu Başlat
-        </button>
+        <div className="text-center space-y-6">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 text-transparent bg-clip-text mb-4 animate-pulse">
+            Hız Oyunu
+          </h2>
+          <p className="text-teal-600 mb-6 font-semibold">
+            En yüksek seri: {highestStreak} 🏆
+          </p>
+          <button
+            onClick={startGame}
+            className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl
+              transform transition-all duration-300 hover:scale-105 hover:shadow-lg
+              active:scale-95 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50
+              text-xl font-bold backdrop-blur-sm"
+          >
+            Oyunu Başlat
+          </button>
+        </div>
       ) : (
-        <div>
-          <div className="space-y-4">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8 bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
+        <div className="space-y-6">
+          <div className="relative bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg border border-teal-100">
+            <div className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
               {currentWord?.english}
             </div>
-            {isCorrect === false && (
-              <div className="text-center mt-4 text-xl animate-fadeIn">
-                <p className="text-red-600 font-semibold text-2xl mb-2">Yanlış! Doğru cevap:</p>
-                <p className="font-bold text-green-600 text-2xl">{currentWord?.turkish}</p>
+            {streak >= 3 && (
+              <div className="absolute top-2 right-2 animate-pulse">
+                <span className="text-sm font-semibold text-teal-600 animate-bounce">
+                  {streak >= 5 ? '+5' : '+3'} bonus!
+                </span>
               </div>
             )}
-            {isCorrect === true && (
-              <div className="text-center mt-4 text-xl animate-bounce">
-                <p className="text-green-600 font-bold text-3xl">DOĞRU!</p>
-              </div>
-            )}
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full transition-all duration-500"
-                style={{ width: `${(score / totalAttempts) * 100 || 0}%` }}
-              ></div>
-            </div>
           </div>
-          <form onSubmit={handleSubmit}>
+
+          {isCorrect !== null && (
+            <div className={`text-center transition-all duration-300 ${isCorrect ? 'animate-bounce' : 'animate-shake'}`}>
+              {isCorrect ? (
+                <div className="text-green-500 font-bold text-2xl">DOĞRU! 🎉</div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-red-500 font-bold text-xl">Yanlış</div>
+                  {showCorrectAnswer && (
+                    <div className="text-green-600 font-semibold">
+                      Doğru cevap: {currentWord?.turkish}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${(score / (totalAttempts || 1)) * 100}%` }}
+            />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="w-full p-2.5 sm:p-3 md:p-4 border-2 rounded-lg mb-2 sm:mb-3 md:mb-4 transition-all duration-300
-                border-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
-                transform hover:scale-102 text-sm sm:text-base md:text-lg"
+              className="w-full p-4 border-2 rounded-xl
+                border-teal-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50
+                transform transition-all duration-300 hover:shadow-md
+                text-lg placeholder-teal-400 bg-white/80 backdrop-blur-sm"
               placeholder="Türkçe çevirisini yazın..."
               autoFocus
             />
-            <button
-              type="submit"
-              className="w-full py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
-                transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-sm sm:text-base md:text-lg"
-            >
-              Gönder
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="flex-1 py-4 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl
+                  transform transition-all duration-300 hover:scale-105 hover:shadow-lg
+                  active:scale-95 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50
+                  text-lg font-semibold backdrop-blur-sm"
+              >
+                Gönder
+              </button>
+              <button
+                type="button"
+                onClick={nextWord}
+                className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl
+                  transform transition-all duration-300 hover:scale-105 hover:shadow-lg
+                  active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-50
+                  text-lg font-semibold backdrop-blur-sm"
+              >
+                Pas Geç
+              </button>
+            </div>
           </form>
         </div>
       )}

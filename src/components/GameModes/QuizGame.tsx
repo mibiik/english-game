@@ -10,134 +10,154 @@ export function QuizGame({ words, unit }: QuizGameProps) {
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [streak, setStreak] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
-  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const filteredWords = words.filter(word => word.unit === unit);
-    if (filteredWords.length > 0) {
-      startNewQuestion(filteredWords);
-    }
+    startNewGame();
   }, [unit, words]);
 
-  const startNewQuestion = (wordList: Word[]) => {
-    const randomIndex = Math.floor(Math.random() * wordList.length);
-    const word = wordList[randomIndex];
-    setCurrentWord(word);
+  const startNewGame = () => {
+    setScore(0);
+    setTotalQuestions(0);
+    setStreak(0);
+    generateNewQuestion();
+  };
 
-    // Doğru cevap ve 3 yanlış seçenek oluştur
-    const wrongOptions = wordList
-      .filter(w => w.turkish !== word.turkish)
+  const generateNewQuestion = () => {
+    const filteredWords = words.filter(word => word.unit === unit);
+    if (filteredWords.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * filteredWords.length);
+    const newWord = filteredWords[randomIndex];
+    setCurrentWord(newWord);
+
+    const wrongOptions = filteredWords
+      .filter(w => w.turkish !== newWord.turkish)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
       .map(w => w.turkish);
 
-    const allOptions = [...wrongOptions, word.turkish];
+    const allOptions = [...wrongOptions, newWord.turkish];
     setOptions(allOptions.sort(() => Math.random() - 0.5));
     setSelectedOption(null);
     setIsCorrect(null);
-    setShowCorrectAnswer(false);
+    setShowFeedback(false);
   };
 
-  const handleOptionSelect = async (index: number) => {
-    if (selectedOption !== null || !currentWord) return;
+  const handleAnswer = (answer: string) => {
+    if (!currentWord || selectedOption) return;
 
-    try {
-      setSelectedOption(index);
-      const isAnswerCorrect = options[index] === currentWord.turkish;
-      setIsCorrect(isAnswerCorrect);
+    setSelectedOption(answer);
+    const correct = answer === currentWord.turkish;
+    setIsCorrect(correct);
+    setShowFeedback(true);
+    setTotalQuestions(prev => prev + 1);
 
-      if (isAnswerCorrect) {
-        const streakBonus = Math.floor(streak / 2);
-        const points = 10 + streakBonus;
-        setScore(prev => prev + points);
-        setStreak(prev => prev + 1);
-        setBestScore(prev => Math.max(prev, score + points));
-      } else {
-        setStreak(0);
-        setScore(prev => Math.max(0, prev - 5));
-        setShowCorrectAnswer(true);
-      }
+    if (correct) {
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      setBestStreak(prev => Math.max(prev, newStreak));
+      setScore(prev => prev + (10 + Math.floor(newStreak / 3)));
+      setProgress(prev => Math.min(100, prev + 10));
 
-      setAttempts(prev => prev + 1);
+      setTimeout(() => {
+        generateNewQuestion();
+      }, 1000);
+    } else {
+      setStreak(0);
+      setProgress(prev => Math.max(0, prev - 5));
 
-      // 2 saniye sonra yeni soruya geç
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      startNewQuestion(words.filter(word => word.unit === unit));
-    } catch (error) {
-      console.error('Seçenek seçme hatası:', error);
-      setSelectedOption(null);
-      setIsCorrect(null);
+      setTimeout(() => {
+        generateNewQuestion();
+      }, 2000);
     }
   };
 
-  const startGame = () => {
-    setScore(0);
-    setAttempts(0);
-    setStreak(0);
-    startNewQuestion(words.filter(word => word.unit === unit));
-  };
+  if (!currentWord) return null;
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl shadow-lg border border-yellow-100">
-      {(
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-            <div className="flex flex-col gap-2 w-full sm:w-auto text-center sm:text-left">
-              <div className="text-xl sm:text-2xl font-bold text-orange-800">
-                Puan: {score}
-              </div>
-              <div className="text-sm font-medium text-orange-600">
-                Streak: {streak} 🔥
-              </div>
-              <div className="text-sm font-medium text-orange-600">
-                En İyi Puan: {bestScore}
-              </div>
+    <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-xl border border-blue-100">
+      <div className="flex flex-col space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <div className="text-2xl font-bold text-blue-800">
+              Skor: {score}
             </div>
-            <button
-              onClick={() => startGame()}
-              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg
-                transform transition-all duration-300 hover:scale-105 hover:shadow-md
-                active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 text-sm sm:text-base"
-            >
-              Yeniden Başla
-            </button>
-          </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md border border-yellow-200">
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-4 sm:mb-6 md:mb-8 bg-gradient-to-r from-yellow-600 to-orange-600 text-transparent bg-clip-text">
-              {currentWord?.english}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-              {options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleOptionSelect(index)}
-                  className={`
-                    p-3 sm:p-4 rounded-lg text-sm sm:text-base md:text-lg font-medium text-center
-                    transform transition-all duration-300 cursor-pointer
-                    ${selectedOption === index
-                      ? isCorrect
-                        ? 'bg-green-100 text-green-800 scale-105 shadow-lg ring-2 ring-green-400'
-                        : 'bg-red-100 text-red-800 scale-105 shadow-lg ring-2 ring-red-400'
-                      : showCorrectAnswer && option === currentWord?.turkish
-                        ? 'animate-pulse bg-green-100 text-green-800 scale-105 shadow-lg ring-2 ring-green-400'
-                        : 'bg-white hover:bg-yellow-50 hover:shadow-md border-2 border-yellow-200 text-yellow-700'
-                    }
-                  `}
-                >
-                  {option}
-                </button>
-              ))}
+            <div className="text-sm font-medium">
+              <span className="text-blue-600">Streak: {streak} 🔥</span>
+              <span className="mx-2 text-gray-400">|</span>
+              <span className="text-indigo-600">En İyi Streak: {bestStreak}</span>
             </div>
           </div>
+          <button
+            onClick={startNewGame}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg
+              transform transition-all duration-300 hover:scale-105 hover:shadow-lg
+              active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Yeniden Başla
+          </button>
         </div>
-      )}
+
+        <div className="w-full bg-blue-100 rounded-full h-2">
+          <div
+            className="h-2 bg-blue-500 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-blue-50">
+          <div className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-indigo-600
+            text-transparent bg-clip-text animate-pulse">
+            {currentWord.english}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswer(option)}
+                disabled={!!selectedOption}
+                className={`
+                  p-4 rounded-xl text-lg font-medium text-center
+                  transform transition-all duration-300
+                  ${selectedOption
+                    ? option === currentWord.turkish
+                      ? 'bg-green-100 text-green-800 scale-105 shadow-lg ring-2 ring-green-400'
+                      : option === selectedOption
+                        ? 'bg-red-100 text-red-800 scale-105 shadow-lg ring-2 ring-red-400'
+                        : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-50 hover:bg-blue-100 hover:shadow-md text-blue-800 cursor-pointer'
+                  }
+                `}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+
+          {showFeedback && (
+            <div className={`mt-6 text-center text-lg font-medium
+              ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+              {isCorrect
+                ? `Harika! +${10 + Math.floor(streak / 3)} puan kazandın!`
+                : `Yanlış! Doğru cevap: ${currentWord.turkish}`}
+            </div>
+          )}
+        </div>
+
+        <div className="text-center text-sm text-gray-600">
+          Toplam Soru: {totalQuestions} | Doğruluk: {totalQuestions > 0
+            ? `${Math.round((score / (totalQuestions * 10)) * 100)}%`
+            : '0%'}
+        </div>
+      </div>
     </div>
   );
 }
