@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
+import { updateWordDifficulty } from '../../data/difficultWords';
 
 interface WordScrambleProps {
   words: Word[];
@@ -68,6 +69,7 @@ export function WordScramble({ words, unit }: WordScrambleProps) {
 
     if (isAnswerCorrect) {
       setScore(score + 1);
+      updateWordDifficulty(currentWord, true);
       setTimeout(() => {
         nextWord();
         setIsCorrect(null);
@@ -75,6 +77,7 @@ export function WordScramble({ words, unit }: WordScrambleProps) {
     } else {
       if (!wrongWords.includes(currentWord)) {
         setWrongWords([...wrongWords, currentWord]);
+        updateWordDifficulty(currentWord, false);
       }
       setInput('');
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
+import { updateWordDifficulty } from '../../data/difficultWords';
 
 interface SpeedGameProps {
   words: Word[];
@@ -56,12 +57,14 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
     if (isAnswerCorrect) {
       setScore(score + 1);
       setShowCorrectAnswer(false);
+      updateWordDifficulty(currentWord, true);
       setTimeout(() => {
         nextWord();
         setIsCorrect(null);
       }, 1000);
     } else {
       setShowCorrectAnswer(true);
+      updateWordDifficulty(currentWord, false);
     }
   };
 
@@ -72,8 +75,24 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
           Skor: {score}
         </div>
         <div className="flex items-center gap-4">
-          <div className="px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg border-2 border-purple-300 hover:border-purple-500 hover:shadow-md transition-all duration-300 cursor-pointer">
-            <span className="font-medium text-purple-700">Ünite: {unit}</span>
+          <div className="group px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer relative transform hover:scale-105">
+            <span className="font-medium text-white flex items-center gap-2">
+              Ünite: {unit}
+              <svg
+                className="w-5 h-5 transform transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </span>
           </div>
           <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
             Süre: {timeLeft}s

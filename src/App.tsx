@@ -85,9 +85,26 @@ function App() {
             <div className="relative mb-4">
               <button
                 onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                className="w-full p-4 rounded-xl bg-purple-500 text-white shadow-lg"
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-blue-800 via-blue-700 to-emerald-600 text-white shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:from-blue-900 hover:via-blue-800 hover:to-emerald-700 border border-blue-600 hover:border-emerald-500 relative overflow-hidden group"
               >
-                Ünite {currentUnit}
+                <span className="font-medium text-white flex items-center justify-between relative z-10">
+                  <span>Ünite {currentUnit}</span>
+                  <svg
+                    className={`w-5 h-5 transform transition-transform duration-300 ${showUnitDropdown ? 'rotate-180' : ''} group-hover:translate-y-0.5`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-blue-800 to-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 glow"></div>
               </button>
               {showUnitDropdown && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-purple-100 py-2 z-10">
@@ -124,14 +141,13 @@ function App() {
           </div>
 
           <div className="flex-1">
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100 mb-6">
+            <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100">
               {renderGame()}
             </div>
+            <div className="text-center text-[#6A4C93] text-lg font-medium mt-4 mb-6">
+              powered by mirac
+            </div>
           </div>
-        </div>
-
-        <div className="text-center text-[#6A4C93] opacity-70 text-base font-medium">
-          powered by mirac
         </div>
       </div>
     </div>

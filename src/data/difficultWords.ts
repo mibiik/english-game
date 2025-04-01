@@ -37,10 +37,11 @@ export const updateWordDifficulty = (word: Word, isCorrect: boolean) => {
     }
     wordDifficulty.lastAttemptDate = new Date().toISOString();
     state.words[existingWordIndex] = wordDifficulty;
-  } else {
+  } else if (!isCorrect) {
+    // Sadece yanlış cevaplanan kelimeleri ekle
     state.words.push({
       word,
-      wrongAttempts: isCorrect ? 0 : 1,
+      wrongAttempts: 1,
       totalAttempts: 1,
       lastAttemptDate: new Date().toISOString()
     });
@@ -53,7 +54,7 @@ export const updateWordDifficulty = (word: Word, isCorrect: boolean) => {
 export const getMostDifficultWords = (limit: number = 10): WordDifficulty[] => {
   const state = getDifficultWords();
   return state.words
-    .filter(w => w.totalAttempts > 0)
+    .filter(w => w.totalAttempts > 0 && (w.wrongAttempts / w.totalAttempts) >= 0.5)
     .sort((a, b) => (b.wrongAttempts / b.totalAttempts) - (a.wrongAttempts / a.totalAttempts))
     .slice(0, limit);
 };

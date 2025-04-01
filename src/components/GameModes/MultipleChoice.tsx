@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
+import { updateWordDifficulty } from '../../data/difficultWords';
 
 interface MultipleChoiceProps {
   words: Word[];
@@ -46,6 +47,9 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
     setSelectedAnswer(answer);
     setIsCorrect(correct);
     setTotalAnswered(prev => prev + 1);
+
+    // Zorlu kelimeler sistemine kelimeyi ekle
+    updateWordDifficulty(currentWord, correct);
 
     if (correct) {
       setScore(prev => prev + 1);
