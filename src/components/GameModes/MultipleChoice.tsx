@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
+import { wordTracker } from '../../data/wordTracker';
 import { updateWordDifficulty } from '../../data/difficultWords';
+import { learningStats } from '../../data/learningStats';
 
 interface MultipleChoiceProps {
   words: Word[];
@@ -20,13 +22,16 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
     const filteredWords = words.filter(word => word.unit === unit);
     setUnitWords(filteredWords);
     if (filteredWords.length > 0) {
+      wordTracker.initializeUnit(words, unit);
       generateOptions(filteredWords, 0);
     }
   }, [words, unit]);
 
   const generateOptions = (wordList: Word[], index: number) => {
-    const currentWord = wordList[index];
+    const currentWord = wordTracker.getNextWord(words, unit);
     if (!currentWord) return;
+    
+    wordTracker.markWordAsSeen(currentWord);
 
     const allWords = words.filter(w => w.turkish !== currentWord.turkish);
     const wrongOptions = allWords
@@ -53,6 +58,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
 
     if (correct) {
       setScore(prev => prev + 1);
+      learningStats.recordWordLearned(currentWord);
     }
 
     setTimeout(() => {
@@ -83,6 +89,8 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
   if (unitWords.length === 0) {
     return <div className="text-center p-4">Bu ünitede kelime bulunmamaktadır.</div>;
   }
+
+  const isGameComplete = currentWordIndex === unitWords.length - 1 && selectedAnswer !== null;
 
   const currentWord = unitWords[currentWordIndex];
   const progress = ((currentWordIndex + 1) / unitWords.length) * 100;
@@ -126,6 +134,73 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
       {isCorrect !== null && (
         <div className={`text-center text-lg font-semibold ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
           {isCorrect ? 'Doğru!' : `Yanlış! Doğru cevap: ${currentWord.turkish}`}
+        </div>
+      )}
+
+      {isGameComplete && (
+        <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Oyun Sonu Analizi</h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold text-blue-800 mb-2">Genel Performans</h4>
+                <p className="text-blue-700">Toplam Soru: <span className="font-bold">{unitWords.length}</span></p>
+                <p className="text-green-700">Doğru Cevap: <span className="font-bold">{score}</span></p>
+                <p className="text-red-700">Yanlış Cevap: <span className="font-bold">{totalAnswered - score}</span></p>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold text-green-800 mb-2">Doğruluk Oranı</h4>
+                <p className="text-green-700 text-2xl font-bold">
+                  {totalAnswered > 0 ? `${Math.round((score / totalAnswered) * 100)}%` : '0%'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold text-purple-800 mb-2">İlerleme Durumu</h4>
+                <div className="w-full bg-purple-200 rounded-full h-4 mb-2">
+                  <div
+                    className="bg-purple-600 h-4 rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-purple-700">Ünite Tamamlanma: <span className="font-bold">{Math.round(progress)}%</span></p>
+              </div>
+
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold text-orange-800 mb-2">Öğrenme Performansı</h4>
+                <p className="text-orange-700">
+                  {totalAnswered > 0 ?
+                    (score / totalAnswered >= 0.8 ?
+                      'Harika bir performans! Bu üniteyi başarıyla tamamladınız.' :
+                      score / totalAnswered >= 0.6 ?
+                        'İyi gidiyorsunuz! Biraz daha pratik yaparak daha da gelişebilirsiniz.' :
+                        'Bu ünite için biraz daha çalışmanız gerekiyor.'
+                    ) : 'Henüz yeterli veri yok.'}
+                </p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold text-blue-800 mb-2">Kelime İlerlemesi</h4>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-blue-600">
+                    {(() => {
+                      const progress = wordTracker.getProgress(unit);
+                      return `${progress.seenCount}/${progress.totalCount} kelime görüldü (${progress.percentage}%)`;
+                    })()}
+                  </div>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${wordTracker.getProgress(unit).percentage}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

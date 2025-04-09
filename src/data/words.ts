@@ -6,8 +6,33 @@ export interface Word {
 
 const getCustomWords = (): Word[] => {
   if (typeof window === 'undefined') return [];
-  const savedWords = localStorage.getItem('customWords');
-  return savedWords ? JSON.parse(savedWords) : [];
+  try {
+    const allCustomWords: Word[] = [];
+    
+    // Tüm ünitelerdeki özel kelimeleri topla
+    for (let unit = 1; unit <= 12; unit++) {
+      const savedWords = localStorage.getItem(`customWords_unit_${unit}`);
+      if (savedWords) {
+        const parsedWords = JSON.parse(savedWords);
+        if (Array.isArray(parsedWords)) {
+          // Kelime formatını doğrula
+          const validWords = parsedWords.filter(word =>
+            word &&
+            typeof word === 'object' &&
+            typeof word.english === 'string' &&
+            typeof word.turkish === 'string' &&
+            typeof word.unit === 'string'
+          );
+          allCustomWords.push(...validWords);
+        }
+      }
+    }
+    
+    return allCustomWords;
+  } catch (error) {
+    console.error('Özel kelimeler yüklenirken hata oluştu:', error);
+    return [];
+  }
 };
 
 export const words: Word[] = [

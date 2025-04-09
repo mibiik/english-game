@@ -1,148 +1,137 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../../data/words';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 
 interface FlashCardProps {
-  words: Word[];
-  unit: number;
+  words: {
+    english: string;
+    turkish: string;
+    unit: string;
+  }[];
+  unit: string;
 }
 
-export function FlashCard({ words, unit }: FlashCardProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+export const FlashCard: React.FC<FlashCardProps> = ({ words, unit }) => {
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [unitWords, setUnitWords] = useState<Word[]>([]);
+  const [score, setScore] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const filteredWords = words.filter((word) => word.unit === unit);
 
   useEffect(() => {
-    const filteredWords = words.filter(word => word.unit === unit);
-    setUnitWords(filteredWords);
-    setProgress(0);
-    setCurrentIndex(0);
+    setCurrentWordIndex(0);
     setIsFlipped(false);
-  }, [unit, words]);
+    setProgress(0);
+  }, [unit]);
 
-  const handleNextCard = () => {
-    if (currentIndex < unitWords.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setIsFlipped(false);
-      setCurrentIndex(nextIndex);
-      setProgress((nextIndex / (unitWords.length - 1)) * 100);
-    }
+  const handleCardClick = () => {
+    setIsFlipped(!isFlipped);
   };
 
-  const handlePrevCard = () => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setIsFlipped(false);
-      setCurrentIndex(prevIndex);
-      setProgress((prevIndex / (unitWords.length - 1)) * 100);
+  const handleNextCard = (known: boolean) => {
+    if (known) {
+      setScore(score + 1);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1000);
     }
+
+    setIsFlipped(false);
+    setTimeout(() => {
+      if (currentWordIndex < filteredWords.length - 1) {
+        setCurrentWordIndex(currentWordIndex + 1);
+        setProgress(((currentWordIndex + 1) / filteredWords.length) * 100);
+      } else {
+        setCurrentWordIndex(0);
+        setProgress(0);
+      }
+    }, 200);
   };
 
-  if (unitWords.length === 0) return null;
+  if (filteredWords.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-lg text-gray-600">Bu ünitede henüz kelime bulunmamaktadır.</p>
+      </div>
+    );
+  }
+
+  const currentWord = filteredWords[currentWordIndex];
 
   return (
-    <div className="min-h-[80vh] sm:min-h-[600px] flex flex-col justify-center items-center p-2 sm:p-4 md:p-6">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-3 sm:p-4 md:p-6">
-        <div className="mb-8">
-          <div className="relative h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#4B8B9F] to-[#6A4C93] transition-all duration-500 ease-out"
-              style={{ width: `${progress}%` }}
-            />
+    <div className="flex flex-col items-center space-y-6 p-4">
+      <div className="w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-lg font-semibold text-purple-600">
+            Kelime {currentWordIndex + 1}/{filteredWords.length}
           </div>
-          <div className="flex justify-between items-center mt-3">
-            <span className="text-sm font-medium text-[#4B8B9F]">
-              Kelime {currentIndex + 1} / {unitWords.length}
-            </span>
-            <span className="text-sm font-medium text-[#6A4C93]">
-              {Math.round(progress)}%
-            </span>
+          <div className="text-lg font-semibold text-green-600">
+            Skor: {score}
           </div>
         </div>
 
-        <div
-          className={`
-            relative w-full aspect-[3/2] sm:aspect-[4/3] md:aspect-[3/2] mx-auto
-            [perspective:1000px] cursor-pointer
-            group
-          `}
-          onClick={() => setIsFlipped(!isFlipped)}
-        >
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
           <div
-            className={`
-              absolute inset-0 w-full h-full
-              [transform-style:preserve-3d] transition-transform duration-100 ease-out
-              ${isFlipped ? '[transform:rotateY(180deg)]' : '[transform:rotateY(0deg)]'}
-            `}
-          >
-            <div
-              className={`
-                absolute inset-0 w-full h-full
-                flex flex-col items-center justify-center
-                bg-gradient-to-br from-white to-gray-50
-                shadow-lg rounded-2xl p-8
-                [backface-visibility:hidden]
-                group-hover:shadow-xl
-                transition-shadow duration-300
-                border border-gray-100
-              `}
-            >
-              <span className="text-lg sm:text-2xl md:text-4xl font-bold text-[#4B8B9F] text-center break-words">
-                {unitWords[currentIndex].english}
-              </span>
-              <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">Çevirmek için tıkla</span>
-            </div>
-
-            <div
-              className={`
-                absolute inset-0 w-full h-full
-                flex flex-col items-center justify-center
-                bg-gradient-to-br from-white to-gray-50
-                shadow-lg rounded-2xl p-8
-                [backface-visibility:hidden] [transform:rotateY(180deg)]
-                group-hover:shadow-xl
-                transition-shadow duration-300
-                border border-gray-100
-              `}
-            >
-              <span className="text-lg sm:text-2xl md:text-4xl font-bold text-[#FF8C42] text-center break-words">
-                {unitWords[currentIndex].turkish}
-              </span>
-              <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">Çevirmek için tıkla</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-between mt-6 sm:mt-8 gap-3 sm:gap-4">
-          <button
-            onClick={handlePrevCard}
-            disabled={currentIndex === 0}
-            className={`
-              flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-medium
-              transition-all duration-300 transform
-              ${currentIndex === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-[#4B8B9F] shadow-md hover:shadow-lg hover:scale-105 active:scale-95'}
-            `}
-          >
-            Önceki
-          </button>
-
-          <button
-            onClick={handleNextCard}
-            disabled={currentIndex === unitWords.length - 1}
-            className={`
-              flex-1 px-4 sm:px-6 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-medium
-              transition-all duration-300 transform
-              ${currentIndex === unitWords.length - 1
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-[#4B8B9F] shadow-md hover:shadow-lg hover:scale-105 active:scale-95'}
-            `}
-          >
-            Sonraki
-          </button>
+            className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
+
+      <div className="relative w-full max-w-md aspect-[3/2] perspective-1000">
+        <motion.div
+          className="w-full h-full cursor-pointer transform-style-3d"
+          onClick={handleCardClick}
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          <div className="absolute w-full h-full backface-hidden">
+            <div className="w-full h-full bg-white rounded-xl shadow-lg p-8 flex items-center justify-center border-2 border-purple-200 hover:border-purple-400 transition-colors">
+              <h2 className="text-3xl font-bold text-center text-purple-700">
+                {currentWord.english}
+              </h2>
+            </div>
+          </div>
+          <div className="absolute w-full h-full backface-hidden rotate-y-180">
+            <div className="w-full h-full bg-purple-50 rounded-xl shadow-lg p-8 flex items-center justify-center border-2 border-purple-200 hover:border-purple-400 transition-colors">
+              <h2 className="text-3xl font-bold text-center text-purple-700">
+                {currentWord.turkish}
+              </h2>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="flex space-x-4 mt-6">
+        <button
+          onClick={() => handleNextCard(false)}
+          className="px-6 py-3 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200 transition-colors"
+        >
+          Bilmiyorum
+        </button>
+        <button
+          onClick={() => handleNextCard(true)}
+          className="px-6 py-3 bg-green-100 text-green-600 rounded-lg font-semibold hover:bg-green-200 transition-colors"
+        >
+          Biliyorum
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            <span>Harika!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-}
+};

@@ -1,200 +1,129 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
-import { updateWordDifficulty } from '../../data/difficultWords';
+import { learningStats } from '../../data/learningStats';
 
 interface WordScrambleProps {
   words: Word[];
   unit: string;
 }
 
-export function WordScramble({ words, unit }: WordScrambleProps) {
+export const WordScramble: React.FC<WordScrambleProps> = ({ words, unit }) => {
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [scrambledWord, setScrambledWord] = useState('');
-  const [input, setInput] = useState('');
-  const [score, setScore] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-  const [unitWords, setUnitWords] = useState<Word[]>([]);
-  const [gameWords, setGameWords] = useState<Word[]>([]);
-  const [wrongWords, setWrongWords] = useState<Word[]>([]);
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [userInput, setUserInput] = useState('');
+  const [message, setMessage] = useState('');
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [isEnglishMode, setIsEnglishMode] = useState(false);
 
-  useEffect(() => {
-    const filteredWords = words.filter(word => word.unit === unit);
-    setUnitWords(filteredWords);
-    // Her bölüm için rastgele 12 kelime seç
-    const selectedWords = [...filteredWords]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 12);
-    setGameWords(selectedWords);
-    setCurrentWordIndex(0);
-    setWrongWords([]);
-    setScore(0);
-    setAttempts(0);
-    if (selectedWords.length > 0) {
-      setCurrentWord(selectedWords[0]);
-      setScrambledWord(scrambleWord(selectedWords[0].english));
-    }
-  }, [unit, words]);
+  const unitWords = words.filter((word) => word.unit === unit);
 
   const scrambleWord = (word: string) => {
-    return word
-      .split('')
-      .sort(() => Math.random() - 0.5)
-      .join('');
+    const array = word.toLowerCase().split('');
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array.join('');
   };
 
-  const nextWord = () => {
-    if (currentWordIndex < gameWords.length - 1) {
-      const nextIndex = currentWordIndex + 1;
-      setCurrentWordIndex(nextIndex);
-      setCurrentWord(gameWords[nextIndex]);
-      setScrambledWord(scrambleWord(gameWords[nextIndex].english));
-      setInput('');
-      setIsCorrect(null);
-      setShowResult(false);
-    } else {
-      setShowResult(true);
-    }
+  const getNextWord = () => {
+    const randomIndex = Math.floor(Math.random() * unitWords.length);
+    const word = unitWords[randomIndex];
+    setCurrentWord(word);
+    setScrambledWord(scrambleWord(isEnglishMode ? word.english : word.turkish));
+    setUserInput('');
+    setMessage('');
+    setIsCorrect(false);
+    setShowAnswer(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentWord) return;
 
-    setAttempts(attempts + 1);
-    const isAnswerCorrect = input.toLowerCase() === currentWord.english.toLowerCase();
-    setIsCorrect(isAnswerCorrect);
-
-    if (isAnswerCorrect) {
-      setScore(score + 1);
-      updateWordDifficulty(currentWord, true);
-      setTimeout(() => {
-        nextWord();
-        setIsCorrect(null);
-      }, 1000);
+    if (userInput.toLowerCase() === (isEnglishMode ? currentWord.english : currentWord.turkish).toLowerCase()) {
+      setMessage('Doğru!');
+      setIsCorrect(true);
+      learningStats.recordWordLearned(currentWord);
+      setTimeout(getNextWord, 1500);
     } else {
-      if (!wrongWords.includes(currentWord)) {
-        setWrongWords([...wrongWords, currentWord]);
-        updateWordDifficulty(currentWord, false);
-      }
-      setInput('');
+      setMessage('Yanlış, tekrar deneyin.');
     }
   };
 
-  const startNewGame = () => {
-    const selectedWords = [...unitWords]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 12);
-    setGameWords(selectedWords);
-    setCurrentWordIndex(0);
-    setCurrentWord(selectedWords[0]);
-    setScrambledWord(scrambleWord(selectedWords[0].english));
-    setWrongWords([]);
-    setScore(0);
-    setAttempts(0);
-    setInput('');
-    setIsCorrect(null);
-    setShowResult(false);
-  };
+  useEffect(() => {
+    getNextWord();
+  }, [unit]);
+
+  useEffect(() => {
+    if (currentWord) {
+      setScrambledWord(scrambleWord(isEnglishMode ? currentWord.english : currentWord.turkish));
+    }
+  }, [isEnglishMode, currentWord]);
 
   return (
-    <div className="p-8 bg-white rounded-xl shadow-xl transform transition-all duration-500 hover:shadow-2xl">
-      {!showResult ? (
-        <>
-          <div className="flex justify-between mb-6 animate-fadeIn">
-            <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-              Score: {score}
-            </div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-              Word: {currentWordIndex + 1}/12
-            </div>
-          </div>
-
-          <div className="space-y-4 mb-8">
-            <div className="text-3xl font-bold text-center animate-slideDown bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-              {scrambledWord}
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2.5 rounded-full transition-all duration-500"
-                style={{ width: `${(currentWordIndex / gameWords.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className={`w-full p-4 border-2 rounded-lg mb-4 transition-all duration-300 focus:ring-2 focus:ring-opacity-50 transform hover:scale-102
-                ${isCorrect === true ? 'border-green-500 bg-green-50 focus:ring-green-500' : 
-                  isCorrect === false ? 'border-red-500 bg-red-50 focus:ring-red-500' : 
-                  'border-purple-300 focus:border-purple-500 focus:ring-purple-500'}`}
-              placeholder="Unscramble the word..."
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
-                transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-            >
-              Submit
-            </button>
-          </form>
-
-          <div className="mt-4 space-y-2">
-            <div className="text-gray-600">
-              İpucu: {currentWord?.turkish}
-            </div>
-            {isCorrect === false && (
-              <div className="text-center mt-4 text-xl animate-fadeIn">
-                <p className="text-red-600 font-semibold text-2xl mb-2">Yanlış! Doğru cevap:</p>
-                <p className="font-bold text-green-600 text-2xl">{currentWord?.english}</p>
-              </div>
-            )}
-            {isCorrect === true && (
-              <div className="text-center mt-4 text-xl animate-bounce">
-                <p className="text-green-600 font-bold text-3xl">DOĞRU!</p>
-              </div>
-            )}
-          </div>
-        </>
-      ) : (
-        <div className="text-center animate-fadeIn">
-          <h2 className="text-4xl font-bold mb-4 animate-bounce bg-gradient-to-r from-purple-600 to-pink-600 text-transparent bg-clip-text">
-            Oyun Bitti!
+    <div className="max-w-lg mx-auto p-6">
+      <div className="bg-white rounded-xl shadow-lg p-8 mb-6 transform transition-all duration-300 hover:shadow-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 text-center flex-1">
+            {isEnglishMode ? currentWord?.turkish : currentWord?.english}
           </h2>
-          <p className="text-2xl mb-4 animate-slideUp">
-            Skorunuz: <span className="font-bold text-purple-600">{score}/12</span>
-          </p>
-          
-          {wrongWords.length > 0 && (
-            <div className="mb-6 animate-slideUp">
-              <h3 className="text-lg font-semibold mb-2 text-purple-600">Yanlış Yapılan Kelimeler:</h3>
-              <div className="space-y-2">
-                {wrongWords.map((word, index) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg shadow-sm transform transition-all duration-300 hover:scale-102 hover:shadow-md">
-                    <span className="font-medium text-purple-600">{word.english}</span> - {word.turkish}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <button
-            onClick={startNewGame}
-            className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg
-              transform transition-all duration-300 hover:scale-105 hover:shadow-lg
-              active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+            onClick={() => setIsEnglishMode(!isEnglishMode)}
+            className="px-6 py-2.5 bg-indigo-100 text-indigo-600 rounded-lg font-semibold hover:bg-indigo-200 transition-all duration-300 transform hover:scale-105 ml-4"
           >
-            Yeniden Başla
+            {isEnglishMode ? 'TR' : 'EN'}
           </button>
+        </div>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-6">
+          <p className="text-3xl font-bold text-center text-gray-800 tracking-wider">{scrambledWord}</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder={`${isEnglishMode ? 'İngilizce' : 'Türkçe'} kelimeyi yazın`}
+            className="w-full p-4 text-lg border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-4 rounded-lg text-lg font-semibold hover:bg-indigo-700 transform transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+          >
+            Kontrol Et
+          </button>
+        </form>
+        {message && (
+          <div
+            className={`mt-6 p-4 rounded-lg text-center text-lg font-semibold ${isCorrect ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} transform transition-all duration-300`}
+          >
+            {message}
+          </div>
+        )}
+      </div>
+      <div className="flex gap-4">
+        <button
+          onClick={() => setShowAnswer(true)}
+          className="flex-1 bg-amber-100 text-amber-700 py-3 px-6 rounded-lg font-semibold hover:bg-amber-200 transform transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+        >
+          Cevabı Göster
+        </button>
+        <button
+          onClick={getNextWord}
+          className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transform transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+        >
+          Sonraki Kelime
+        </button>
+      </div>
+      {showAnswer && (
+        <div className="mt-6 p-6 bg-amber-50 rounded-xl border-2 border-amber-100 transform transition-all duration-300">
+          <p className="text-center text-lg text-amber-700 font-semibold">
+            Doğru cevap: {isEnglishMode ? currentWord?.english : currentWord?.turkish}
+          </p>
         </div>
       )}
     </div>
   );
-}
+};

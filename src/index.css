@@ -3,67 +3,65 @@
 @tailwind utilities;
 
 @layer utilities {
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: gradient-x 15s ease infinite;
+  .perspective-1000 {
+    perspective: 1000px;
   }
-
-  .animate-fadeIn {
-    animation: fadeIn 0.5s ease-in;
+  
+  .transform-style-3d {
+    transform-style: preserve-3d;
   }
-
-  .animate-slideDown {
-    animation: slideDown 0.5s ease-out;
+  
+  .backface-hidden {
+    backface-visibility: hidden;
   }
-
-  .animate-slideUp {
-    animation: slideUp 0.5s ease-out;
-  }
-
-  .hover:scale-102:hover {
-    transform: scale(1.02);
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
   }
 }
 
-@keyframes gradient-x {
+@keyframes float {
   0% {
-    background-position: 0% 50%;
+    transform: translateY(0px);
   }
   50% {
-    background-position: 100% 50%;
+    transform: translateY(-10px);
   }
   100% {
-    background-position: 0% 50%;
+    transform: translateY(0px);
   }
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
   from {
     opacity: 0;
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 
-@keyframes slideUp {
+@keyframes slide-up {
   from {
+    opacity: 0;
     transform: translateY(20px);
-    opacity: 0;
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
 }
