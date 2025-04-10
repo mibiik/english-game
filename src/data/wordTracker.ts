@@ -39,6 +39,11 @@ class WordTracker {
     }
   }
 
+  public isWordSeen(word: Word): boolean {
+    const state = this.trackingState.get(word.unit);
+    return state ? state.seenWords.has(word.english) : false;
+  }
+
   public getUnseenWords(words: Word[], unit: string): Word[] {
     const state = this.trackingState.get(unit);
     if (!state) return words.filter(word => word.unit === unit);
@@ -81,6 +86,23 @@ class WordTracker {
       return words.find(word => word.unit === unit) || null;
     }
     return unseenWords[Math.floor(Math.random() * unseenWords.length)];
+  }
+
+  public getNextWords(words: Word[], unit: string, count: number): Word[] {
+    const unseenWords = this.getUnseenWords(words, unit);
+    const unitWords = words.filter(word => word.unit === unit);
+    
+    if (unseenWords.length < count) {
+      this.resetUnit(unit);
+      return this.getRandomWords(unitWords, count);
+    }
+    
+    return this.getRandomWords(unseenWords, count);
+  }
+
+  private getRandomWords(words: Word[], count: number): Word[] {
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
   }
 }
 

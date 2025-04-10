@@ -101,4 +101,4 @@ class LearningStatsTracker {
 }
 
 export default LearningStatsTracker;
-export const learningStats = LearningStatsTracker.getInstance();
+export const learningStatsTracker = LearningStatsTracker.getInstance();

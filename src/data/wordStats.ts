@@ -107,4 +107,11 @@ class WordStatsManager {
   }
 }
 
-export const wordStatsManager = WordStatsManager.getInstance();
+const wordStatsManager = WordStatsManager.getInstance();
+
+export function updateWordStats(word: string, isCorrect: boolean): void {
+  const wordObj: Word = { english: word, turkish: '' };
+  wordStatsManager.recordAttempt(wordObj, isCorrect);
+}
+
+export { wordStatsManager };

@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { Sparkles, RefreshCw, Layout, Timer, Book, Shuffle, PenTool, AlertTriangle, Plus, Brain, Clock, BarChart } from 'lucide-react';
-import { learningStats } from './data/learningStats';
+import { Sparkles, RefreshCw, Layout, Book, Shuffle, PenTool, AlertTriangle, Plus, Mic, Clock, BarChart, Trophy, Type } from 'lucide-react';
+import { learningStatsTracker } from './data/learningStats';
 import { LearningStatsModal } from './components/LearningStatsModal';
 import { words } from './data/words';
 import { MatchingGame } from './components/GameModes/MatchingGame';
-import { SpeedGame } from './components/GameModes/SpeedGame';
+import { SentenceBuilder } from './components/GameModes/SentenceBuilder';
+import { SentenceCompletion } from './components/GameModes/SentenceCompletion';
 import { MultipleChoice } from './components/GameModes/MultipleChoice';
 import { WordScramble } from './components/GameModes/WordScramble';
 import { FlashCard } from './components/GameModes/FlashCard';
 import { DifficultWords } from './components/GameModes/DifficultWords';
+import { SpeakingGame } from './components/GameModes/SpeakingGame';
+import { WordRace } from './components/GameModes/WordRace';
 import { AddWord } from './components/AddWord';
 
 import { UnitSelector } from './components/UnitSelector';
 
-type GameMode = 'matching' | 'multiple-choice' | 'flashcard' | 'custom-words' | 'speed' | 'scramble' | 'difficult' | 'memory' | 'timed-matching';
+type GameMode = 'matching' | 'multiple-choice' | 'flashcard' | 'custom-words' | 'sentence' | 'scramble' | 'difficult' | 'speaking' | 'word-race' | 'sentence-completion';
 
 interface CustomWord {
   english: string;
@@ -27,16 +30,19 @@ function App() {
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const [showUnitSelector, setShowUnitSelector] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
-  const todayStats = learningStats.getTodayStats();
+  const todayStats = learningStatsTracker.getTodayStats();
 
   const gameModes = [
     { id: 'matching', name: 'Eşleştirme Oyunu', icon: Layout },
     { id: 'multiple-choice', name: 'Çoktan Seçmeli', icon: Book },
-    { id: 'speed', name: 'Hız Oyunu', icon: Timer },
+    { id: 'sentence', name: 'Cümle Oluşturma', icon: Type },
     { id: 'scramble', name: 'Karışık Harfler', icon: Shuffle },
     { id: 'flashcard', name: 'Kelime Kartları', icon: PenTool },
     { id: 'difficult', name: 'Zorlu Kelimeler', icon: AlertTriangle },
+    { id: 'speaking', name: 'Konuşma Pratiği', icon: Mic },
+    { id: 'word-race', name: 'Kelime Yarışması', icon: Trophy },
     { id: 'custom-words', name: 'Özel Kelimeler', icon: Plus },
+    { id: 'sentence-completion', name: 'Cümle Tamamlama', icon: Type },
   ] as const;
 
   const renderGame = () => {
@@ -48,8 +54,7 @@ function App() {
         return <MultipleChoice words={words} unit={currentUnit} />;
       case 'flashcard':
         return <FlashCard words={words} unit={currentUnit} />;
-      case 'speed':
-        return <SpeedGame words={words} unit={currentUnit} />;
+
       case 'scramble':
         return <WordScramble words={words} unit={currentUnit} />;
       case 'difficult':
@@ -59,6 +64,12 @@ function App() {
           // Sayfayı yenile ve kelimeleri güncelle
           window.location.reload();
         }} />;
+      case 'speaking':
+        return <SpeakingGame words={words} unit={currentUnit} />;
+      case 'word-race':
+        return <WordRace words={words} unit={currentUnit} />;
+      case 'sentence-completion':
+        return <SentenceCompletion words={words} unit={currentUnit} />;
     }
   };
 

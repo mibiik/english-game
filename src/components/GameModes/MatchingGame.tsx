@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
-import { learningStats } from '../../data/learningStats';
+import { learningStatsTracker } from '../../data/learningStats';
 import { Star, Trophy, Medal, Award, Zap } from 'lucide-react';
 interface MatchingGameProps {
   words: Word[];
@@ -103,13 +103,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           }
           if (score + points >= 100 && !badges.includes('score100')) {
             newBadges.push('score100');
-            setLastBadge("100 Puan!");
+            setLastBadge('100 Puan!');
             setShowBadgeAnimation(true);
           }
           setBadges(newBadges);
           
           // Öğrenme istatistiklerini kaydet
-          learningStats.recordWordLearned(selectedWords[index]);
+          learningStatsTracker.recordWordLearned(selectedWords[index]);
           
           if (matchedPairs.length + 2 === selectedWords.length) {
             setTimeout(() => setShowResult(true), 500);
@@ -159,13 +159,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           }
           if (score + points >= 100 && !badges.includes('score100')) {
             newBadges.push('score100');
-            setLastBadge("100 Puan!");
+            setLastBadge('100 Puan!');
             setShowBadgeAnimation(true);
           }
           setBadges(newBadges);
           
           // Öğrenme istatistiklerini kaydet
-          learningStats.recordWordLearned(selectedWords[index]);
+          learningStatsTracker.recordWordLearned(selectedWords[index]);
           
           if (matchedPairs.length + 2 === selectedWords.length) {
             setTimeout(() => setShowResult(true), 500);

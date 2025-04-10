@@ -1,5 +1,5 @@
 import React from 'react';
-import { learningStats } from '../data/learningStats';
+import { learningStatsTracker } from '../data/learningStats';
 import { X } from 'lucide-react';
 
 interface LearningStatsModalProps {
@@ -7,8 +7,8 @@ interface LearningStatsModalProps {
 }
 
 export const LearningStatsModal: React.FC<LearningStatsModalProps> = ({ onClose }) => {
-  const todayStats = learningStats.getTodayStats();
-  const weeklyStats = learningStats.getWeeklyStats();
+  const todayStats = learningStatsTracker.getTodayStats();
+  const weeklyStats = learningStatsTracker.getWeeklyStats();
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
