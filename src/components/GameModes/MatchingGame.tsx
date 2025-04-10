@@ -194,46 +194,46 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       )}
       {!showResult ? (
         <>
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8 gap-4 sm:gap-0">
-            <div className="flex flex-col gap-3 bg-white/80 p-4 rounded-xl shadow-lg backdrop-blur-sm border border-violet-100">
-              <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-2 sm:gap-0">
+            <div className="flex flex-col gap-2 bg-white/80 p-3 sm:p-4 rounded-xl shadow-lg backdrop-blur-sm border border-violet-100 w-full sm:w-auto">
+              <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                     {score} Puan
                   </div>
-                  <div className="text-base font-medium text-purple-600 flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
+                  <div className="text-sm font-medium text-purple-600 flex items-center gap-2">
+                    <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                     Combo: {combo}x
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                   {badges.includes('combo3') && (
-                    <div className="text-amber-500" title="3'lü Combo"><Star className="w-6 h-6" /></div>
+                    <div className="text-amber-500" title="3'lü Combo"><Star className="w-5 h-5 sm:w-6 sm:h-6" /></div>
                   )}
                   {badges.includes('combo5') && (
-                    <div className="text-amber-500" title="5'li Combo"><Medal className="w-6 h-6" /></div>
+                    <div className="text-amber-500" title="5'li Combo"><Medal className="w-5 h-5 sm:w-6 sm:h-6" /></div>
                   )}
                   {badges.includes('score100') && (
-                    <div className="text-amber-500" title="100 Puan"><Trophy className="w-6 h-6" /></div>
+                    <div className="text-amber-500" title="100 Puan"><Trophy className="w-5 h-5 sm:w-6 sm:h-6" /></div>
                   )}
                 </div>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                 Eşleşmeler: {score}/9
               </div>
-              <div className="text-base font-medium text-purple-600 flex items-center gap-2">
-                <span className="material-icons text-lg">refresh</span>
+              <div className="text-sm font-medium text-purple-600 flex items-center gap-2">
+                <span className="material-icons text-base sm:text-lg">refresh</span>
                 Deneme: {attempts}
               </div>
             </div>
             <button
               onClick={startNewGame}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-xl
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white rounded-xl
                 transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600
-                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-base sm:text-lg font-medium
-                shadow-lg shadow-purple-500/30"
+                active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 text-sm sm:text-base font-medium
+                shadow-lg shadow-purple-500/30 w-full sm:w-auto"
             >
-              Yeniden Başla
+              İlerle
             </button>
           </div>
 

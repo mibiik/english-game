@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
-import { wordTracker } from '../../data/wordTracker';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
 
@@ -17,48 +16,54 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
   const [unitWords, setUnitWords] = useState<Word[]>([]);
   const [score, setScore] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
+  const [usedWordIndices, setUsedWordIndices] = useState<number[]>([]);
 
   useEffect(() => {
     const filteredWords = words.filter(word => word.unit === unit);
     setUnitWords(filteredWords);
+    setUsedWordIndices([]);
     if (filteredWords.length > 0) {
-      wordTracker.initializeUnit(words, unit);
-      generateOptions(filteredWords, 0);
+      generateOptions(filteredWords);
     }
   }, [words, unit]);
 
-  const generateOptions = (wordList: Word[], index: number) => {
+  const generateOptions = (wordList: Word[]) => {
+    // Kullanılmayan kelimeleri bul
+    const availableIndices = wordList
+      .map((_, index) => index)
+      .filter(index => !usedWordIndices.includes(index));
+
+    if (availableIndices.length === 0) {
+      // Tüm kelimeler kullanıldı, oyunu bitir
+      setCurrentWordIndex(wordList.length - 1);
+      return;
+    }
+
     // Rastgele bir kelime seç
-    const availableWords = wordList.filter(word => !wordTracker.isWordSeen(word));
-    const currentWord = availableWords.length > 0 
-      ? availableWords[Math.floor(Math.random() * availableWords.length)]
-      : wordList[Math.floor(Math.random() * wordList.length)];
-
-    if (!currentWord) return;
+    const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    const currentWord = wordList[randomIndex];
     
-    wordTracker.markWordAsSeen(currentWord);
-
+    // Kullanılan kelimeler listesine ekle
+    setUsedWordIndices(prev => [...prev, randomIndex]);
+    setCurrentWordIndex(randomIndex);
+    
     // Doğru cevabı ayır
     const correctAnswer = currentWord.turkish;
     
-    // Diğer kelimeleri karıştır ve 3 tanesini seç
+    // Diğer kelimelerden 3 yanlış seçenek seç
     const otherWords = wordList
-      .filter(w => w.turkish !== correctAnswer && w.unit === currentWord.unit)
-      .sort(() => Math.random() - 0.5)
+      .filter(w => w.turkish !== correctAnswer)
       .slice(0, 3)
       .map(w => w.turkish);
 
-    // Doğru cevabı rastgele bir pozisyona yerleştir
-    const randomPosition = Math.floor(Math.random() * 4);
-    const allOptions = [...otherWords];
-    allOptions.splice(randomPosition, 0, correctAnswer);
+    // Tüm seçenekleri karıştır
+    const allOptions = [...otherWords, correctAnswer].sort(() => Math.random() - 0.5);
     
     setOptions(allOptions);
-    setCurrentWordIndex(wordList.indexOf(currentWord));
   };
 
   const handleAnswerSelect = (answer: string) => {
-    if (selectedAnswer !== null) return; // Prevent multiple selections
+    if (selectedAnswer !== null) return;
 
     const currentWord = unitWords[currentWordIndex];
     const correct = answer === currentWord.turkish;
@@ -67,7 +72,6 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
     setIsCorrect(correct);
     setTotalAnswered(prev => prev + 1);
 
-    // Zorlu kelimeler sistemine kelimeyi ekle
     updateWordDifficulty(currentWord, correct);
 
     if (correct) {
@@ -76,12 +80,10 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
     }
 
     setTimeout(() => {
-      if (currentWordIndex < unitWords.length - 1) {
-        setCurrentWordIndex(prev => prev + 1);
-        generateOptions(unitWords, currentWordIndex + 1);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
-      }
+      // Sonraki kelimeye geç
+      generateOptions(unitWords);
+      setSelectedAnswer(null);
+      setIsCorrect(null);
     }, correct ? 500 : 2000);
   };
 
@@ -104,10 +106,9 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
     return <div className="text-center p-4">Bu ünitede kelime bulunmamaktadır.</div>;
   }
 
-  const isGameComplete = currentWordIndex === unitWords.length - 1 && selectedAnswer !== null;
-
+  const isGameComplete = usedWordIndices.length === unitWords.length && selectedAnswer !== null;
   const currentWord = unitWords[currentWordIndex];
-  const progress = ((currentWordIndex + 1) / unitWords.length) * 100;
+  const progress = (usedWordIndices.length / unitWords.length) * 100;
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
@@ -116,7 +117,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
           Skor: {score}/{totalAnswered}
         </div>
         <div className="text-sm sm:text-base text-gray-600">
-          {currentWordIndex + 1} / {unitWords.length}
+          {usedWordIndices.length} / {unitWords.length}
         </div>
       </div>
 
@@ -195,23 +196,6 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
                         'Bu ünite için biraz daha çalışmanız gerekiyor.'
                     ) : 'Henüz yeterli veri yok.'}
                 </p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="text-lg font-semibold text-blue-800 mb-2">Kelime İlerlemesi</h4>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-blue-600">
-                    {(() => {
-                      const progress = wordTracker.getProgress(unit);
-                      return `${progress.seenCount}/${progress.totalCount} kelime görüldü (${progress.percentage}%)`;
-                    })()}
-                  </div>
-                </div>
-                <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${wordTracker.getProgress(unit).percentage}%` }}
-                  />
-                </div>
               </div>
             </div>
           </div>

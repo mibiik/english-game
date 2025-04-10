@@ -93,7 +93,7 @@ export const words: Word[] = [
   { english: "dynamic", turkish: "dinamik", unit: "1" },
   { english: "merge", turkish: "birleşmek", unit: "1" },
   { english: "paradigm", turkish: "paradigma", unit: "1" },
-  { english: "precise", turkish: "hassas", unit: "1" },
+  { english: "precise", turkish: "keskin", unit: "1" },
   { english: "reject", turkish: "reddetmek", unit: "1" },
   { english: "satisfaction", turkish: "memnuniyet", unit: "1" },
   { english: "theme", turkish: "tema", unit: "1" },
