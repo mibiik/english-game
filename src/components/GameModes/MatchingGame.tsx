@@ -147,22 +147,29 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           setSelectedTurkishCard(null);
           
           // Başarı rozetleri kontrolü
-          const newBadges = [...badges];
-          if (newCombo === 3 && !badges.includes('combo3')) {
-            newBadges.push('combo3');
-            setLastBadge("3'lü Combo!");
-            setShowBadgeAnimation(true);
-          } else if (newCombo === 5 && !badges.includes('combo5')) {
-            newBadges.push('combo5');
-            setLastBadge("5'li Combo!");
-            setShowBadgeAnimation(true);
-          }
-          if (score + points >= 100 && !badges.includes('score100')) {
-            newBadges.push('score100');
-            setLastBadge('100 Puan!');
-            setShowBadgeAnimation(true);
-          }
-          setBadges(newBadges);
+        const newBadges = [...badges];
+if (newCombo === 3 && !badges.includes('combo3')) {
+  newBadges.push('combo3');
+  setLastBadge("3'lü Combo!");
+  setShowBadgeAnimation(true);
+} else if (newCombo === 5 && !badges.includes('combo5')) {
+  newBadges.push('combo5');
+  setLastBadge("5'li Combo!");
+  setShowBadgeAnimation(true);
+}
+if (score + points >= 100 && !badges.includes('score100')) {
+  newBadges.push('score100');
+  setLastBadge('100 Puan!');
+  setShowBadgeAnimation(true);
+}
+
+setBadges(newBadges);
+
+// 1 saniye sonra animasyonu kapat
+setTimeout(() => {
+  setShowBadgeAnimation(false);
+}, 1000);
+
           
           // Öğrenme istatistiklerini kaydet
           learningStatsTracker.recordWordLearned(selectedWords[index]);
