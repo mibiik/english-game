@@ -45,19 +45,23 @@ export class VocabularyService {
     return words.filter(word => word.unit === unitId);
   }
 
-  private generateOptions(correctAnswer: string, allWords: Word[]): string[] {
-    const otherWords = allWords
+  public getRandomWords(words: Word[], count: number): Word[] {
+    const shuffled = [...words].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(count, shuffled.length));
+  }
+
+  private generateOptions(correctAnswer: string, unitWords: Word[]): string[] {
+    const otherWords = unitWords
       .filter(word => word.english.toLowerCase() !== correctAnswer.toLowerCase())
       .map(word => word.english);
-    const shuffledWords = this.getRandomWords(otherWords.map(word => ({ english: word } as Word)), 3)
-      .map(word => word.english);
+    const shuffledWords = [...otherWords].sort(() => 0.5 - Math.random()).slice(0, Math.min(3, otherWords.length));
     const options = [...shuffledWords, correctAnswer];
     return options.sort(() => 0.5 - Math.random());
   }
 
   public async initializeGame(words: Word[], unit: Unit): Promise<VocabularyGame> {
     const unitWords = this.getUnitWords(words, unit.id);
-    const selectedWords = this.getRandomWords(unitWords, 8);
+    const selectedWords = [...unitWords]; // Tüm kelimeleri kullan
     const correctAnswers = selectedWords.map(word => word.english);
     
     this.currentGame = {
@@ -65,7 +69,7 @@ export class VocabularyService {
       words: selectedWords,
       sentences: [],
       correctAnswers,
-      options: correctAnswers.map(answer => this.generateOptions(answer, words)),
+      options: correctAnswers.map(answer => this.generateOptions(answer, unitWords)),
       currentQuestionIndex: 0,
       score: 0
     };
@@ -73,10 +77,7 @@ export class VocabularyService {
     return this.currentGame;
   }
 
-  public getRandomWords(words: Word[], count: number): Word[] {
-    const shuffled = [...words].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  }
+
 
   public getCurrentGame(): VocabularyGame | null {
     return this.currentGame;
@@ -84,5 +85,14 @@ export class VocabularyService {
 
   public clearCurrentGame(): void {
     this.currentGame = null;
+  }
+
+  public shuffleArray<T extends unknown>(array: T[]): T[] {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
   }
 }

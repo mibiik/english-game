@@ -46,3 +46,33 @@ Bu proje, EF English First müfredatına dayalı bir kelime öğrenme oyunudur. 
 - OpenRouter API entegrasyonu ile dinamik cümle üretimi
 - Tailwind CSS ile modern ve responsive tasarım
 - Singleton pattern ile oyun durumu yönetimi
+
+# OpenRouter API Entegrasyonu Dokümantasyonu
+
+Bu dokümantasyon, English Game projesine OpenRouter API entegrasyonunun nasıl yapıldığını ve yeni eklenen özellikleri açıklamaktadır.
+
+## Genel Bakış
+
+English Game projesine iki yeni OpenRouter API modeli entegre edilmiştir:
+1. **OpenRouter Quasar Alpha** (`openrouter/quasar-alpha`)
+2. **Google Gemini 2.5 Pro** (`google/gemini-2.5-pro-exp-03-25`)
+
+Bu modeller, oyun içerisinde kelimeler için cümle oluşturma, tanım getirme ve boşluk doldurma egzersizleri oluşturma amacıyla kullanılmaktadır.
+
+## Yapılan Değişiklikler
+
+### 1. API Anahtarları Eklenmesi
+
+`src/config/apiKeys.ts` dosyasına iki yeni API anahtarı eklenmiştir:
+
+```typescript
+quasar_alpha: {
+  key: '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',
+  model: 'openrouter/quasar-alpha',
+  description: 'OpenRouter Quasar Alpha'
+},
+gemini_pro_25: {
+  key: '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',
+  model: 'google/gemini-2.5-pro-exp-03-25',
+  description: 'Google Gemini 2.5 Pro'
+}

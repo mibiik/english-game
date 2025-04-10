@@ -34,15 +34,15 @@ function App() {
 
   const gameModes = [
     { id: 'matching', name: 'Eşleştirme Oyunu', icon: Layout },
+    { id: 'sentence-completion', name: 'Cümle Tamamlama', icon: Type },
     { id: 'multiple-choice', name: 'Çoktan Seçmeli', icon: Book },
-    { id: 'sentence', name: 'Cümle Oluşturma', icon: Type },
     { id: 'scramble', name: 'Karışık Harfler', icon: Shuffle },
     { id: 'flashcard', name: 'Kelime Kartları', icon: PenTool },
     { id: 'difficult', name: 'Zorlu Kelimeler', icon: AlertTriangle },
     { id: 'speaking', name: 'Konuşma Pratiği', icon: Mic },
     { id: 'word-race', name: 'Kelime Yarışması', icon: Trophy },
     { id: 'custom-words', name: 'Özel Kelimeler', icon: Plus },
-    { id: 'sentence-completion', name: 'Cümle Tamamlama', icon: Type },
+   
   ] as const;
 
   const renderGame = () => {
