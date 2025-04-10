@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
 import { wordTracker } from '../../data/wordTracker';
 import { updateWordDifficulty } from '../../data/difficultWords';
-import { learningStats } from '../../data/learningStats';
+import { learningStatsTracker } from '../../data/learningStats';
 
 interface MultipleChoiceProps {
   words: Word[];
@@ -28,19 +28,33 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
   }, [words, unit]);
 
   const generateOptions = (wordList: Word[], index: number) => {
-    const currentWord = wordTracker.getNextWord(words, unit);
+    // Rastgele bir kelime seç
+    const availableWords = wordList.filter(word => !wordTracker.isWordSeen(word));
+    const currentWord = availableWords.length > 0 
+      ? availableWords[Math.floor(Math.random() * availableWords.length)]
+      : wordList[Math.floor(Math.random() * wordList.length)];
+
     if (!currentWord) return;
     
     wordTracker.markWordAsSeen(currentWord);
 
-    const allWords = words.filter(w => w.turkish !== currentWord.turkish);
-    const wrongOptions = allWords
+    // Doğru cevabı ayır
+    const correctAnswer = currentWord.turkish;
+    
+    // Diğer kelimeleri karıştır ve 3 tanesini seç
+    const otherWords = wordList
+      .filter(w => w.turkish !== correctAnswer && w.unit === currentWord.unit)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
       .map(w => w.turkish);
 
-    const allOptions = [...wrongOptions, currentWord.turkish];
-    setOptions(allOptions.sort(() => Math.random() - 0.5));
+    // Doğru cevabı rastgele bir pozisyona yerleştir
+    const randomPosition = Math.floor(Math.random() * 4);
+    const allOptions = [...otherWords];
+    allOptions.splice(randomPosition, 0, correctAnswer);
+    
+    setOptions(allOptions);
+    setCurrentWordIndex(wordList.indexOf(currentWord));
   };
 
   const handleAnswerSelect = (answer: string) => {
@@ -58,7 +72,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
 
     if (correct) {
       setScore(prev => prev + 1);
-      learningStats.recordWordLearned(currentWord);
+      learningStatsTracker.recordWordLearned(currentWord);
     }
 
     setTimeout(() => {
@@ -98,10 +112,10 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <div className="flex justify-between items-center mb-4">
-        <div className="text-lg font-semibold text-gray-700">
+        <div className="text-base sm:text-lg font-semibold text-gray-700">
           Skor: {score}/{totalAnswered}
         </div>
-        <div className="text-gray-600">
+        <div className="text-sm sm:text-base text-gray-600">
           {currentWordIndex + 1} / {unitWords.length}
         </div>
       </div>
@@ -114,16 +128,16 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
       </div>
 
       <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gray-800">{currentWord.english}</h2>
-        <p className="text-gray-600 text-lg">Doğru Türkçe karşılığını seçin</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">{currentWord.english}</h2>
+        <p className="text-gray-600 text-base sm:text-lg">Doğru Türkçe karşılığını seçin</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 relative z-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
         {options.map((option, index) => (
           <button
             key={index}
             onClick={() => handleAnswerSelect(option)}
-            className={`p-4 text-lg rounded-lg transition-all duration-300 shadow-md hover:shadow-lg relative z-20 ${getButtonStyle(option)}`}
+            className={`p-4 text-base sm:text-lg rounded-lg transition-all duration-300 shadow-md hover:shadow-lg relative z-20 ${getButtonStyle(option)}`}
             disabled={selectedAnswer !== null}
           >
             {option}
@@ -141,7 +155,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words, unit }) =
         <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Oyun Sonu Analizi</h3>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold text-blue-800 mb-2">Genel Performans</h4>

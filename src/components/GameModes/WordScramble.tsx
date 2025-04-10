@@ -45,7 +45,7 @@ export const WordScramble: React.FC<WordScrambleProps> = ({ words, unit }) => {
     if (userInput.toLowerCase() === (isEnglishMode ? currentWord.english : currentWord.turkish).toLowerCase()) {
       setMessage('Doğru!');
       setIsCorrect(true);
-      learningStats.recordWordLearned(currentWord);
+      learningStatsTracker.recordWordLearned(currentWord);
       setTimeout(getNextWord, 1500);
     } else {
       setMessage('Yanlış, tekrar deneyin.');

@@ -1,44 +1,48 @@
-# Kelime Öğrenme Uygulaması
+# EF Vocabulary Game
 
-Bu proje, yabancı dil öğrenimini desteklemek için tasarlanmış interaktif bir kelime öğrenme uygulamasıdır. Uygulama, çoktan seçmeli sorular ve zorlu kelimeler gibi farklı oyun modları sunarak etkili bir öğrenme deneyimi sağlar.
+Bu proje, EF English First müfredatına dayalı bir kelime öğrenme oyunudur. Oyun, farklı ünitelerdeki kelimeleri öğrenmenize ve pratik yapmanıza yardımcı olur.
 
 ## Özellikler
 
-- Çoktan seçmeli kelime alıştırmaları
-- Zorlu kelimeleri tekrar etme özelliği
-- Kelime zorluk seviyesi takibi
-- Birim bazlı kelime grupları
-- Modern ve kullanıcı dostu arayüz
+### 1. Ünite Seçimi
+- EF müfredatından seçilmiş üniteler
+- Her ünitede özel kelime grupları
+- Detaylı ünite açıklamaları ve kelime sayıları
 
-## Kurulum
+### 2. Kelime Oyunu
+- Her oyunda 8 kelime seçilir
+- OpenRouter API ile otomatik cümle oluşturma
+- A2-B1 seviyesinde basit ve anlaşılır cümleler
+- Boşluk doldurma formatında alıştırmalar
 
-1. Projeyi klonlayın:
-```bash
-git clone [repository-url]
-cd project
-```
+### 3. Puan Sistemi
+- Doğru cevaplar için puan kazanma
+- İlerleme takibi
+- Anlık geri bildirim
 
-2. Bağımlılıkları yükleyin:
-```bash
-npm install
-```
+### 4. Üniteler
 
-3. Geliştirme sunucusunu başlatın:
-```bash
-npm run dev
-```
+#### Unit 1
+- Reading & Writing: Temel okuma ve yazma kelimeleri (22 kelime)
+- Listening & Speaking: Temel iletişim kelimeleri (25 kelime)
+- Extra Words: Ek pratik kelimeleri (8 kelime)
 
-## Teknolojiler
+#### Unit 2
+- Reading & Writing: Orta seviye okuma ve yazma kelimeleri (27 kelime)
+- Listening & Speaking: İleri seviye iletişim kelimeleri (30 kelime)
+- Extra Words: Tamamlayıcı kelimeler (8 kelime)
 
-- React
-- TypeScript
-- Tailwind CSS
-- Vite
+## Nasıl Oynanır
 
-## Katkıda Bulunma
+1. Ana ekrandan bir ünite seçin
+2. Seçilen üniteden rastgele 8 kelime ile oyun başlar
+3. Her cümlede boş bırakılan yere uygun kelimeyi yazın
+4. Cevabınızı kontrol edin ve puanınızı görün
+5. Tüm kelimeleri tamamladığınızda oyun biter
 
-1. Bu repository'yi fork edin
-2. Yeni bir feature branch oluşturun (`git checkout -b feature/yeniOzellik`)
-3. Değişikliklerinizi commit edin (`git commit -am 'Yeni özellik: Açıklama'`)
-4. Branch'inizi push edin (`git push origin feature/yeniOzellik`)
-5. Bir Pull Request oluşturun
+## Teknik Detaylar
+
+- React ve TypeScript ile geliştirilmiştir
+- OpenRouter API entegrasyonu ile dinamik cümle üretimi
+- Tailwind CSS ile modern ve responsive tasarım
+- Singleton pattern ile oyun durumu yönetimi

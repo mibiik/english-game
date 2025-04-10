@@ -2,9 +2,9 @@ import React from 'react';
 import { learningStats } from '../../data/learningStats';
 
 export function LearningProgress() {
-  const todayStats = learningStats.getTodayStats();
-  const weeklyStats = learningStats.getWeeklyStats();
-  const totalLearned = learningStats.getTotalWordsLearned();
+  const todayStats = learningStatsTracker.getTodayStats();
+  const weeklyStats = learningStatsTracker.getWeeklyStats();
+  const totalLearned = learningStatsTracker.getTotalWordsLearned();
 
   const maxWordsInWeek = Math.max(...weeklyStats.map(stat => stat.wordsLearned));
 
