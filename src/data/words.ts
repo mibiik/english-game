@@ -113,7 +113,7 @@ export const words: Word[] = [
   { english: "consider", turkish: "düşünmek", unit: "2" },
   { english: "constant", turkish: "sabit", unit: "2" },
   { english: "depressed", turkish: "depresif", unit: "2" },
-  { english: "encounter", turkish: "karşılaşmak", unit: "2" },
+  { english: "encounter", turkish: "karşılaşmak;rastlantı", unit: "2" },
   { english: "equal", turkish: "eşit", unit: "2" },
   { english: "failure", turkish: "başarısızlık", unit: "2" },
   { english: "hypothesize", turkish: "hipotez kurmak", unit: "2" },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, RefreshCw, Layout, Book, Shuffle, PenTool, AlertTriangle, Plus, Mic, Clock, BarChart, Trophy, Type } from 'lucide-react';
+import { Sparkles, RefreshCw, Layout, Book, PenTool, Plus, Mic, Clock, BarChart, Trophy, Type, User, FileText } from 'lucide-react';
 import { learningStatsTracker } from './data/learningStats';
 import { LearningStatsModal } from './components/LearningStatsModal';
 import { words } from './data/words';
@@ -7,16 +7,21 @@ import { MatchingGame } from './components/GameModes/MatchingGame';
 import { SentenceBuilder } from './components/GameModes/SentenceBuilder';
 import { SentenceCompletion } from './components/GameModes/SentenceCompletion';
 import { MultipleChoice } from './components/GameModes/MultipleChoice';
-import { WordScramble } from './components/GameModes/WordScramble';
 import { FlashCard } from './components/GameModes/FlashCard';
-import { DifficultWords } from './components/GameModes/DifficultWords';
 import { SpeakingGame } from './components/GameModes/SpeakingGame';
 import { WordRace } from './components/GameModes/WordRace';
 import { AddWord } from './components/AddWord';
 
 import { UnitSelector } from './components/UnitSelector';
 
-type GameMode = 'matching' | 'multiple-choice' | 'flashcard' | 'custom-words' | 'sentence' | 'scramble' | 'difficult' | 'speaking' | 'word-race' | 'sentence-completion';
+import { Leaderboard } from './components/Leaderboard';
+import { Auth } from './components/Auth';
+import WordListManager from './components/WordListManager';
+import { WordListImport } from './components/WordListImport';
+import { WordListView } from './components/WordListView';
+import { ParaphraseChallenge } from './components/GameModes/ParaphraseChallenge';
+
+type GameMode = 'matching' | 'multiple-choice' | 'flashcard' | 'custom-words' | 'sentence' | 'speaking' | 'word-race' | 'sentence-completion' | 'paraphrase-challenge';
 
 interface CustomWord {
   english: string;
@@ -30,19 +35,23 @@ function App() {
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const [showUnitSelector, setShowUnitSelector] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [showWordListManager, setShowWordListManager] = useState(false);
+  const [showWordListImport, setShowWordListImport] = useState(false);
+  const [showWordListView, setShowWordListView] = useState(false);
   const todayStats = learningStatsTracker.getTodayStats();
 
   const gameModes = [
+    { id: 'paraphrase-challenge', name: 'Paraphrase Challenge', icon: FileText },
     { id: 'matching', name: 'Eşleştirme Oyunu', icon: Layout },
     { id: 'sentence-completion', name: 'Cümle Tamamlama', icon: Type },
     { id: 'multiple-choice', name: 'Çoktan Seçmeli', icon: Book },
-    { id: 'scramble', name: 'Karışık Harfler', icon: Shuffle },
     { id: 'flashcard', name: 'Kelime Kartları', icon: PenTool },
-    { id: 'difficult', name: 'Zorlu Kelimeler', icon: AlertTriangle },
     { id: 'speaking', name: 'Konuşma Pratiği', icon: Mic },
     { id: 'word-race', name: 'Kelime Yarışması', icon: Trophy },
     { id: 'custom-words', name: 'Özel Kelimeler', icon: Plus },
-   
   ] as const;
 
   const renderGame = () => {
@@ -55,10 +64,6 @@ function App() {
       case 'flashcard':
         return <FlashCard words={words} unit={currentUnit} />;
 
-      case 'scramble':
-        return <WordScramble words={words} unit={currentUnit} />;
-      case 'difficult':
-        return <DifficultWords words={words} unit={currentUnit} />;
       case 'custom-words':
         return <AddWord onWordAdded={() => {
           // Sayfayı yenile ve kelimeleri güncelle
@@ -70,6 +75,8 @@ function App() {
         return <WordRace words={words} unit={currentUnit} />;
       case 'sentence-completion':
         return <SentenceCompletion words={words} unit={currentUnit} />;
+      case 'paraphrase-challenge':
+        return <ParaphraseChallenge words={words} unit={currentUnit} />;
     }
   };
 
@@ -125,7 +132,7 @@ function App() {
                 ))}
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 space-y-4">
                 <button
                   onClick={() => setShowStatsModal(true)}
                   className="w-full p-4 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg
@@ -139,12 +146,101 @@ function App() {
                     <span className="text-xl font-bold">{todayStats.wordsLearned}</span>
                   </div>
                 </button>
+                
+                <button
+                  onClick={() => setShowLeaderboard(true)}
+                  className="w-full p-4 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg
+                    hover:shadow-xl transition-all duration-300 transform hover:scale-102"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Trophy className="w-6 h-6" />
+                      <span className="text-base font-medium">Liderlik Tablosu</span>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setShowAuth(true)}
+                  className="w-full p-4 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg
+                    hover:shadow-xl transition-all duration-300 transform hover:scale-102"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <User className="w-6 h-6" />
+                      <span className="text-base font-medium">Kayıt Ol / Giriş Yap</span>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setShowWordListManager(true)}
+                  className="w-full p-4 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-lg
+                    hover:shadow-xl transition-all duration-300 transform hover:scale-102"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-6 h-6" />
+                      <span className="text-base font-medium">Kelime Listelerim</span>
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
 
           <div className="flex-1">
             {showStatsModal && <LearningStatsModal onClose={() => setShowStatsModal(false)} />}
+            {showLeaderboard && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+                onClick={() => setShowLeaderboard(false)}
+              >
+                <div 
+                  className="bg-gradient-to-br from-yellow-100 via-orange-100 to-red-100 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Leaderboard onClose={() => setShowLeaderboard(false)} />
+                </div>
+              </div>
+            )}
+            {showAuth && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-xl shadow-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                  <Auth onClose={() => setShowAuth(false)} />
+                </div>
+              </div>
+            )}
+            
+            {showWordListManager && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-gradient-to-br from-green-100 via-teal-100 to-emerald-100 rounded-xl shadow-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <WordListManager onClose={() => setShowWordListManager(false)} />
+                </div>
+              </div>
+            )}
+            
+            {showWordListImport && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-gradient-to-br from-blue-100 via-cyan-100 to-teal-100 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <WordListImport 
+                    onClose={() => setShowWordListImport(false)} 
+                    onImportSuccess={() => {
+                      setShowWordListImport(false);
+                      setShowWordListManager(true);
+                    }} 
+                  />
+                </div>
+              </div>
+            )}
+            
+            {showWordListView && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <WordListView onClose={() => setShowWordListView(false)} />
+                </div>
+              </div>
+            )}
             <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100">
               {renderGame()}
             </div>
