@@ -1,26 +1,100 @@
-# EF Vocabulary Game
+# Koç Üniversitesi Kelime Öğrenme Uygulaması
 
-Bu proje, EF English First müfredatına dayalı bir kelime öğrenme oyunudur. Oyun, farklı ünitelerdeki kelimeleri öğrenmenize ve pratik yapmanıza yardımcı olur.
+Bu uygulama, İngilizce kelime öğrenmeyi eğlenceli ve etkileşimli hale getiren çeşitli oyun modları sunar. Firebase entegrasyonu sayesinde kullanıcılar kendi kelime listelerini oluşturabilir, düzenleyebilir ve paylaşabilirler.
 
 ## Özellikler
 
-### 1. Ünite Seçimi
-- EF müfredatından seçilmiş üniteler
-- Her ünitede özel kelime grupları
-- Detaylı ünite açıklamaları ve kelime sayıları
+- **Kullanıcı Kimlik Doğrulama**: Firebase Authentication ile güvenli giriş ve kayıt sistemi
+- **Kişiselleştirilmiş Kelime Listeleri**: Kullanıcılar kendi kelime listelerini oluşturabilir ve yönetebilir
+- **Kelime Listesi İçe Aktarma**: Metin veya dosya yükleme yoluyla toplu kelime ekleme
+- **Kelime Listesi Paylaşımı**: Kullanıcılar kelime listelerini başkalarıyla paylaşabilir
+- **Çeşitli Oyun Modları**: Eşleştirme, çoktan seçmeli, kelime kartları ve daha fazlası
+- **Ünite Bazlı Öğrenme**: Farklı ünitelerdeki kelimeleri ayrı ayrı öğrenme imkanı
+- **İlerleme Takibi**: Öğrenilen kelimelerin ve oyun skorlarının kaydedilmesi
+- **Mobil Uyumlu Tasarım**: Her cihazda sorunsuz çalışan responsive arayüz
 
-### 2. Kelime Oyunu
-- Her oyunda 8 kelime seçilir
-- OpenRouter API ile otomatik cümle oluşturma
-- A2-B1 seviyesinde basit ve anlaşılır cümleler
-- Boşluk doldurma formatında alıştırmalar
+## Kurulum
 
-### 3. Puan Sistemi
-- Doğru cevaplar için puan kazanma
-- İlerleme takibi
-- Anlık geri bildirim
+1. Projeyi klonlayın veya indirin
+2. Bağımlılıkları yükleyin: `npm install`
+3. Firebase projenizi oluşturun ve yapılandırın (aşağıdaki adımlara bakın)
+4. Uygulamayı başlatın: `npm run dev`
 
-### 4. Üniteler
+## Firebase Yapılandırması
+
+Uygulamayı kullanabilmek için bir Firebase projesi oluşturmanız ve yapılandırmanız gerekmektedir:
+
+1. [Firebase Console](https://console.firebase.google.com/)'a gidin ve yeni bir proje oluşturun
+2. Authentication hizmetini etkinleştirin ve E-posta/Şifre sağlayıcısını açın
+3. Firestore Database'i oluşturun ve kuralları aşağıdaki gibi ayarlayın:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /wordLists/{document} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.isPublic == true);
+      allow write: if request.auth != null && (resource.data.userId == request.auth.uid || resource.id == request.auth.uid);
+    }
+    match /gameScores/{document} {
+      allow read: if true;
+      allow write: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}
+```
+
+4. Web uygulaması ekleyin ve Firebase yapılandırma bilgilerini alın
+5. Proje kök dizininde `.env` dosyası oluşturun ve Firebase yapılandırma bilgilerinizi ekleyin:
+
+```
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+```
+
+## Kullanım
+
+### Kullanıcı Kaydı ve Girişi
+
+1. Uygulamanın sağ menüsündeki "Kayıt Ol / Giriş Yap" butonuna tıklayın
+2. Yeni bir hesap oluşturmak için "Hesabınız yok mu? Kayıt olun" bağlantısına tıklayın
+3. E-posta, şifre ve kullanıcı adı bilgilerinizi girin
+4. Kayıt olduktan sonra aynı bilgilerle giriş yapabilirsiniz
+
+### Kelime Listesi Oluşturma
+
+1. Sağ menüdeki "Kelime Listelerim" butonuna tıklayın
+2. "Yeni Liste Oluştur" butonuna tıklayın
+3. Liste adı ve açıklaması girin
+4. "Oluştur" butonuna tıklayın
+
+### Kelime Ekleme
+
+1. "Özel Kelimeler" oyun moduna tıklayın
+2. Kelime eklemek istediğiniz listeyi seçin veya yeni bir liste oluşturun
+3. İngilizce kelime, Türkçe karşılığı ve ünite bilgilerini girin
+4. "Kelimeyi Ekle" butonuna tıklayın
+
+### Kelime Listesi İçe Aktarma
+
+1. Sağ menüdeki "Kelime Listelerim" butonuna tıklayın
+2. "İçe Aktar" butonuna tıklayın
+3. Kelimeleri metin kutusuna girin veya bir metin dosyası yükleyin
+4. "Devam Et" butonuna tıklayın
+5. Liste adı ve açıklaması girin
+6. "Kelimeleri İçe Aktar" butonuna tıklayın
+
+### Oyun Oynama
+
+1. Sağ menüden bir oyun modu seçin
+2. Oyun başladığında, kendi kelime listenizi veya varsayılan listeyi kullanabilirsiniz
+3. Oyun talimatlarını takip ederek kelime öğrenmeye başlayın
+
+## Üniteler
 
 #### Unit 1
 - Reading & Writing: Temel okuma ve yazma kelimeleri (22 kelime)

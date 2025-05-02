@@ -14,6 +14,7 @@
     "@types/react-beautiful-dnd": "^13.1.8",
     "@vercel/analytics": "^1.5.0",
     "axios": "^1.8.4",
+    "firebase": "^10.14.1",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
