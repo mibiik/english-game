@@ -164,22 +164,22 @@ if (score + points >= 100 && !badges.includes('score100')) {
           // 5'li Combo için badge ekleme
           else if (newCombo === 5 && !badges.includes('combo5')) {
             newBadges.push('combo5');
-            setLastBadge("5'li Combo!");
+            setLastBadge("5x Combo!");
             setShowBadgeAnimation(true);
           
-            // 1 saniye sonra animasyonu kapat
+            // Close animation after 1 second
             setTimeout(() => {
               setShowBadgeAnimation(false);
             }, 1000);
           }
           
-          // 100 Puan için badge ekleme
+          // Add badge for 100 Points
           if (score + points >= 100 && !badges.includes('score100')) {
             newBadges.push('score100');
-            setLastBadge('100 Puan!');
+            setLastBadge('100 Points!');
             setShowBadgeAnimation(true);
           
-            // 1 saniye sonra animasyonu kapat
+            // Close animation after 1 second
             setTimeout(() => {
               setShowBadgeAnimation(false);
             }, 1000);
@@ -187,7 +187,7 @@ if (score + points >= 100 && !badges.includes('score100')) {
           
           setBadges(newBadges);
           
-          // Yanlış eşleşme durumunda kırmızı renk gösterimi için bekletme
+          // Wait to show red color for incorrect matches
           setTimeout(() => {
             setSelectedEnglishCard(null);
             setSelectedTurkishCard(null);
