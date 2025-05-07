@@ -123,9 +123,9 @@ const HomePage: React.FC<HomePageProps> = ({ currentUnit, setCurrentUnit }) => {
                   <UnitSelector currentUnit={currentUnit} setCurrentUnit={setCurrentUnit} />
                 </div>
               </div>
-              <button className="px-6 py-3 bg-white text-purple-700 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300">
+              <Link to="/memory-game" className="px-6 py-3 bg-white text-purple-700 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300 inline-block text-center">
                 Hemen Başla
-              </button>
+              </Link>
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
