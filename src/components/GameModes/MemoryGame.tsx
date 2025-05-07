@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Brain } from 'lucide-react';
+import MemoryGameAd from './MemoryGameAd';
 
 interface MemoryGameProps {
   words: {
@@ -131,7 +132,17 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ words, unit }) => {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-6 p-4">
+    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg">
+          <Brain className="w-6 h-6 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Hafıza Oyunu</h2>
+      </div>
+      
+      {/* Oyun başlangıcında reklam */}
+      <MemoryGameAd />
+      
       <div className="w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <div className="text-lg font-semibold text-purple-600">

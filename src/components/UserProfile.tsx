@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Edit, LogOut } from 'lucide-react';
+import { User, Mail, Edit, LogOut, X } from 'lucide-react';
 import { authService } from '../services/authService';
 
 interface UserProfileProps {
@@ -14,7 +14,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
       await authService.logout();
       onClose();
     } catch (err) {
-      console.error('Çıkış yapılırken hata oluştu:', err);
+      console.error('Error occurred while logging out:', err);
     }
   };
 
@@ -31,7 +31,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
         <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <User className="w-10 h-10 text-purple-600" />
         </div>
-        <h3 className="text-2xl font-bold text-purple-800 mb-1">{user?.displayName || 'Kullanıcı'}</h3>
+        <h3 className="text-2xl font-bold text-purple-800 mb-1">{user?.displayName || 'User'}</h3>
         <p className="text-gray-500">{user?.email}</p>
       </div>
 
@@ -43,7 +43,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
         
         <button className="w-full flex items-center p-3 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors">
           <Edit className="w-5 h-5 mr-3" />
-          <span>Profil Düzenle</span>
+          <span>Edit Profile</span>
         </button>
       </div>
 
@@ -52,7 +52,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
         className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
       >
         <LogOut className="w-5 h-5 mr-2" />
-        <span>Çıkış Yap</span>
+        <span>Log Out</span>
       </button>
     </div>
   );

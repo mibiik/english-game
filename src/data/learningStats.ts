@@ -98,6 +98,44 @@ class LearningStatsTracker {
   public getTotalWordsLearned(): number {
     return this.stats.totalWordsLearned;
   }
+
+  public getStats(): { currentStreak: number; lastPlayedDate: string } {
+    // Günlük seriyi hesapla
+    const today = new Date().toISOString().split('T')[0];
+    const sortedStats = [...this.stats.dailyStats].sort((a, b) => b.date.localeCompare(a.date));
+    
+    let currentStreak = 0;
+    let lastDate = today;
+    
+    // Eğer bugün için kayıt varsa seriyi başlat
+    if (sortedStats.length > 0 && sortedStats[0].date === today) {
+      currentStreak = 1;
+      
+      // Önceki günleri kontrol et
+      for (let i = 1; i < sortedStats.length; i++) {
+        const prevDate = new Date(lastDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        const expectedPrevDate = prevDate.toISOString().split('T')[0];
+        
+        if (sortedStats[i].date === expectedPrevDate) {
+          currentStreak++;
+          lastDate = expectedPrevDate;
+        } else {
+          break;
+        }
+      }
+    }
+    
+    // Son oynama tarihini bul
+    const lastPlayedDate = sortedStats.length > 0 ? 
+      sortedStats[0].date : 
+      today;
+    
+    return {
+      currentStreak,
+      lastPlayedDate
+    };
+  }
 }
 
 export default LearningStatsTracker;
