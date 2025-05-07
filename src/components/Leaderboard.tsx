@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, User, Star, Layout, Book, Shuffle, PenTool, AlertTriangle, Mic, Type, Zap, Brain, Volume2 } from 'lucide-react';
+import { Trophy, User, Star, Layout, Book, Shuffle, PenTool, AlertTriangle, Mic, Type, Zap, Brain, Volume2, X } from 'lucide-react';
 import { gameScoreService } from '../services/gameScoreService';
 
 type GameMode = 'matching' | 'speed' | 'memory' | 'speaking' | 'timedMatching';
@@ -18,7 +18,11 @@ interface UserScore {
   avatar?: string;
 }
 
-export function Leaderboard() {
+interface LeaderboardProps {
+  onClose: () => void;
+}
+
+export function Leaderboard({ onClose }: LeaderboardProps) {
   const [users, setUsers] = useState<UserScore[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<GameMode>('matching');

@@ -1,0 +1,82 @@
+/* AdSense bileşeni için stil tanımlamaları */
+.ad-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 1.5rem auto;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: #f9fafb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.dark .ad-wrapper {
+  background-color: #1f2937;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.ad-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #6b7280;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-bottom-left-radius: 0.25rem;
+  z-index: 10;
+}
+
+.dark .ad-label {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+}
+
+.adsense-container {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+}
+
+/* Farklı ekran boyutları için reklam boyutları */
+.ad-banner {
+  height: 90px;
+}
+
+.ad-rectangle {
+  height: 250px;
+}
+
+.ad-sidebar {
+  height: 600px;
+}
+
+/* Mobil cihazlar için duyarlı tasarım */
+@media (max-width: 640px) {
+  .ad-banner {
+    height: 50px;
+  }
+  
+  .ad-rectangle {
+    height: 200px;
+  }
+  
+  .ad-sidebar {
+    height: 300px;
+  }
+}
+
+/* Tablet cihazlar için duyarlı tasarım */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .ad-banner {
+    height: 90px;
+  }
+  
+  .ad-rectangle {
+    height: 250px;
+  }
+  
+  .ad-sidebar {
+    height: 400px;
+  }
+}
