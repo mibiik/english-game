@@ -52,14 +52,7 @@ const HomePage: React.FC<HomePageProps> = ({ currentUnit, setCurrentUnit }) => {
       link: '/speaking',
       color: 'from-green-400 to-emerald-500'
     },
-    {
-      id: 'timedMatching',
-      title: 'Zamanlı Eşleştirme',
-      description: 'Zaman baskısı altında kelimeleri eşleştirin.',
-      icon: <Clock className="w-10 h-10 text-red-500" />,
-      link: '/timed-matching-game',
-      color: 'from-red-400 to-pink-500'
-    },
+
     {
       id: 'flashcard',
       title: 'Kelime Kartları',
@@ -123,9 +116,9 @@ const HomePage: React.FC<HomePageProps> = ({ currentUnit, setCurrentUnit }) => {
                   <UnitSelector currentUnit={currentUnit} setCurrentUnit={setCurrentUnit} />
                 </div>
               </div>
-              <Link to="/memory-game" className="px-6 py-3 bg-white text-purple-700 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300 inline-block text-center">
+              <a href="#game-modes" className="px-6 py-3 bg-white text-purple-700 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 duration-300 inline-block text-center">
                 Hemen Başla
-              </Link>
+              </a>
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
@@ -149,7 +142,7 @@ const HomePage: React.FC<HomePageProps> = ({ currentUnit, setCurrentUnit }) => {
       />
       
       {/* Game Modes Section */}
-      <div className="mb-16">
+      <div id="game-modes" className="mb-16">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
             <Trophy className="w-6 h-6 text-white" />
