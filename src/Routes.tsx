@@ -115,8 +115,15 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
 
   useEffect(() => {
     console.log('GameWrapper: URL params changed:', { unit, level });
+    console.log('GameWrapper: Available data sources:', {
+      intermediateCount: newDetailedWords_part1.length,
+      upperIntermediateCount: upperIntermediateWordsRaw.length
+    });
+    
     const newWords = getWordsByParams(unit, level);
     console.log('GameWrapper: New words count:', newWords.length);
+    console.log('GameWrapper: First few words:', newWords.slice(0, 3).map(w => ({ headword: w.headword, unit: w.unit })));
+    
     setWords(newWords);
     setIsLoading(false);
     // Oyunu yeniden başlatmak için key'i değiştir
