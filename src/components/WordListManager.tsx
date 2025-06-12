@@ -53,7 +53,7 @@ const WordListManager: React.FC = () => {
       userId: currentUser.uid,
       isPublic: false,
       createdAt: new Date(),
-      gameModes: ['matching', 'multipleChoice', 'flashcard', 'scramble', 'difficult', 'speaking', 'wordRace', 'sentenceCompletion', 'wordForms']
+      gameModes: ['matching', 'multipleChoice', 'flashcard', 'scramble', 'difficult', 'speaking', 'wordRace', 'sentenceCompletion', 'wordForms', 'wordTypes']
     };
     
     await addDoc(collection(db, 'wordLists'), newList);

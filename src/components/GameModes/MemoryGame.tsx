@@ -1,207 +1,205 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Brain } from 'lucide-react';
-import MemoryGameAd from './MemoryGameAd';
+import { WordDetail } from '../../data/words';
+import { gameScoreService } from '../../services/gameScoreService';
+import { useAuth } from '../../services/authService';
 
 interface MemoryGameProps {
-  words: {
-    english: string;
-    turkish: string;
-    unit: string;
-  }[];
-  unit: string;
+  words: WordDetail[];
+  onGameComplete?: () => void;
 }
 
-export const MemoryGame: React.FC<MemoryGameProps> = ({ words, unit }) => {
-  const [cards, setCards] = useState<Array<{
-    id: number;
-    content: string;
-    isFlipped: boolean;
-    isMatched: boolean;
-    language: 'english' | 'turkish';
-  }>>([]);
-  const [flippedCards, setFlippedCards] = useState<number[]>([]);
+interface Card {
+  id: number;
+  word: string;
+  isFlipped: boolean;
+  isMatched: boolean;
+  type: 'headword' | 'turkish';
+  pairId: number;
+}
+
+export const MemoryGame: React.FC<MemoryGameProps> = ({ words, onGameComplete }) => {
+  const [cards, setCards] = useState<Card[]>([]);
+  const [flippedCards, setFlippedCards] = useState<Card[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
   const [moves, setMoves] = useState<number>(0);
-  const [gameCompleted, setGameCompleted] = useState<boolean>(false);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const { currentUser } = useAuth();
+  const [roundWords, setRoundWords] = useState<WordDetail[]>([]);
 
-  useEffect(() => {
-    initializeGame();
-  }, [unit]);
+  const startNewRound = useCallback(() => {
+    const gameWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 8);
+    setRoundWords(gameWords);
 
-  const initializeGame = () => {
-    const filteredWords = words.filter((word) => word.unit === unit).slice(0, 6);
-    const gameCards = filteredWords.flatMap((word, index) => [
+    const cardPairs = gameWords.flatMap((word, index) => [
       {
         id: index * 2,
-        content: word.english,
+        word: word.headword,
         isFlipped: false,
         isMatched: false,
-        language: 'english' as const,
+        type: 'headword' as const,
+        pairId: index,
       },
       {
         id: index * 2 + 1,
-        content: word.turkish,
+        word: word.turkish,
         isFlipped: false,
         isMatched: false,
-        language: 'turkish' as const,
-      },
+        type: 'turkish' as const,
+        pairId: index,
+      }
     ]);
 
-    setCards(shuffleArray(gameCards));
+    setCards(shuffleArray(cardPairs));
     setFlippedCards([]);
     setMatchedPairs(0);
+    setScore(0);
     setMoves(0);
-    setGameCompleted(false);
-  };
+    setGameOver(false);
+  }, [words]);
 
-  const shuffleArray = <T extends unknown>(array: T[]): T[] => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  useEffect(() => {
+    if (words.length > 0) {
+      startNewRound();
     }
-    return newArray;
+  }, [words, startNewRound]);
+
+  const shuffleArray = (array: Card[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   };
 
-  const handleCardClick = (id: number) => {
-    if (
-      flippedCards.length === 2 ||
-      cards[id].isFlipped ||
-      cards[id].isMatched
-    ) {
+  const handleCardClick = (clickedCard: Card) => {
+    if (flippedCards.length === 2 || clickedCard.isFlipped || clickedCard.isMatched) {
       return;
     }
 
-    const newCards = [...cards];
-    newCards[id].isFlipped = true;
+    const newCards = cards.map(card =>
+      card.id === clickedCard.id ? { ...card, isFlipped: true } : card
+    );
     setCards(newCards);
 
-    const newFlippedCards = [...flippedCards, id];
+    const newFlippedCards = [...flippedCards, clickedCard];
     setFlippedCards(newFlippedCards);
 
     if (newFlippedCards.length === 2) {
       setMoves(moves + 1);
-      checkForMatch(newFlippedCards[0], newFlippedCards[1]);
+      checkForMatch(newFlippedCards);
     }
   };
 
-  const checkForMatch = (firstId: number, secondId: number) => {
-    const firstCard = cards[firstId];
-    const secondCard = cards[secondId];
+  const checkForMatch = (flippedPair: Card[]) => {
+    const [firstCard, secondCard] = flippedPair;
+    const isMatch = firstCard.pairId === secondCard.pairId;
 
-    if (
-      firstCard.language !== secondCard.language &&
-      isWordPair(firstCard.content, secondCard.content)
-    ) {
-      const newCards = [...cards];
-      newCards[firstId].isMatched = true;
-      newCards[secondId].isMatched = true;
+    setTimeout(() => {
+      const newCards = cards.map(card => {
+        if (card.id === firstCard.id || card.id === secondCard.id) {
+          return {
+            ...card,
+            isFlipped: false,
+            isMatched: isMatch
+          };
+        }
+        return card;
+      });
+
       setCards(newCards);
-      setMatchedPairs(matchedPairs + 1);
       setFlippedCards([]);
 
-      if (matchedPairs + 1 === cards.length / 2) {
-        setGameCompleted(true);
+      if (isMatch) {
+        const newScore = score + 10;
+        setScore(newScore);
+        const newMatchedPairs = matchedPairs + 1;
+        setMatchedPairs(newMatchedPairs);
+
+        if (newMatchedPairs === roundWords.length) {
+          handleGameOver(newScore);
+        }
       }
-    } else {
-      setTimeout(() => {
-        const newCards = [...cards];
-        newCards[firstId].isFlipped = false;
-        newCards[secondId].isFlipped = false;
-        setCards(newCards);
-        setFlippedCards([]);
-      }, 1000);
+    }, 1000);
+  };
+
+  const handleGameOver = async (finalScore: number) => {
+    setGameOver(true);
+    if (currentUser) {
+      await gameScoreService.saveScore('memory', finalScore, 'mixed');
+    }
+    if (onGameComplete) {
+      onGameComplete();
     }
   };
 
-  const isWordPair = (content1: string, content2: string): boolean => {
-    return words.some(
-      (word) =>
-        (word.english === content1 && word.turkish === content2) ||
-        (word.english === content2 && word.turkish === content1)
-    );
+  const cardVariants = {
+    flipped: {
+      rotateY: 180,
+      transition: { duration: 0.3 }
+    },
+    unflipped: {
+      rotateY: 0,
+      transition: { duration: 0.3 }
+    }
   };
 
-  if (cards.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-lg text-gray-600">Bu ünitede henüz kelime bulunmamaktadır.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg">
-          <Brain className="w-6 h-6 text-white" />
+    <div className="p-4 max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Brain className="w-8 h-8 text-purple-500" />
+          <h1 className="text-2xl font-bold">Hafıza Oyunu</h1>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Hafıza Oyunu</h2>
+        <div className="flex justify-center gap-8 text-lg">
+          <div>Skor: {score}</div>
+          <div>Hamle: {moves}</div>
+        </div>
       </div>
-      
-      {/* Oyun başlangıcında reklam */}
-      <MemoryGameAd />
-      
-      <div className="w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-lg font-semibold text-purple-600">
-            Eşleşen Çiftler: {matchedPairs}/{cards.length / 2}
-          </div>
-          <div className="text-lg font-semibold text-green-600">
-            Hamle: {moves}
-          </div>
-        </div>
 
-        {gameCompleted && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-xl shadow-xl text-white text-center mt-6"
-        >
-          <h3 className="text-2xl font-bold mb-2">Tebrikler!</h3>
-          <p className="mb-4">Oyunu {moves} hamlede tamamladınız.</p>
+      {gameOver ? (
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Tebrikler!</h2>
+          <p className="text-lg mb-4">Toplam Skor: {score}</p>
           <button
-            onClick={initializeGame}
-            className="px-6 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-md"
+            onClick={startNewRound}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             Tekrar Oyna
           </button>
-        </motion.div>
-      )}
-      
-      {/* Oyun sonunda reklam */}
-      {gameCompleted && <MemoryGameAd />}
-      </div>
-
-      <div className="grid grid-cols-3 gap-4 w-full max-w-md">
-        {cards.map((card) => (
-          <motion.div
-            key={card.id}
-            className={`aspect-square cursor-pointer ${card.isMatched ? 'opacity-50' : ''}`}
-            onClick={() => handleCardClick(card.id)}
-            whileHover={{ scale: card.isMatched ? 1 : 1.05 }}
-            whileTap={{ scale: card.isMatched ? 1 : 0.95 }}
-          >
-            <div
-              className={`w-full h-full rounded-xl shadow-md transition-transform duration-300 transform-gpu ${card.isFlipped ? 'rotate-y-180' : ''} preserve-3d`}
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 gap-4">
+          {cards.map(card => (
+            <motion.div
+              key={card.id}
+              className={`relative aspect-[3/4] cursor-pointer ${
+                card.isMatched ? 'opacity-50' : ''
+              }`}
+              onClick={() => handleCardClick(card)}
+              animate={card.isFlipped ? 'flipped' : 'unflipped'}
+              variants={cardVariants}
+              style={{ perspective: 1000 }}
             >
-              <div className="absolute w-full h-full backface-hidden">
-                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
+              <div
+                className={`absolute inset-0 rounded-xl p-4 flex items-center justify-center text-center transition-transform duration-300 transform ${
+                  card.isFlipped ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-lg' : 
+                  'bg-gradient-to-br from-purple-500 to-indigo-600'
+                }`}
+              >
+                {card.isFlipped ? (
+                  <span className="font-medium">{card.word}</span>
+                ) : (
                   <Brain className="w-8 h-8 text-white" />
-                </div>
+                )}
               </div>
-              <div className="absolute w-full h-full backface-hidden rotate-y-180">
-                <div className="w-full h-full bg-white rounded-xl border-2 border-purple-200 p-2 flex items-center justify-center text-center">
-                  <span className="text-sm font-semibold text-purple-700 break-words">
-                    {card.content}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,31 @@
-import { UserScore } from '../components/Leaderboard';
+import { db } from '../config/firebase';
+import { collection, addDoc, getDocs, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { authService } from './authService';
 
-type GameMode = 'matching' | 'multipleChoice' | 'flashcard' | 'scramble' | 'difficult' | 'speaking' | 'wordRace' | 'sentenceCompletion' | 'wordForms';
+export type GameMode = 
+  | 'matching'
+  | 'sentence-completion'
+  | 'multiple-choice'
+  | 'flashcard'
+  | 'speaking'
+  | 'word-race'
+  | 'wordTypes';
+
+export interface GameScore {
+  userId: string;
+  displayName: string;
+  gameMode: GameMode;
+  score: number;
+  unit: string;
+  timestamp: Date;
+}
+
+export interface UserScore {
+  id: string;
+  name: string;
+  scores: Record<GameMode, number>;
+  totalScore: number;
+}
 
 interface GameResult {
   userId: string;
@@ -10,6 +35,7 @@ interface GameResult {
 }
 
 class GameScoreService {
+  private readonly collectionName = 'gameScores';
   private gameResults: GameResult[] = [];
   private static instance: GameScoreService;
   private scores: UserScore[] = [];
@@ -21,15 +47,13 @@ class GameScoreService {
         id: '1',
         name: 'Kullanıcı 1',
         scores: {
-          matching: 300,
-          multipleChoice: 250,
-          flashcard: 200,
-          scramble: 150,
-          difficult: 100,
-          speaking: 80,
-          wordRace: 70,
-          sentenceCompletion: 60,
-          wordForms: 50
+          'matching': 300,
+          'multiple-choice': 250,
+          'flashcard': 200,
+          'speaking': 80,
+          'word-race': 70,
+          'sentence-completion': 60,
+          'wordTypes': 50
         },
         totalScore: 1260
       }
@@ -43,24 +67,90 @@ class GameScoreService {
     return GameScoreService.instance;
   }
 
-  public async registerUser(name: string): Promise<void> {
-    const newUser: UserScore = {
-      id: Date.now().toString(),
-      name,
-      scores: {
-        matching: 0,
-        multipleChoice: 0,
-        flashcard: 0,
-        scramble: 0,
-        difficult: 0,
-        speaking: 0,
-        wordRace: 0,
-        sentenceCompletion: 0,
-        wordForms: 0
-      },
-      totalScore: 0
-    };
-    this.scores.push(newUser);
+  public async registerUser(displayName: string): Promise<void> {
+    const userId = authService.getCurrentUserId();
+    if (!userId) throw new Error('Kullanıcı oturum açmamış');
+
+    // Kullanıcının ilk skorunu oluştur
+    await addDoc(collection(db, this.collectionName), {
+      userId,
+      displayName,
+      gameMode: 'matching',
+      score: 0,
+      unit: '1',
+      timestamp: Timestamp.now()
+    });
+  }
+
+  public async saveScore(gameMode: GameMode, score: number, unit: string): Promise<void> {
+    const userId = authService.getCurrentUserId();
+    if (!userId) throw new Error('Kullanıcı oturum açmamış');
+
+    const user = authService.getCurrentUser();
+    if (!user) throw new Error('Kullanıcı bulunamadı');
+
+    await addDoc(collection(db, this.collectionName), {
+      userId,
+      displayName: user.displayName || 'Anonim',
+      gameMode,
+      score,
+      unit,
+      timestamp: Timestamp.now()
+    });
+  }
+
+  public async getLeaderboard(gameMode: GameMode, unit: string, limitCount: number = 10): Promise<GameScore[]> {
+    const q = query(
+      collection(db, this.collectionName),
+      where('gameMode', '==', gameMode),
+      where('unit', '==', unit),
+      orderBy('score', 'desc'),
+      limit(limitCount)
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      ...doc.data(),
+      timestamp: doc.data().timestamp?.toDate()
+    })) as GameScore[];
+  }
+
+  public async getUserHighScore(gameMode: GameMode, unit: string): Promise<number> {
+    const userId = authService.getCurrentUserId();
+    if (!userId) return 0;
+
+    const q = query(
+      collection(db, this.collectionName),
+      where('userId', '==', userId),
+      where('gameMode', '==', gameMode),
+      where('unit', '==', unit),
+      orderBy('score', 'desc'),
+      limit(1)
+    );
+
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) return 0;
+
+    return querySnapshot.docs[0].data().score;
+  }
+
+  public async getUserTotalScore(): Promise<number> {
+    const userId = authService.getCurrentUserId();
+    if (!userId) return 0;
+
+    const q = query(
+      collection(db, this.collectionName),
+      where('userId', '==', userId)
+    );
+
+    const querySnapshot = await getDocs(q);
+    let totalScore = 0;
+
+    querySnapshot.docs.forEach(doc => {
+      totalScore += doc.data().score;
+    });
+
+    return totalScore;
   }
 
   public async addScore(userId: string, gameMode: GameMode, score: number): Promise<void> {
@@ -96,7 +186,7 @@ class GameScoreService {
     });
   }
 
-  public async getLeaderboard(): Promise<UserScore[]> {
+  public async getOverallLeaderboard(): Promise<UserScore[]> {
     return [...this.scores].sort((a, b) => b.totalScore - a.totalScore);
   }
 

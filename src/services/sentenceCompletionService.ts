@@ -1,7 +1,7 @@
 import { API_KEYS } from '../config/apiKeys';
-import { words as allWords } from '../data/words';
+import { newDetailedWords_part1, WordDetail } from '../data/words';
 
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const allWords = newDetailedWords_part1.map((word: WordDetail) => word.headword);
 
 export interface SentenceQuestion {
   sentence: string;
@@ -25,12 +25,18 @@ export class SentenceCompletionService {
 
   /**
    * API isteği yapar ve yanıtı döndürür
-   * @param prompt API'ye gönderilecek istek metni
+   * @param prompt Gönderilecek prompt
    * @returns API yanıtı
    */
   private async makeApiRequest(prompt: string): Promise<any> {
     const modelConfig = API_KEYS.gemini;
     this.retryCount = 0;
+
+    if (modelConfig.key === 'YOUR_API_KEY' || !modelConfig.key) {
+      throw new Error('API anahtarı bulunamadı. Lütfen `src/config/apiKeys.ts` dosyasını kontrol edin.');
+    }
+    
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelConfig.model}:generateContent`;
 
     while (this.retryCount < this.MAX_RETRIES) {
       try {
@@ -51,17 +57,30 @@ export class SentenceCompletionService {
         });
 
         if (!response.ok) {
-          if (response.status === 429 || response.status >= 500) {
+          const errorBody = await response.text();
+          console.error("API Hata Detayı:", errorBody);
+          
+          if (response.status === 503) {
+            throw new Error('Gemini API servisi şu anda kullanılamıyor. Lütfen birkaç dakika sonra tekrar deneyin.');
+          }
+          
+          if (response.status === 429) {
+            throw new Error('API istek limiti aşıldı. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+          }
+          
+          if (response.status >= 500) {
             this.retryCount++;
             const delay = Math.min(1000 * Math.pow(2, this.retryCount), 8000);
             await new Promise(resolve => setTimeout(resolve, delay));
             continue;
           }
-          throw new Error(`API yanıt hatası: ${response.status}`);
+          
+          throw new Error(`API yanıt hatası: ${response.status} - ${response.statusText}`);
         }
 
         return await response.json();
       } catch (error) {
+        console.error("Fetch sırasında hata:", error);
         if (this.retryCount >= this.MAX_RETRIES - 1) {
           throw error;
         }
@@ -81,7 +100,7 @@ export class SentenceCompletionService {
   private parseJsonSafely(jsonText: string): any {
     try {
       // Markdown kod bloklarını temizle
-      let cleaned = jsonText.replace(/```(?:json)?(([\s\S]*?))```/g, '$1').trim();
+      let cleaned = jsonText.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1').trim();
       
       // JSON başlangıç ve bitişini bul
       const startBracket = cleaned.indexOf('[');
@@ -110,7 +129,7 @@ export class SentenceCompletionService {
     const questions: any[] = [];
     
     // Markdown ve gereksiz karakterleri temizle
-    let cleaned = text.replace(/```(?:json)?(([\s\S]*?))```/g, '$1').trim();
+    let cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1').trim();
     
     // Regex ile soru-cevap yapılarını bul
     const questionRegex = /"sentence"\s*:\s*"([^"]+)"\s*,\s*"correctAnswer"\s*:\s*"([^"]+)"/g;
@@ -167,19 +186,17 @@ export class SentenceCompletionService {
    */
   public async generateSentenceCompletions(words: string[]): Promise<SentenceQuestion[]> {
     try {
-      // Tüm kelimeleri kullan
       const selectedWords = [...words];
       
-      // Daha net ve yapılandırılmış bir prompt oluştur
       const prompt = `
-      Görevin, aşağıdaki İngilizce kelimeler için boşluk doldurma soruları oluşturmak:
+      Task: Create sentence completion questions for the following English words:
       ${selectedWords.join(', ')}
-      
-      Her soru için şunları yap:
-      1. Kelimenin doğru kullanıldığı bir İngilizce cümle oluştur, ancak kelimenin yerine boşluk bırak (___ işareti kullan).
-      2. Doğru cevap olarak kelimeyi belirt.
-      
-      ÖNEMLİ: Yanıtını SADECE aşağıdaki JSON formatında ver ve başka hiçbir açıklama ekleme:
+
+      For each word:
+      1. Create an English sentence using the word, but replace the word with "___".
+      2. Provide the correct word as the answer.
+
+      IMPORTANT: Your response MUST be ONLY a JSON array in the following format. Do not add any other text, comments or explanations.
       [
         {
           "sentence": "The students are ___ their homework for tomorrow's class.",
@@ -190,8 +207,6 @@ export class SentenceCompletionService {
           "correctAnswer": "renew"
         }
       ]
-      
-      JSON formatına kesinlikle uy, yorum satırları ekleme ve her kelime için bir soru oluştur.
       `;
 
       const response = await this.makeApiRequest(prompt);
@@ -243,8 +258,7 @@ export class SentenceCompletionService {
   private getRandomWrongOptions(correctAnswer: string, count: number): string[] {
     // Doğru cevap dışındaki kelimeleri filtrele
     const otherWords = allWords
-      .filter(word => word.english.toLowerCase() !== correctAnswer.toLowerCase())
-      .map(word => word.english);
+      .filter((word: string) => word.toLowerCase() !== correctAnswer.toLowerCase());
     
     // Eğer yeterli kelime yoksa, mevcut kelimeleri döndür
     if (otherWords.length <= count) {
@@ -266,5 +280,26 @@ export class SentenceCompletionService {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+  }
+
+  /**
+   * Özel metin oluşturma için genel amaçlı API çağrısı
+   * @param prompt Gönderilecek prompt
+   * @returns API yanıtından gelen metin
+   */
+  public async generateCustomText(prompt: string): Promise<string> {
+    try {
+      const response = await this.makeApiRequest(prompt);
+      const textContent = response.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!textContent) {
+        throw new Error('API yanıtında beklenen içerik bulunamadı');
+      }
+      
+      return textContent.trim();
+    } catch (error) {
+      console.error('Özel metin oluşturulurken hata:', error);
+      throw error;
+    }
   }
 }

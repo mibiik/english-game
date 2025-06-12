@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, Volume2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { Word } from '../../data/words';
-import { wordTracker } from '../../data/wordTracker';
+import { WordDetail } from '../../data/words';
 
-interface SpeakingGameProps {
-  words: Word[];
-  unit: string;
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
 }
 
-export function SpeakingGame({ words, unit }: SpeakingGameProps) {
-  const [currentWord, setCurrentWord] = useState<Word | null>(null);
+interface SpeakingGameProps {
+  words: WordDetail[];
+}
+
+export function SpeakingGame({ words }: SpeakingGameProps) {
+  const [roundWords, setRoundWords] = useState<WordDetail[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [feedback, setFeedback] = useState<string>('');
   const [score, setScore] = useState(0);
@@ -18,17 +24,30 @@ export function SpeakingGame({ words, unit }: SpeakingGameProps) {
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  useEffect(() => {
-    generateNewWord();
-  }, [unit]);
+  const startNewRound = useCallback(() => {
+    const shuffled = [...words].sort(() => 0.5 - Math.random());
+    setRoundWords(shuffled.slice(0, 15));
+    setCurrentWordIndex(0);
+    setFeedback('');
+    setShowResult(false);
+    setScore(0);
+    setStreak(0);
+  }, [words]);
 
-  const generateNewWord = () => {
-    wordTracker.initializeUnit(words, unit);
-    const newWord = wordTracker.getNextWord(words, unit);
-    if (newWord) {
-      setCurrentWord(newWord);
-      setFeedback('');
-      setShowResult(false);
+  useEffect(() => {
+    if (words.length > 0) {
+      startNewRound();
+    }
+  }, [words, startNewRound]);
+
+  const nextWord = () => {
+    setShowResult(false);
+    setFeedback('');
+    if (currentWordIndex < roundWords.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+    } else {
+      // Tur bitti, yeni tur başlat
+      startNewRound();
     }
   };
 
@@ -40,32 +59,38 @@ export function SpeakingGame({ words, unit }: SpeakingGameProps) {
   };
 
   const startListening = () => {
+    const currentWord = roundWords[currentWordIndex];
     if (!currentWord) return;
 
     setIsListening(true);
     setFeedback('Dinliyorum...');
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setFeedback('Tarayıcınız konuşma tanımayı desteklemiyor.');
+      setIsListening(false);
+      return;
+    }
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.continuous = false;
     recognition.interimResults = false;
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript.toLowerCase().trim();
-      const correctWord = currentWord.english.toLowerCase();
-      const similarity = calculateSimilarity(transcript, correctWord);
-
-      setIsListening(false);
+      const correctWord = currentWord.headword.toLowerCase();
+      
       setShowResult(true);
+      setIsListening(false);
 
-      if (similarity >= 0.8) {
+      if (transcript === correctWord) {
         setIsCorrect(true);
         setScore(score + 10);
-        setStreak(streak + 1);
-        setBestStreak(Math.max(bestStreak, streak + 1));
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        setBestStreak(Math.max(bestStreak, newStreak));
         setFeedback('Harika! Doğru telaffuz!');
-        setTimeout(generateNewWord, 2000);
+        setTimeout(nextWord, 2000);
       } else {
         setIsCorrect(false);
         setStreak(0);
@@ -73,40 +98,20 @@ export function SpeakingGame({ words, unit }: SpeakingGameProps) {
       }
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (event: any) => {
       setIsListening(false);
-      setFeedback('Bir hata oluştu. Tekrar deneyin.');
+      setFeedback(`Hata: ${event.error}. Tekrar deneyin.`);
     };
 
     recognition.start();
   };
-
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const len1 = str1.length;
-    const len2 = str2.length;
-    const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
-
-    for (let i = 0; i <= len1; i++) matrix[i][0] = i;
-    for (let j = 0; j <= len2; j++) matrix[0][j] = j;
-
-    for (let i = 1; i <= len1; i++) {
-      for (let j = 1; j <= len2; j++) {
-        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + cost
-        );
-      }
-    }
-
-    return 1 - matrix[len1][len2] / Math.max(len1, len2);
-  };
+  
+  const currentWord = roundWords[currentWordIndex];
 
   if (!currentWord) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-lg text-gray-600">Bu ünitede henüz kelime bulunmamaktadır.</p>
+        <p className="text-lg text-gray-600">Oyun yükleniyor...</p>
       </div>
     );
   }
@@ -123,11 +128,14 @@ export function SpeakingGame({ words, unit }: SpeakingGameProps) {
               Seri: {streak} | En İyi: {bestStreak}
             </div>
           </div>
+           <div className="text-lg font-semibold text-gray-700">
+            {currentWordIndex + 1} / {roundWords.length}
+          </div>
         </div>
 
         <div className="flex flex-col items-center space-y-4">
           <div className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">
-            {currentWord.english}
+            {currentWord.headword}
           </div>
           <div className="text-lg text-gray-600 mb-2">
             {currentWord.turkish}
@@ -135,7 +143,7 @@ export function SpeakingGame({ words, unit }: SpeakingGameProps) {
 
           <div className="flex gap-4">
             <button
-              onClick={() => speak(currentWord.english)}
+              onClick={() => speak(currentWord.headword)}
               className="p-4 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
               title="Kelimeyi dinle"
             >
@@ -152,7 +160,7 @@ export function SpeakingGame({ words, unit }: SpeakingGameProps) {
             </button>
 
             <button
-              onClick={generateNewWord}
+              onClick={nextWord}
               className="p-4 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
               title="Yeni kelime"
             >

@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Trophy, Timer, Star, Award } from 'lucide-react';
-import { Word } from '../../data/words';
-import { wordTracker } from '../../data/wordTracker';
+import { WordDetail } from '../../data/words';
 
 interface WordRaceProps {
-  words: Word[];
-  unit: string;
+  words: WordDetail[];
 }
 
-export function WordRace({ words, unit }: WordRaceProps) {
-  const [currentWord, setCurrentWord] = useState<Word | null>(null);
+export function WordRace({ words }: WordRaceProps) {
+  const [raceWords, setRaceWords] = useState<WordDetail[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(90); // 90 saniye
+  const [timeLeft, setTimeLeft] = useState(90);
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [correctWords, setCorrectWords] = useState(0);
@@ -28,12 +27,15 @@ export function WordRace({ words, unit }: WordRaceProps) {
         setTimeLeft(prev => prev - 1);
       }, 1000);
       return () => clearInterval(timer);
-    } else if (timeLeft === 0) {
+    } else if (timeLeft === 0 && isGameActive) {
       endGame();
     }
   }, [isGameActive, timeLeft]);
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
+    const shuffledWords = [...words].sort(() => 0.5 - Math.random());
+    setRaceWords(shuffledWords);
+    setCurrentWordIndex(0);
     setScore(0);
     setTimeLeft(90);
     setCorrectWords(0);
@@ -42,8 +44,10 @@ export function WordRace({ words, unit }: WordRaceProps) {
     setGameOver(false);
     setIsGameActive(true);
     setAchievements([]);
-    generateNewWord();
-  };
+    setUserInput('');
+    setShowFeedback(false);
+    setIsCorrect(null);
+  }, [words]);
 
   const endGame = () => {
     setGameOver(true);
@@ -51,25 +55,22 @@ export function WordRace({ words, unit }: WordRaceProps) {
     checkAchievements();
   };
 
-  const generateNewWord = () => {
-    wordTracker.initializeUnit(words, unit);
-    const newWord = wordTracker.getNextWord(words, unit);
-    if (!newWord) return;
-
-    wordTracker.markWordAsSeen(newWord);
-    setCurrentWord(newWord);
-    setUserInput('');
-    setShowFeedback(false);
-    setIsCorrect(null);
+  const nextWord = () => {
+    if (currentWordIndex < raceWords.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+      setUserInput('');
+      setShowFeedback(false);
+      setIsCorrect(null);
+    } else {
+      endGame(); // Kelimeler biterse oyunu bitir
+    }
   };
 
   const checkAchievements = () => {
     const newAchievements: string[] = [];
-    
     if (score >= 500) newAchievements.push('Kelime Ustası');
     if (bestStreak >= 10) newAchievements.push('Kombo Kralı');
     if (correctWords >= 30) newAchievements.push('Hız Ustası');
-    
     setAchievements(newAchievements);
   };
 
@@ -79,8 +80,9 @@ export function WordRace({ words, unit }: WordRaceProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentWord || !isGameActive) return;
+    if (!isGameActive || !raceWords[currentWordIndex]) return;
 
+    const currentWord = raceWords[currentWordIndex];
     const answer = userInput.trim().toLowerCase();
     const correct = answer === currentWord.turkish.toLowerCase();
 
@@ -98,16 +100,14 @@ export function WordRace({ words, unit }: WordRaceProps) {
       setCurrentStreak(newStreak);
       setBestStreak(prev => Math.max(prev, newStreak));
 
-      setTimeout(() => {
-        generateNewWord();
-      }, 1000);
+      setTimeout(nextWord, 1000);
     } else {
       setCurrentStreak(0);
-      setTimeout(() => {
-        generateNewWord();
-      }, 2000);
+      setTimeout(nextWord, 2000);
     }
   };
+
+  const currentWord = raceWords[currentWordIndex];
 
   return (
     <div className="p-6 space-y-6">
@@ -147,8 +147,8 @@ export function WordRace({ words, unit }: WordRaceProps) {
           <div className="bg-white p-8 rounded-xl shadow-lg border border-purple-100">
             <div className="text-4xl font-bold text-center mb-8
               bg-gradient-to-r from-purple-600 to-indigo-600
-              text-transparent bg-clip-text animate-pulse">
-              {currentWord.english}
+              text-transparent bg-clip-text">
+              {currentWord.headword}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

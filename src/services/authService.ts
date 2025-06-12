@@ -4,7 +4,7 @@ import {
   signOut, 
   onAuthStateChanged,
   User as FirebaseUser,
-  updateProfile
+  updateProfile as firebaseUpdateProfile
 } from "firebase/auth";
 import { auth } from '../config/firebase';
 
@@ -32,7 +32,7 @@ class AuthService {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       // Kullanıcı adını güncelle
       if (userCredential.user) {
-        await updateProfile(userCredential.user, { displayName });
+        await firebaseUpdateProfile(userCredential.user, { displayName });
       }
       return userCredential.user;
     } catch (error) {
@@ -70,6 +70,29 @@ class AuthService {
   // Kullanıcının oturum açıp açmadığını kontrol et
   public isAuthenticated(): boolean {
     return !!this.currentUser;
+  }
+
+  // Kullanıcı ID'sini getir
+  public getCurrentUserId(): string | null {
+    return this.currentUser?.uid || null;
+  }
+
+  // Auth state değişikliklerini dinle
+  public onAuthStateChanged(callback: (user: FirebaseUser | null) => void): () => void {
+    return onAuthStateChanged(auth, callback);
+  }
+
+  // Profil güncelleme
+  public async updateProfile(data: { displayName?: string; photoURL?: string }): Promise<void> {
+    try {
+      if (!this.currentUser) {
+        throw new Error('Kullanıcı oturum açmamış');
+      }
+      await firebaseUpdateProfile(this.currentUser, data);
+    } catch (error) {
+      console.error('Profil güncellenirken hata oluştu:', error);
+      throw error;
+    }
   }
 }
 

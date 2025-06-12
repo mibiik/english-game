@@ -1,3 +1,5 @@
+const defaultTheme = require('tailwindcss/defaultTheme');
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -63,7 +65,10 @@ export default {
         'ocean-glow': '0 0 5px #0066cc, 0 0 20px #0099ff',
         'sea-glow': '0 0 5px #2e8b57, 0 0 20px #3cb371',
         'sky-glow': '0 0 5px #87ceeb, 0 0 20px #b0e0e6'
-      }
+      },
+      fontFamily: {
+        sans: ['Poppins', ...defaultTheme.fontFamily.sans],
+      },
     },
   },
   plugins: [],

@@ -1,44 +1,118 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Book, Layers } from 'lucide-react';
+
+type Level = 'intermediate' | 'upper-intermediate';
 
 interface UnitSelectorProps {
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
+  currentLevel: Level;
+  setCurrentLevel: (level: Level) => void;
 }
 
-const unitData = [
-  { id: 1, title: 'Unit 1' },
-  { id: 2, title: 'Unit 2' },
-  { id: 3, title: 'Unit 3' },
-  { id: 4, title: 'Unit 4' },
-  { id: 5, title: 'Unit 5' },
-  { id: 6, title: 'Unit 6' },
-  { id: 7, title: 'Unit 7' },
-  { id: 8, title: 'Unit 8' },
-];
+const Dropdown: React.FC<{
+  label: string;
+  icon: React.ReactNode;
+  options: string[];
+  selectedOption: string;
+  onSelect: (option: string) => void;
+}> = ({ label, icon, options, selectedOption, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-export function UnitSelector({ currentUnit, setCurrentUnit }: UnitSelectorProps) {
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative w-full pt-1">
-      <select
-        value={currentUnit}
-        onChange={(e) => setCurrentUnit(e.target.value)}
-        className="w-full p-2 text-sm font-medium text-gray-700 bg-white border border-purple-200 rounded-lg
-          appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400
-          focus:border-transparent hover:border-purple-300 transition-all"
+    <div className="relative" ref={dropdownRef}>
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
+        whileTap={{ scale: 0.97 }}
       >
-        {unitData.map((unit) => (
-          <option key={unit.id} value={unit.id.toString()}>
-            {unit.title}
-          </option>
-        ))}
-      </select>
-      <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-        <div className="bg-purple-100 rounded-full p-1">
-          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </div>
+        {icon}
+        <span className="font-semibold">{label}: {selectedOption}</span>
+        <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-full mt-2 w-56 p-2 bg-gray-900 rounded-lg shadow-xl border border-gray-700 z-50"
+          >
+            {options.map((option) => (
+              <button
+                key={option}
+                onClick={() => {
+                  onSelect(option);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
+                  ${selectedOption === option
+                    ? 'bg-cyan-500 text-white'
+                    : 'hover:bg-gray-800 text-gray-300'
+                  }`}
+              >
+                {option}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-}
+};
+
+
+export const UnitSelector: React.FC<UnitSelectorProps> = ({
+  currentUnit,
+  setCurrentUnit,
+  currentLevel,
+  setCurrentLevel,
+}) => {
+  const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
+  const levels: { id: Level; name: string }[] = [
+    { id: 'intermediate', name: 'Intermediate' },
+    { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+  ];
+
+  const handleLevelSelect = (levelId: string) => {
+    setCurrentLevel(levelId as Level);
+    setCurrentUnit('1'); // Seviye değiştiğinde üniteyi başa al
+  };
+  
+  return (
+    <div className="flex items-center gap-4">
+      <Dropdown 
+        label="Kur"
+        icon={<Layers className="w-5 h-5 text-fuchsia-400" />}
+        options={levels.map(l => l.name)}
+        selectedOption={levels.find(l => l.id === currentLevel)?.name || 'Intermediate'}
+        onSelect={(levelName) => {
+          const selectedLevel = levels.find(l => l.name === levelName);
+          if (selectedLevel) {
+            handleLevelSelect(selectedLevel.id);
+          }
+        }}
+      />
+      <Dropdown 
+        label="Ünite"
+        icon={<Book className="w-5 h-5 text-cyan-400" />}
+        options={units}
+        selectedOption={`Ünite ${currentUnit}`}
+        onSelect={(unit) => setCurrentUnit(unit.replace('Ünite ', ''))}
+      />
+    </div>
+  );
+};

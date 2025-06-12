@@ -1,30 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
+import { WordDetail } from '../../data/words';
 
 interface FlashCardProps {
-  words: {
-    english: string;
-    turkish: string;
-    unit: string;
-  }[];
-  unit: string;
+  words: WordDetail[];
 }
 
-export const FlashCard: React.FC<FlashCardProps> = ({ words, unit }) => {
+export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
+  const [roundWords, setRoundWords] = useState<WordDetail[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [score, setScore] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const filteredWords = words.filter((word) => word.unit === unit);
-
-  useEffect(() => {
+  const startNewRound = useCallback(() => {
+    const shuffled = [...words].sort(() => 0.5 - Math.random());
+    setRoundWords(shuffled.slice(0, 15)); // Her turda 15 kelime
     setCurrentWordIndex(0);
     setIsFlipped(false);
-    setProgress(0);
-  }, [unit]);
+    setScore(0);
+  }, [words]);
+
+  useEffect(() => {
+    if (words.length > 0) {
+      startNewRound();
+    }
+  }, [words, startNewRound]);
 
   const handleCardClick = () => {
     setIsFlipped(!isFlipped);
@@ -39,36 +41,40 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words, unit }) => {
 
     setIsFlipped(false);
     setTimeout(() => {
-      if (currentWordIndex < filteredWords.length - 1) {
+      if (currentWordIndex < roundWords.length - 1) {
         setCurrentWordIndex(currentWordIndex + 1);
-        setProgress(((currentWordIndex + 1) / filteredWords.length) * 100);
       } else {
-        setCurrentWordIndex(0);
-        setProgress(0);
+        // Son kelimeden sonra turu yeniden başlat
+        startNewRound();
       }
     }, 200);
   };
 
-  if (filteredWords.length === 0) {
+  if (roundWords.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-lg text-gray-600">Bu ünitede henüz kelime bulunmamaktadır.</p>
+        <p className="text-lg text-gray-600">Kelime kartları hazırlanıyor...</p>
       </div>
     );
   }
 
-  const currentWord = filteredWords[currentWordIndex];
+  const currentWord = roundWords[currentWordIndex];
+  const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
 
   return (
     <div className="flex flex-col items-center space-y-6 p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <div className="text-lg font-semibold text-purple-600">
-            Kelime {currentWordIndex + 1}/{filteredWords.length}
+            Kelime {currentWordIndex + 1}/{roundWords.length}
           </div>
-          <div className="text-lg font-semibold text-green-600">
-            Skor: {score}
-          </div>
+          <button
+            onClick={startNewRound}
+            className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+            title="Yeni Tur"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
         </div>
 
         <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
@@ -90,7 +96,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words, unit }) => {
           <div className="absolute w-full h-full backface-hidden">
             <div className="w-full h-full bg-white rounded-xl shadow-lg p-8 flex items-center justify-center border-2 border-purple-200 hover:border-purple-400 transition-colors">
               <h2 className="text-3xl font-bold text-center text-purple-700">
-                {currentWord.english}
+                {currentWord.headword}
               </h2>
             </div>
           </div>
