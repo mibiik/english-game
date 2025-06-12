@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useSearchParams } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ParaphrasePage from './pages/ParaphrasePage';
 import MatchingGameWrapper from './components/GameModes/MatchingGame';
@@ -14,6 +14,8 @@ import { Navbar } from './components/Navbar';
 import ProfilePage from './pages/ProfilePage';
 import { GameWrapper } from './components/GameWrapper';
 import { WordDetail } from './data/words';
+import { newDetailedWords_part1 } from './data/words';
+import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 
 interface AppRoutesProps {
   currentUnit: string;
@@ -34,7 +36,6 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     <>
       <Navbar 
         onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-        onShowLeaderboard={() => window.dispatchEvent(new CustomEvent('show-leaderboard'))}
         currentUnit={currentUnit}
         setCurrentUnit={setCurrentUnit}
         currentLevel={currentLevel}
@@ -45,16 +46,41 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/" element={<HomePage filteredWords={filteredWords} />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/paraphrase" element={<ParaphrasePage />} />
-          <Route path="/matching-game" element={<MatchingGameWrapper words={filteredWords} />} />
-          <Route path="/sentence-completion" element={<GameWrapper component={SentenceCompletion} words={filteredWords} />} />
-          <Route path="/multiple-choice" element={<GameWrapper component={MultipleChoice} words={filteredWords} />} />
-          <Route path="/flashcard" element={<GameWrapper component={FlashCard} words={filteredWords} />} />
-          <Route path="/speaking" element={<GameWrapper component={SpeakingGame} words={filteredWords} />} />
-          <Route path="/word-race" element={<GameWrapper component={WordRace} words={filteredWords} />} />
-          <Route path="/memory-game" element={<GameWrapper component={MemoryGame} words={filteredWords} />} />
-          <Route path="/word-forms" element={<GameWrapper component={WordFormsGame} words={filteredWords} />} />
+          <Route path="/matching-game" element={<MatchingGameWrapperWithParams />} />
+          <Route path="/sentence-completion" element={<GameWrapperWithParams component={SentenceCompletion} />} />
+          <Route path="/multiple-choice" element={<GameWrapperWithParams component={MultipleChoice} />} />
+          <Route path="/flashcard" element={<GameWrapperWithParams component={FlashCard} />} />
+          <Route path="/speaking" element={<GameWrapperWithParams component={SpeakingGame} />} />
+          <Route path="/word-race" element={<GameWrapperWithParams component={WordRace} />} />
+          <Route path="/memory-game" element={<GameWrapperWithParams component={MemoryGame} />} />
+          <Route path="/word-forms" element={<GameWrapperWithParams component={WordFormsGame} />} />
         </Routes>
       </div>
     </>
   );
 };
+
+function getWordsByParams(unit: string, level: string): WordDetail[] {
+  let sourceData: WordDetail[] = level === 'upper-intermediate' ? upperIntermediateWordsRaw : newDetailedWords_part1;
+  if (unit === 'all') return sourceData;
+  return sourceData.filter(word => word.unit === unit);
+}
+
+function useGameParams() {
+  const [params] = useSearchParams();
+  const unit = params.get('unit') || '1';
+  const level = params.get('level') || 'intermediate';
+  return { unit, level };
+}
+
+function MatchingGameWrapperWithParams() {
+  const { unit, level } = useGameParams();
+  const words = getWordsByParams(unit, level);
+  return <MatchingGameWrapper words={words} />;
+}
+
+function GameWrapperWithParams({ component }: { component: React.ComponentType<any> }) {
+  const { unit, level } = useGameParams();
+  const words = getWordsByParams(unit, level);
+  return <GameWrapper component={component} words={words} />;
+}

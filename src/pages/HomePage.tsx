@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers } from 'lucide-react';
 import logo from '../components/a.png';
@@ -54,15 +54,19 @@ interface HomePageProps {
 const HomePage: React.FC<HomePageProps> = ({ 
   filteredWords
 }) => {
+  const [params] = useSearchParams();
+  const unit = params.get('unit') || '1';
+  const level = params.get('level') || 'intermediate';
+
   const gameModes = [
-    { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: '/matching-game', color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
-    { id: 'speed', title: 'Hız Testi', icon: <Zap />, link: '/word-race', color: 'from-yellow-500 to-orange-600', shadow: 'hover:shadow-yellow-500/30' },
-    { id: 'paraphrase', title: 'Paraphrase', icon: <Star />, link: '/paraphrase', color: 'from-purple-500 to-indigo-600', shadow: 'hover:shadow-purple-500/30' },
-    { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: '/speaking', color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
-    { id: 'flashcard', title: 'Kelime Kartları', icon: <BookOpen />, link: '/flashcard', color: 'from-indigo-500 to-purple-600', shadow: 'hover:shadow-indigo-500/30' },
-    { id: 'multipleChoice', title: 'Çoktan Seçmeli', icon: <Award />, link: '/multiple-choice', color: 'from-amber-500 to-yellow-600', shadow: 'hover:shadow-amber-500/30' },
-    { id: 'sentenceCompletion', title: 'Cümle Tamamlama', icon: <Star />, link: '/sentence-completion', color: 'from-sky-500 to-cyan-600', shadow: 'hover:shadow-sky-500/30' },
-    { id: 'wordForms', title: 'Kelime Formları', icon: <Layers />, link: '/word-forms', color: 'from-emerald-500 to-teal-600', shadow: 'hover:shadow-emerald-500/30' },
+    { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
+    { id: 'speed', title: 'Hız Testi', icon: <Zap />, link: `/word-race?unit=${unit}&level=${level}`, color: 'from-yellow-500 to-orange-600', shadow: 'hover:shadow-yellow-500/30' },
+    { id: 'paraphrase', title: 'Paraphrase', icon: <Star />, link: `/paraphrase?unit=${unit}&level=${level}`, color: 'from-purple-500 to-indigo-600', shadow: 'hover:shadow-purple-500/30' },
+    { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: `/speaking?unit=${unit}&level=${level}`, color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
+    { id: 'flashcard', title: 'Kelime Kartları', icon: <BookOpen />, link: `/flashcard?unit=${unit}&level=${level}`, color: 'from-indigo-500 to-purple-600', shadow: 'hover:shadow-indigo-500/30' },
+    { id: 'multipleChoice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-yellow-600', shadow: 'hover:shadow-amber-500/30' },
+    { id: 'sentenceCompletion', title: 'Cümle Tamamlama', icon: <Star />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-sky-500 to-cyan-600', shadow: 'hover:shadow-sky-500/30' },
+    { id: 'wordForms', title: 'Kelime Formları', icon: <Layers />, link: `/word-forms?unit=${unit}&level=${level}`, color: 'from-emerald-500 to-teal-600', shadow: 'hover:shadow-emerald-500/30' },
   ];
 
   const headingLines = ["Koç Üniversitesi", "ELC Özel"];
