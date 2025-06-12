@@ -45,6 +45,9 @@ export function GameModal({ isOpen, onClose, onStart, title, description, icon }
               Kapat
             </button>
           </div>
+          <div className="text-center text-sm text-gray-400 mt-4">
+            powered by mirac
+          </div>
         </div>
       </div>
     </div>

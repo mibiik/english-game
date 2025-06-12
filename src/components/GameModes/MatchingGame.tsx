@@ -143,10 +143,10 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     return (
       <div
         key={card.id}
-        className={`w-full h-28 flex items-center justify-center p-2 rounded-lg cursor-pointer transition-all duration-300 transform ${cardStateClasses}`}
+        className={`w-full h-20 sm:h-24 md:h-28 flex items-center justify-center p-1 sm:p-2 rounded-lg cursor-pointer transition-all duration-300 transform ${cardStateClasses}`}
         onClick={() => handleCardClick(card)}
       >
-        <h3 className="text-center text-lg font-semibold text-white max-w-full overflow-hidden whitespace-nowrap text-ellipsis">
+        <h3 className="text-center text-sm sm:text-base md:text-lg font-semibold text-white px-1 max-w-full overflow-hidden whitespace-nowrap text-ellipsis">
           {card.type === 'english' ? card.headword : card.turkish}
         </h3>
       </div>
@@ -182,25 +182,25 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black text-white p-4">
+    <div className="flex items-center justify-center min-h-screen bg-black text-white p-2 sm:p-4">
       <div className="w-full max-w-4xl mx-auto relative">
         <button
           onClick={startNewGame}
-          className="absolute top-1/2 -right-4 md:-right-12 transform -translate-y-1/2 p-3 bg-gray-800 border border-gray-700 rounded-full text-gray-300 hover:bg-gray-700 hover:text-white transition-all z-10"
+          className="absolute top-1/2 -right-2 sm:-right-4 md:-right-12 transform -translate-y-1/2 p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-full text-gray-300 hover:bg-gray-700 hover:text-white transition-all z-10"
           title="İlerle"
         >
-          <ArrowRight className="w-6 h-6" />
+          <ArrowRight className="w-4 h-4 sm:w-6 sm:h-6" />
         </button>
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8">
           <div className="w-full md:w-1/2">
-            <h3 className="text-2xl font-bold text-center text-cyan-400 mb-5">İNGİLİZCE</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-center text-cyan-400 mb-3 sm:mb-5">İNGİLİZCE</h3>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
               {gameWords.filter(w => w.type === 'english').map(renderCard)}
             </div>
           </div>
           <div className="w-full md:w-1/2">
-            <h3 className="text-2xl font-bold text-center text-fuchsia-400 mb-5">TÜRKÇE</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-center text-fuchsia-400 mb-3 sm:mb-5">TÜRKÇE</h3>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
               {gameWords.filter(w => w.type === 'turkish').map(renderCard)}
             </div>
           </div>
