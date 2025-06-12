@@ -41,7 +41,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         currentLevel={currentLevel}
         setCurrentLevel={setCurrentLevel}
       />
-      <div className="pt-24">
+      <div className="pt-32">
         <Routes>
           <Route path="/" element={<HomePage filteredWords={filteredWords} />} />
           <Route path="/profile" element={<ProfilePage />} />
