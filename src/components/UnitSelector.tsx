@@ -87,33 +87,17 @@ export const UnitSelector: React.FC<UnitSelectorProps> = ({
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
   ];
 
-  // Geçici seçimler
-  const [pendingLevel, setPendingLevel] = useState<string | null>(null);
-  const [pendingUnit, setPendingUnit] = useState<string | null>(null);
-  const [levelTouched, setLevelTouched] = useState(false);
-  const [unitTouched, setUnitTouched] = useState(false);
-
-  useEffect(() => {
-    if (levelTouched && unitTouched && pendingLevel && pendingUnit) {
-      setCurrentLevel(pendingLevel as Level);
-      setCurrentUnit(pendingUnit);
-      setLevelTouched(false);
-      setUnitTouched(false);
-    }
-  }, [pendingLevel, pendingUnit, levelTouched, unitTouched, setCurrentLevel, setCurrentUnit]);
-
   return (
     <div className="flex items-center gap-4">
       <Dropdown 
         label="Kur"
         icon={<Layers className="w-5 h-5 text-fuchsia-400" />}
         options={levels.map(l => l.name)}
-        selectedOption={levels.find(l => l.id === (pendingLevel || currentLevel))?.name || 'Intermediate'}
+        selectedOption={levels.find(l => l.id === currentLevel)?.name || 'Intermediate'}
         onSelect={(levelName) => {
           const selectedLevel = levels.find(l => l.name === levelName);
           if (selectedLevel) {
-            setPendingLevel(selectedLevel.id);
-            setLevelTouched(true);
+            setCurrentLevel(selectedLevel.id);
           }
         }}
       />
@@ -121,10 +105,10 @@ export const UnitSelector: React.FC<UnitSelectorProps> = ({
         label="Ünite"
         icon={<Book className="w-5 h-5 text-cyan-400" />}
         options={units}
-        selectedOption={`Ünite ${pendingUnit || currentUnit}`}
+        selectedOption={`Ünite ${currentUnit}`}
         onSelect={(unit) => {
-          setPendingUnit(unit.replace('Ünite ', ''));
-          setUnitTouched(true);
+          const unitNumber = unit.replace('Ünite ', '');
+          setCurrentUnit(unitNumber);
         }}
       />
     </div>

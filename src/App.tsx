@@ -35,12 +35,14 @@ function AppContent() {
 
   // Unit değiştiğinde URL'yi güncelle
   const handleSetCurrentUnit = (unit: string) => {
+    console.log('App: Setting current unit to:', unit);
     setCurrentUnit(unit);
     updateURLParams(unit, currentLevel);
   };
 
   // Level değiştiğinde URL'yi güncelle
   const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate') => {
+    console.log('App: Setting current level to:', level);
     setCurrentLevel(level);
     updateURLParams(currentUnit, level);
   };
@@ -50,10 +52,14 @@ function AppContent() {
     const urlUnit = searchParams.get('unit');
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate';
     
+    console.log('App: URL params changed:', { urlUnit, urlLevel, currentUnit, currentLevel });
+    
     if (urlUnit && urlUnit !== currentUnit) {
+      console.log('App: Updating unit from URL:', urlUnit);
       setCurrentUnit(urlUnit);
     }
     if (urlLevel && urlLevel !== currentLevel) {
+      console.log('App: Updating level from URL:', urlLevel);
       setCurrentLevel(urlLevel);
     }
   }, [searchParams]);

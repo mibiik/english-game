@@ -80,11 +80,17 @@ function MatchingGameWrapperWithParams() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('MatchingGame: URL params changed:', { unit, level });
     const newWords = getWordsByParams(unit, level);
+    console.log('MatchingGame: New words count:', newWords.length);
     setWords(newWords);
     setIsLoading(false);
     // Oyunu yeniden başlatmak için key'i değiştir
-    setGameKey(prev => prev + 1);
+    setGameKey(prev => {
+      const newKey = prev + 1;
+      console.log('MatchingGame: Game key updated to:', newKey);
+      return newKey;
+    });
   }, [unit, level]);
 
   if (isLoading) {
@@ -108,11 +114,17 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('GameWrapper: URL params changed:', { unit, level });
     const newWords = getWordsByParams(unit, level);
+    console.log('GameWrapper: New words count:', newWords.length);
     setWords(newWords);
     setIsLoading(false);
     // Oyunu yeniden başlatmak için key'i değiştir
-    setGameKey(prev => prev + 1);
+    setGameKey(prev => {
+      const newKey = prev + 1;
+      console.log('GameWrapper: Game key updated to:', newKey);
+      return newKey;
+    });
   }, [unit, level]);
 
   if (isLoading) {
