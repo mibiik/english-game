@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useSearchParams } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ParaphrasePage from './pages/ParaphrasePage';
@@ -75,12 +75,30 @@ function useGameParams() {
 
 function MatchingGameWrapperWithParams() {
   const { unit, level } = useGameParams();
-  const words = getWordsByParams(unit, level);
-  return <MatchingGameWrapper words={words} />;
+  const [words, setWords] = useState<WordDetail[]>([]);
+  const [gameKey, setGameKey] = useState(0);
+
+  useEffect(() => {
+    const newWords = getWordsByParams(unit, level);
+    setWords(newWords);
+    // Oyunu yeniden başlatmak için key'i değiştir
+    setGameKey(prev => prev + 1);
+  }, [unit, level]);
+
+  return <MatchingGameWrapper key={gameKey} words={words} />;
 }
 
 function GameWrapperWithParams({ component }: { component: React.ComponentType<any> }) {
   const { unit, level } = useGameParams();
-  const words = getWordsByParams(unit, level);
-  return <GameWrapper component={component} words={words} />;
+  const [words, setWords] = useState<WordDetail[]>([]);
+  const [gameKey, setGameKey] = useState(0);
+
+  useEffect(() => {
+    const newWords = getWordsByParams(unit, level);
+    setWords(newWords);
+    // Oyunu yeniden başlatmak için key'i değiştir
+    setGameKey(prev => prev + 1);
+  }, [unit, level]);
+
+  return <GameWrapper key={gameKey} component={component} words={words} />;
 }
