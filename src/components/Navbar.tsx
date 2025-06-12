@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, BarChart2, User, Menu, X } from 'lucide-react';
+import { Home, User, Menu, X, BookOpen, GraduationCap } from 'lucide-react';
 import logo from './a.png';
 import { UnitSelector } from './UnitSelector';
 
 interface NavbarProps {
   onShowAuth: () => void;
-  onShowLeaderboard: () => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
   currentLevel: 'intermediate' | 'upper-intermediate';
@@ -15,8 +14,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
-  onShowAuth, 
-  onShowLeaderboard,
+  onShowAuth,
   currentUnit,
   setCurrentUnit,
   currentLevel,
@@ -51,9 +49,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div className="hidden md:flex items-center space-x-5">
-              <motion.button onClick={onShowLeaderboard} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Liderlik Tablosu">
-                <BarChart2 className="w-6 h-6" />
-              </motion.button>
               <motion.button onClick={onShowAuth} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                 <User className="w-6 h-6" />
               </motion.button>
@@ -81,13 +76,66 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="fixed top-0 right-0 h-full w-full bg-black/90 backdrop-blur-lg z-40 p-8 pt-28 flex flex-col"
           >
             <div className="flex flex-col items-center gap-8">
-              <button onClick={() => handleMenuAction(onShowLeaderboard)} className="flex items-center gap-4 text-2xl text-gray-300 hover:text-white">
-                <BarChart2 /> Liderlik Tablosu
-              </button>
-              <button onClick={() => handleMenuAction(onShowAuth)} className="flex items-center gap-4 text-2xl text-gray-300 hover:text-white">
-                <User /> Profil / Giriş Yap
+              {/* Kurs Seviyesi Seçimi */}
+              <div className="w-full">
+                <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5" /> Kurs Seviyesi
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => handleMenuAction(() => setCurrentLevel('intermediate'))}
+                    className={`p-3 rounded-lg text-center transition-colors ${
+                      currentLevel === 'intermediate'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    Intermediate
+                  </button>
+                  <button
+                    onClick={() => handleMenuAction(() => setCurrentLevel('upper-intermediate'))}
+                    className={`p-3 rounded-lg text-center transition-colors ${
+                      currentLevel === 'upper-intermediate'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    Upper-Intermediate
+                  </button>
+                </div>
+              </div>
+
+              {/* Ünite Seçimi */}
+              <div className="w-full">
+                <h3 className="text-lg font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" /> Ünite Seçimi
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: 8 }, (_, i) => (i + 1).toString()).map((unit) => (
+                    <button
+                      key={unit}
+                      onClick={() => handleMenuAction(() => setCurrentUnit(unit))}
+                      className={`p-3 rounded-lg text-center transition-colors ${
+                        currentUnit === unit
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      Ünite {unit}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Profil Butonu */}
+              <button 
+                onClick={() => handleMenuAction(onShowAuth)} 
+                className="w-full flex items-center justify-center gap-2 p-4 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                <User className="w-5 h-5" /> Profil / Giriş Yap
               </button>
             </div>
+
             <button onClick={() => setIsMenuOpen(false)} className="absolute top-8 right-8 text-gray-500 hover:text-white">
               <X className="w-8 h-8"/>
             </button>
