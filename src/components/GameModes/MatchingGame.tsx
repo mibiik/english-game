@@ -108,7 +108,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         setSelectedTurkish(null);
         setIsChecking(false);
       } else {
-        // Otomatik sıfırlama kaldırıldı, kullanıcı yeni seçim yapana kadar kırmızıda kalacak
+        setTimeout(() => {
+          setSelectedEnglish(null);
+          setSelectedTurkish(null);
+          setIsChecking(false);
+        }, 1000);
       }
     }
   }, [selectedEnglish, selectedTurkish]);
