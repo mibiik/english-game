@@ -27,13 +27,41 @@ type BottomSheetProps = {
 const BottomSheet: React.FC<BottomSheetProps> = ({
   open, onClose, currentLevel, setCurrentLevel, currentUnit, setCurrentUnit
 }) => {
+  const [pendingLevel, setPendingLevel] = useState<string | null>(null);
+  const [pendingUnit, setPendingUnit] = useState<string | null>(null);
+  const [levelTouched, setLevelTouched] = useState(false);
+  const [unitTouched, setUnitTouched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (levelTouched && unitTouched && pendingLevel && pendingUnit) {
+      setCurrentLevel(pendingLevel as any);
+      setCurrentUnit(pendingUnit);
+      setLevelTouched(false);
+      setUnitTouched(false);
+      setError(null);
+      setTimeout(() => {
+        onClose();
+        setPendingLevel(null);
+        setPendingUnit(null);
+      }, 300);
+    }
+  }, [pendingLevel, pendingUnit, levelTouched, unitTouched, setCurrentLevel, setCurrentUnit, onClose]);
+
   if (!open) return null;
   return (
     <>
       {/* Arka plan */}
       <div
         className="fixed inset-0 z-40 bg-black/60 backdrop-blur-md"
-        onClick={onClose}
+        onClick={() => {
+          if (!(levelTouched && unitTouched && pendingLevel && pendingUnit)) {
+            setError('Lütfen hem kur hem ünite seçimi yapın.');
+          } else {
+            setError(null);
+            onClose();
+          }
+        }}
       />
       {/* Panel */}
       <div
@@ -43,7 +71,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         {/* Kapat */}
         <button
           className="absolute top-7 right-10 text-gray-400 hover:text-gray-200 p-2 text-3xl"
-          onClick={onClose}
+          onClick={() => {
+            if (!(levelTouched && unitTouched && pendingLevel && pendingUnit)) {
+              setError('Lütfen hem kur hem ünite seçimi yapın.');
+            } else {
+              setError(null);
+              onClose();
+            }
+          }}
           aria-label="Kapat"
         >
           ×
@@ -55,14 +90,14 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           </div>
           <div className="flex gap-4 mb-2">
             <button
-              onClick={() => { setCurrentLevel('intermediate'); onClose(); }}
-              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${currentLevel === 'intermediate' ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
+              onClick={() => { setPendingLevel('intermediate'); setLevelTouched(true); }}
+              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${((pendingLevel || currentLevel) === 'intermediate') ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
             >
               Intermediate
             </button>
             <button
-              onClick={() => { setCurrentLevel('upper-intermediate'); onClose(); }}
-              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${currentLevel === 'upper-intermediate' ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
+              onClick={() => { setPendingLevel('upper-intermediate'); setLevelTouched(true); }}
+              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${((pendingLevel || currentLevel) === 'upper-intermediate') ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
             >
               Upper-Int
             </button>
@@ -77,14 +112,19 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
             {Array.from({ length: 8 }, (_, i) => (i + 1).toString()).map((unit) => (
               <button
                 key={unit}
-                onClick={() => { setCurrentUnit(unit); onClose(); }}
-                className={`px-6 py-3 rounded-xl text-xl font-bold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 ${currentUnit === unit ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
+                onClick={() => { setPendingUnit(unit); setUnitTouched(true); }}
+                className={`px-6 py-3 rounded-xl text-xl font-bold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 ${((pendingUnit || currentUnit) === unit) ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
               >
                 {unit}
               </button>
             ))}
           </div>
         </div>
+        {error && (
+          <div className="mt-6 text-center text-base text-red-400 bg-red-900/30 rounded-xl px-4 py-2">
+            {error}
+          </div>
+        )}
       </div>
     </>
   );
