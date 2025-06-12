@@ -475,4 +475,6 @@ export const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
       </div>
     </div>
   );
-}; 
+};
+
+export default WordFormsGame; 
