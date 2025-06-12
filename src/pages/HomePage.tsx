@@ -173,6 +173,9 @@ const HomePage: React.FC<HomePageProps> = ({
           ))}
         </motion.div>
       </main>
+      <div className="w-full text-center mt-16 mb-4">
+        <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>
+      </div>
     </div>
   );
 };
