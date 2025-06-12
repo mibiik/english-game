@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal } from 'lucide-react';
 import logo from './a.png';
 import { UnitSelector } from './UnitSelector';
+import { authService } from '../services/authService';
 
 interface NavbarProps {
   onShowAuth: () => void;
@@ -105,6 +106,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     setIsMenuOpen(false);
   };
 
+  const handleProfileClick = () => {
+    if (authService.isAuthenticated()) {
+      navigate('/profile');
+    } else {
+      onShowAuth();
+    }
+  };
+
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800 h-32 flex items-center">
@@ -135,14 +144,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div className="hidden md:flex items-center space-x-5">
-              <motion.button onClick={() => navigate('/profile')} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
+              <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                 <User className="w-6 h-6" />
               </motion.button>
             </div>
             
             {/* Mobile: Hamburger Menu Button */}
             <div className="md:hidden">
-              <motion.button onClick={() => navigate('/profile')} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
+              <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                 <User className="w-7 h-7" />
               </motion.button>
             </div>
