@@ -3,7 +3,7 @@
  */
 const API = (() => {
   // Gemini API key
-  const API_KEY = 'AIzaSyCUB02r2HiOI08N6XTN9SZbbbbfuEiVRa8';
+  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
   // Cache for generated messages to reduce API calls
