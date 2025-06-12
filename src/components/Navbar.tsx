@@ -91,14 +91,20 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
           <div className="flex gap-4 mb-2">
             <button
               onClick={() => { setPendingLevel('intermediate'); setLevelTouched(true); }}
-              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${((pendingLevel || currentLevel) === 'intermediate') ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
+              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 relative ${((pendingLevel || currentLevel) === 'intermediate') ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
             >
+              {((pendingLevel || currentLevel) === 'intermediate') && !unitTouched && (
+                <span className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-blue-500 shadow-blue-400/60 shadow-lg animate-pulse"></span>
+              )}
               Intermediate
             </button>
             <button
               onClick={() => { setPendingLevel('upper-intermediate'); setLevelTouched(true); }}
-              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 ${((pendingLevel || currentLevel) === 'upper-intermediate') ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
+              className={`px-6 py-2.5 rounded-xl text-base font-semibold transition-all border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 relative ${((pendingLevel || currentLevel) === 'upper-intermediate') ? 'bg-gray-800 text-gray-100 shadow-lg' : 'bg-gray-900 text-gray-400 hover:bg-gray-800'}`}
             >
+              {((pendingLevel || currentLevel) === 'upper-intermediate') && !unitTouched && (
+                <span className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-blue-500 shadow-blue-400/60 shadow-lg animate-pulse"></span>
+              )}
               Upper-Int
             </button>
           </div>
