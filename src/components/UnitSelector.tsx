@@ -87,22 +87,33 @@ export const UnitSelector: React.FC<UnitSelectorProps> = ({
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
   ];
 
-  const handleLevelSelect = (levelId: string) => {
-    setCurrentLevel(levelId as Level);
-    setCurrentUnit('1'); // Seviye değiştiğinde üniteyi başa al
-  };
-  
+  // Geçici seçimler
+  const [pendingLevel, setPendingLevel] = useState<string | null>(null);
+  const [pendingUnit, setPendingUnit] = useState<string | null>(null);
+  const [levelTouched, setLevelTouched] = useState(false);
+  const [unitTouched, setUnitTouched] = useState(false);
+
+  useEffect(() => {
+    if (levelTouched && unitTouched && pendingLevel && pendingUnit) {
+      setCurrentLevel(pendingLevel as Level);
+      setCurrentUnit(pendingUnit);
+      setLevelTouched(false);
+      setUnitTouched(false);
+    }
+  }, [pendingLevel, pendingUnit, levelTouched, unitTouched, setCurrentLevel, setCurrentUnit]);
+
   return (
     <div className="flex items-center gap-4">
       <Dropdown 
         label="Kur"
         icon={<Layers className="w-5 h-5 text-fuchsia-400" />}
         options={levels.map(l => l.name)}
-        selectedOption={levels.find(l => l.id === currentLevel)?.name || 'Intermediate'}
+        selectedOption={levels.find(l => l.id === (pendingLevel || currentLevel))?.name || 'Intermediate'}
         onSelect={(levelName) => {
           const selectedLevel = levels.find(l => l.name === levelName);
           if (selectedLevel) {
-            handleLevelSelect(selectedLevel.id);
+            setPendingLevel(selectedLevel.id);
+            setLevelTouched(true);
           }
         }}
       />
@@ -110,8 +121,11 @@ export const UnitSelector: React.FC<UnitSelectorProps> = ({
         label="Ünite"
         icon={<Book className="w-5 h-5 text-cyan-400" />}
         options={units}
-        selectedOption={`Ünite ${currentUnit}`}
-        onSelect={(unit) => setCurrentUnit(unit.replace('Ünite ', ''))}
+        selectedOption={`Ünite ${pendingUnit || currentUnit}`}
+        onSelect={(unit) => {
+          setPendingUnit(unit.replace('Ünite ', ''));
+          setUnitTouched(true);
+        }}
       />
     </div>
   );
