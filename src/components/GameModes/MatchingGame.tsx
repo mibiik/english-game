@@ -112,7 +112,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           setSelectedEnglish(null);
           setSelectedTurkish(null);
           setIsChecking(false);
-        }, 1000);
+        }, 300);
       }
     }
   }, [selectedEnglish, selectedTurkish]);
