@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { AppRoutes } from './Routes';
 import { Auth } from './components/Auth';
 import { Leaderboard } from './components/Leaderboard';
@@ -12,13 +12,53 @@ import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from './
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
 
-function App() {
+function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [currentUnit, setCurrentUnit] = useState("1");
-  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate'>('intermediate');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  
+  // URL parametrelerinden başlangıç değerlerini al
+  const [currentUnit, setCurrentUnit] = useState(() => searchParams.get('unit') || "1");
+  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate'>(() => 
+    (searchParams.get('level') as 'intermediate' | 'upper-intermediate') || 'intermediate'
+  );
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
 
+  // URL parametrelerini güncelle
+  const updateURLParams = (unit: string, level: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('unit', unit);
+    newParams.set('level', level);
+    setSearchParams(newParams, { replace: true });
+  };
+
+  // Unit değiştiğinde URL'yi güncelle
+  const handleSetCurrentUnit = (unit: string) => {
+    setCurrentUnit(unit);
+    updateURLParams(unit, currentLevel);
+  };
+
+  // Level değiştiğinde URL'yi güncelle
+  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate') => {
+    setCurrentLevel(level);
+    updateURLParams(currentUnit, level);
+  };
+
+  // URL parametreleri değiştiğinde state'i güncelle
+  useEffect(() => {
+    const urlUnit = searchParams.get('unit');
+    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate';
+    
+    if (urlUnit && urlUnit !== currentUnit) {
+      setCurrentUnit(urlUnit);
+    }
+    if (urlLevel && urlLevel !== currentLevel) {
+      setCurrentLevel(urlLevel);
+    }
+  }, [searchParams]);
+
+  // Filtrelenmiş kelimeleri güncelle
   useEffect(() => {
     let sourceData: WordDetail[];
     
@@ -50,18 +90,24 @@ function App() {
   }, []);
 
   return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AppRoutes 
+        currentUnit={currentUnit}
+        setCurrentUnit={handleSetCurrentUnit}
+        currentLevel={currentLevel}
+        setCurrentLevel={handleSetCurrentLevel}
+        filteredWords={filteredWords}
+      />
+      {showAuth && <Auth onClose={() => setShowAuth(false)} />}
+      {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
+    </div>
+  );
+}
+
+function App() {
+  return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <AppRoutes 
-          currentUnit={currentUnit}
-          setCurrentUnit={setCurrentUnit}
-          currentLevel={currentLevel}
-          setCurrentLevel={setCurrentLevel}
-          filteredWords={filteredWords}
-        />
-        {showAuth && <Auth onClose={() => setShowAuth(false)} />}
-        {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
-      </div>
+      <AppContent />
       <Analytics />
     </BrowserRouter>
   );
