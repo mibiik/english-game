@@ -77,13 +77,26 @@ function MatchingGameWrapperWithParams() {
   const { unit, level } = useGameParams();
   const [words, setWords] = useState<WordDetail[]>([]);
   const [gameKey, setGameKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const newWords = getWordsByParams(unit, level);
     setWords(newWords);
+    setIsLoading(false);
     // Oyunu yeniden başlatmak için key'i değiştir
     setGameKey(prev => prev + 1);
   }, [unit, level]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-gray-300">Oyun yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   return <MatchingGameWrapper key={gameKey} words={words} />;
 }
@@ -92,13 +105,26 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   const { unit, level } = useGameParams();
   const [words, setWords] = useState<WordDetail[]>([]);
   const [gameKey, setGameKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const newWords = getWordsByParams(unit, level);
     setWords(newWords);
+    setIsLoading(false);
     // Oyunu yeniden başlatmak için key'i değiştir
     setGameKey(prev => prev + 1);
   }, [unit, level]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-gray-300">Oyun yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   return <GameWrapper key={gameKey} component={component} words={words} />;
 }

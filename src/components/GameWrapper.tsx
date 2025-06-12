@@ -11,14 +11,25 @@ export const GameWrapper: React.FC<GameWrapperProps> = ({ component: Component, 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!words || words.length === 0) {
-      console.log("GameWrapper: No words provided, redirecting to home.");
+    if (words && words.length === 0) {
+      console.log("GameWrapper: No words found for this unit/level, redirecting to home.");
       navigate('/');
     }
   }, [words, navigate]);
 
-  if (!words || words.length === 0) {
-    return null; // or a loading spinner
+  if (!words) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p className="text-gray-300">Kelimeler yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (words.length === 0) {
+    return null;
   }
 
   return <Component words={words} />;
