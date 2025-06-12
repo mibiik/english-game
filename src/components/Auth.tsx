@@ -126,30 +126,30 @@ export const Auth: React.FC<AuthProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur flex items-center justify-center z-50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md relative shadow-xl"
+        className="bg-gray-900 dark:bg-gray-950 rounded-3xl p-10 w-full max-w-lg relative shadow-2xl border border-gray-800"
       >
         {/* Kapat Butonu */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-200 text-2xl"
         >
-          <X className="w-6 h-6" />
+          <X className="w-7 h-7" />
         </button>
 
         {/* Başlık */}
-        <div className="text-center mb-8">
-          <div className="inline-block p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-4">
-            <User className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <div className="text-center mb-10">
+          <div className="inline-block p-4 rounded-full bg-gray-800 mb-5">
+            <User className="w-10 h-10 text-gray-300" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-extrabold text-gray-100 mb-2">
             {isLogin ? 'Hoş Geldiniz!' : 'Hesap Oluşturun'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-gray-400 mt-2 text-lg">
             {isLogin
               ? 'Hesabınıza giriş yapın'
               : 'Yeni bir hesap oluşturun'}
@@ -157,21 +157,21 @@ export const Auth: React.FC<AuthProps> = ({ onClose }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-base font-medium text-gray-300 mb-1">
                 Ad Soyad
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <User className="h-6 w-6 text-gray-500" />
                 </div>
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="block w-full pl-12 pr-3 py-3 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-800 text-gray-100 placeholder-gray-500"
                   placeholder="Adınız Soyadınız"
                   required
                 />
@@ -180,18 +180,18 @@ export const Auth: React.FC<AuthProps> = ({ onClose }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-base font-medium text-gray-300 mb-1">
               E-posta
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <Mail className="h-6 w-6 text-gray-500" />
               </div>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                className="block w-full pl-12 pr-3 py-3 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-800 text-gray-100 placeholder-gray-500"
                 placeholder="ornek@email.com"
                 required
               />
@@ -199,40 +199,53 @@ export const Auth: React.FC<AuthProps> = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-base font-medium text-gray-300 mb-1">
               Şifre
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-6 w-6 text-gray-500" />
               </div>
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                placeholder="••••••••"
+                className="block w-full pl-12 pr-10 py-3 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-800 text-gray-100 placeholder-gray-500"
+                placeholder="Şifreniz"
                 required
               />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-300"
+                onClick={() => setShowPassword((v) => !v)}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+              </button>
             </div>
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+            <div className="text-red-400 text-base bg-gray-800 border border-red-400/30 p-3 rounded-xl">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="text-green-400 text-base bg-gray-800 border border-green-400/30 p-3 rounded-xl">
+              {success}
             </div>
           )}
 
           <motion.button
             type="submit"
-            className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-500 text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
+            className="w-full py-4 px-4 bg-gray-800 text-gray-100 rounded-2xl hover:bg-gray-700 transition-all font-bold text-xl shadow-lg"
             disabled={isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                <div className="w-6 h-6 border-2 border-gray-100 border-t-transparent rounded-full animate-spin mr-2"></div>
                 <span>İşleniyor...</span>
               </div>
             ) : (
@@ -240,11 +253,11 @@ export const Auth: React.FC<AuthProps> = ({ onClose }) => {
             )}
           </motion.button>
 
-          <div className="text-center mt-4">
+          <div className="text-center mt-6">
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+              className="text-gray-400 hover:text-gray-200 font-medium text-base"
             >
               {isLogin
                 ? 'Hesabınız yok mu? Kayıt olun'

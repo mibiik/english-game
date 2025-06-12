@@ -146,7 +146,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         className={`w-full h-28 flex items-center justify-center p-2 rounded-lg cursor-pointer transition-all duration-300 transform ${cardStateClasses}`}
         onClick={() => handleCardClick(card)}
       >
-        <h3 className="text-center text-lg font-semibold text-white">
+        <h3 className="text-center text-lg font-semibold text-white max-w-full overflow-hidden whitespace-nowrap text-ellipsis">
           {card.type === 'english' ? card.headword : card.turkish}
         </h3>
       </div>
