@@ -114,7 +114,7 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('GameWrapper: URL params changed:', { unit, level });
+    console.log('GameWrapper: URL params changed:', { unit, level, componentName: component.name });
     console.log('GameWrapper: Available data sources:', {
       intermediateCount: newDetailedWords_part1.length,
       upperIntermediateCount: upperIntermediateWordsRaw.length
@@ -135,6 +135,7 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   }, [unit, level]);
 
   if (isLoading) {
+    console.log('GameWrapper: Loading component:', component.name);
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
         <div className="text-center">
@@ -145,5 +146,25 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
     );
   }
 
-  return <GameWrapper key={gameKey} component={component} words={words} />;
+  console.log('GameWrapper: Rendering component:', component.name, 'with words:', words.length);
+  
+  try {
+    return <GameWrapper key={gameKey} component={component} words={words} />;
+  } catch (error) {
+    console.error('GameWrapper: Error rendering component:', component.name, error);
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-center">
+          <div className="text-red-400 text-xl mb-4">Oyun yüklenirken hata oluştu</div>
+          <p className="text-gray-300 mb-4">{component.name} component'inde problem var</p>
+          <button 
+            onClick={() => window.location.href = '/'} 
+            className="px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+          >
+            Ana Sayfaya Dön
+          </button>
+        </div>
+      </div>
+    );
+  }
 }
