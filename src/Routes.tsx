@@ -62,8 +62,25 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 
 function getWordsByParams(unit: string, level: string): WordDetail[] {
   let sourceData: WordDetail[] = level === 'upper-intermediate' ? upperIntermediateWordsRaw : newDetailedWords_part1;
-  if (unit === 'all') return sourceData;
-  return sourceData.filter(word => word.unit === unit);
+  console.log('getWordsByParams called with:', { unit, level });
+  console.log('Source data length:', sourceData.length);
+  console.log('Available units in source data:', [...new Set(sourceData.map(w => w.unit))].sort());
+  
+  if (unit === 'all') {
+    console.log('Returning all words:', sourceData.length);
+    return sourceData;
+  }
+  
+  const filteredWords = sourceData.filter(word => word.unit === unit);
+  console.log(`Words for unit ${unit}:`, filteredWords.length);
+  console.log('First few words:', filteredWords.slice(0, 3).map(w => ({ headword: w.headword, unit: w.unit })));
+  
+  if (filteredWords.length === 0) {
+    console.warn(`No words found for unit ${unit}, falling back to all words`);
+    return sourceData.slice(0, 20); // Fallback: ilk 20 kelimeyi döndür
+  }
+  
+  return filteredWords;
 }
 
 function useGameParams() {
