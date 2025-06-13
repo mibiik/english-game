@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers } from 'lucide-react';
@@ -55,8 +55,16 @@ const HomePage: React.FC<HomePageProps> = ({
   filteredWords
 }) => {
   const [params] = useSearchParams();
-  const unit = params.get('unit') || '1';
-  const level = params.get('level') || 'intermediate';
+  const [currentParams, setCurrentParams] = useState({ unit: '1', level: 'intermediate' });
+  
+  // URL parametrelerini gerçek zamanlı olarak takip et
+  useEffect(() => {
+    const unit = params.get('unit') || '1';
+    const level = params.get('level') || 'intermediate';
+    setCurrentParams({ unit, level });
+  }, [params]);
+
+  const { unit, level } = currentParams;
 
   const gameModes = [
     { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
