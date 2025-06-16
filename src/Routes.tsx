@@ -10,6 +10,7 @@ import { SpeakingGame } from './components/GameModes/SpeakingGame';
 import { WordRace } from './components/GameModes/WordRace';
 import { MemoryGame } from './components/GameModes/MemoryGame';
 import WordFormsGame from './components/GameModes/WordFormsGame';
+import WordStoryGame from './components/GameModes/WordStoryGame';
 import { Navbar } from './components/Navbar';
 import ProfilePage from './pages/ProfilePage';
 import { GameWrapper } from './components/GameWrapper';
@@ -54,6 +55,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/word-race" element={<GameWrapperWithParams component={WordRace} />} />
           <Route path="/memory-game" element={<GameWrapperWithParams component={MemoryGame} />} />
           <Route path="/word-forms" element={<GameWrapperWithParams component={WordFormsGame} />} />
+          <Route path="/word-story" element={<GameWrapperWithParams component={WordStoryGame} />} />
         </Routes>
       </div>
     </>

@@ -75,6 +75,7 @@ const HomePage: React.FC<HomePageProps> = ({
     { id: 'multipleChoice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-yellow-600', shadow: 'hover:shadow-amber-500/30' },
     { id: 'sentenceCompletion', title: 'Cümle Tamamlama', icon: <Star />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-sky-500 to-cyan-600', shadow: 'hover:shadow-sky-500/30' },
     { id: 'wordForms', title: 'Kelime Formları', icon: <Layers />, link: `/word-forms?unit=${unit}&level=${level}`, color: 'from-emerald-500 to-teal-600', shadow: 'hover:shadow-emerald-500/30' },
+    { id: 'wordStory', title: 'Academic Essay', icon: <BookOpen />, link: `/word-story?unit=${unit}&level=${level}`, color: 'from-pink-500 to-purple-600', shadow: 'hover:shadow-pink-500/30' },
   ];
 
   const headingLines = ["Koç Üniversitesi", "ELC Özel"];
