@@ -46,14 +46,7 @@ const WordStoryGame: React.FC<WordStoryGameProps> = ({ words, onGameComplete }) 
       const requestBody = {
         contents: [{
           parts: [{
-            text: `Rastgele, güncel ve çeşitli bir essay konusu üret.
-
-Şu formatta dön:
-PROMPT: [İngilizce essay sorusu]
-TOPIC: [Kısa konu başlığı]
-CATEGORY: [daily-life/lifestyle/health/education/technology]
-VOCABULARY: [prompt ile ilgili 5 anahtar kelime, virgülle]
-`
+            text: `Generate an English essay prompt on any topic that people might talk about in daily life. The topic should not be too difficult or too detailed and too long(max in 2 sentences) and less about social media. Sometimes it can be about advantages/disadvantages, sometimes about benefits/harms, or other simple comparisons. The question should be at most B1 (intermediate) level. Do not use academic or technical language.\n\nEach time, generate a completely new and independent topic that is not similar to any previous answer. Do not repeat the same or similar topics.\n\nReturn your answer in this format:\nPROMPT: [The essay question in English]\nTOPIC: [Short topic title]\nCATEGORY: [daily-life/lifestyle/health/education/technology]\nVOCABULARY: [5 key words related to the prompt, comma separated]` 
           }]
         }],
         generationConfig: {
@@ -78,8 +71,14 @@ VOCABULARY: [prompt ile ilgili 5 anahtar kelime, virgülle]
         const promptMatch = aiText.match(/PROMPT:\s*(.*?)(?=TOPIC:|$)/s);
         const topicMatch = aiText.match(/TOPIC:\s*(.*?)(?=CATEGORY:|$)/s);
         const categoryMatch = aiText.match(/CATEGORY:\s*(.*?)(?=VOCABULARY:|$)/s);
-        const vocabMatch = aiText.match(/VOCABULARY:\s*\[([^\]]+)\]/i);
-        const vocabulary = vocabMatch ? vocabMatch[1].split(',').map((v: string) => v.trim()).filter(Boolean) : [];
+        const vocabMatch = aiText.match(/VOCABULARY\s*[:=\-]*\s*\[?([\w\s,]+)\]?/i);
+        let vocabulary = vocabMatch ? vocabMatch[1].split(',').map((v: string) => v.trim()).filter(Boolean) : [];
+        
+        // Fallback: Eğer vocabulary hala boşsa, prompt veya topic içindeki ilk 5 kelimeyi öner
+        if (vocabulary.length === 0) {
+          const promptWords = (promptMatch ? promptMatch[1] : topicMatch ? topicMatch[1] : '').split(/\W+/).filter(Boolean);
+          vocabulary = promptWords.slice(0, 5);
+        }
         
         if (promptMatch && topicMatch) {
           console.log('✅ AI Prompt Üretildi');
@@ -587,65 +586,59 @@ HATA KODLARI: [GR, VOC, WO, STRUCT, CONTENT]
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-2 flex flex-col items-center">
-      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Sol: Suggested Vocabulary + Prompt ve Essay Alanı */}
-        <div className="md:col-span-2 flex flex-col gap-8">
-          {/* Yeni Konu Butonu */}
-          <div className="flex justify-end mb-2">
-            <button
-              onClick={startGame}
-              disabled={isGeneratingPrompt}
-              className="px-5 py-2 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold shadow disabled:opacity-50 transition-all"
-            >
-              {isGeneratingPrompt ? 'Loading...' : 'Yeni Konu'}
-            </button>
-          </div>
-          {/* Suggested Vocabulary Kutusu */}
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 flex flex-col gap-3 min-h-[90px]">
-            <div className="flex items-center gap-2 mb-1">
-              <PenTool className="w-6 h-6 text-emerald-500" />
-              <div className="text-lg font-bold text-gray-900">Suggested Vocabulary</div>
+    <div className="min-h-screen bg-[#f8f9fa] py-8 px-2 flex flex-col items-center">
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        {/* Sol: Suggested Vocabulary */}
+        <aside className="lg:col-span-1 flex flex-col gap-8 order-2 lg:order-1">
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 flex flex-col gap-4 min-h-[120px] sticky top-8 max-w-[140px] min-w-[120px] mx-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <PenTool className="w-7 h-7 text-emerald-500" />
+              <div className="text-xl font-bold text-gray-900">Önerilen Kelimeler</div>
             </div>
-            <div className="flex flex-wrap gap-2 mt-1 min-h-[32px]">
-              {isGeneratingPrompt || !currentChallenge ? (
-                <>
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="bg-emerald-100 animate-pulse w-20 h-8 rounded-xl" />
-                  ))}
-                </>
+            <div className="flex flex-col gap-3 mt-1 min-h-[32px]">
+              {(currentChallenge?.vocabulary && currentChallenge.vocabulary.length > 0) ? (
+                currentChallenge.vocabulary.map((word, i) => (
+                  <span key={i} className="bg-emerald-50 text-emerald-700 px-5 py-2 rounded-xl text-lg font-semibold border border-emerald-100 shadow-sm">
+                    {word}
+                  </span>
+                ))
               ) : (
-                (currentChallenge.vocabulary && currentChallenge.vocabulary.length > 0) ? (
-                  currentChallenge.vocabulary.map((word, i) => (
-                    <span key={i} className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-base font-semibold border border-emerald-100 shadow-sm">
-                      {word}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-gray-400 text-sm">No suggested words</span>
-                )
+                <span className="text-gray-400 text-base">Kelime yok</span>
               )}
             </div>
           </div>
+        </aside>
 
+        {/* Orta: Prompt ve Essay Alanı */}
+        <div className="lg:col-span-3 flex flex-col gap-8 order-1 lg:order-2">
+          {/* Yeni Konu Butonu */}
+          <div className="flex justify-center mb-2">
+            <button
+              onClick={startGame}
+              disabled={isGeneratingPrompt || isEvaluating}
+              className="px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold shadow transition-all disabled:opacity-50"
+            >
+              {isGeneratingPrompt ? 'Yükleniyor...' : 'Yeni Konu'}
+            </button>
+          </div>
           {/* Prompt Kutusu */}
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col gap-4 min-h-[120px]">
-            <div className="flex items-center gap-3 mb-2">
-              <FileText className="w-8 h-8 text-blue-400" />
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 flex flex-col gap-4 min-h-[120px]">
+            <div className="flex items-center gap-4 mb-2">
+              <FileText className="w-9 h-9 text-blue-400" />
               <div>
-                <div className="text-xs uppercase tracking-wider text-blue-400 font-semibold">Essay Topic</div>
-                <div className="text-xl font-bold text-gray-900">
+                <div className="text-sm uppercase tracking-wider text-blue-400 font-semibold">Essay Konusu</div>
+                <div className="text-2xl font-bold text-gray-900">
                   {isGeneratingPrompt || !currentChallenge ? (
-                    <span className="bg-blue-100 animate-pulse w-40 h-6 rounded" />
+                    <span className="bg-blue-100 animate-pulse w-40 h-7 rounded block" />
                   ) : (
                     currentChallenge.topic
                   )}
                 </div>
               </div>
             </div>
-            <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 text-gray-700 text-base font-medium min-h-[40px]">
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 text-gray-700 text-lg font-medium min-h-[48px]">
               {isGeneratingPrompt || !currentChallenge ? (
-                <span className="bg-gray-200 animate-pulse w-full h-6 block rounded" />
+                <span className="bg-gray-200 animate-pulse w-full h-7 block rounded" />
               ) : (
                 currentChallenge.aiGeneratedPrompt
               )}
@@ -653,66 +646,66 @@ HATA KODLARI: [GR, VOC, WO, STRUCT, CONTENT]
           </div>
 
           {/* Essay Alanı */}
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col gap-4">
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 flex flex-col gap-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <PenTool className="w-5 h-5 text-blue-400" />
-                Your Essay
+              <label className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+                <PenTool className="w-6 h-6 text-blue-400" />
+                Essay'iniz
               </label>
-              <div className="text-gray-400 text-sm">
-                {userEssay.trim().split(/\s+/).filter(word => word).length} words
+              <div className="text-gray-400 text-base">
+                {userEssay.trim().split(/\s+/).filter(word => word).length} kelime
               </div>
             </div>
             <textarea
               value={userEssay}
               onChange={e => setUserEssay(e.target.value)}
-              className="w-full min-h-[220px] bg-gray-50 border border-gray-200 rounded-xl p-5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 text-base transition-all"
-              placeholder="Start writing your essay here..."
+              className="w-full min-h-[220px] bg-gray-50 border border-gray-200 rounded-xl p-6 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-200 text-lg transition-all"
+              placeholder="Essay'inizi buraya yazmaya başlayın..."
               disabled={!!aiScore || isGeneratingPrompt || !currentChallenge}
             />
             {!aiScore && (
               <button
                 onClick={handleEssaySubmit}
                 disabled={isEvaluating || userEssay.trim().length < 50}
-                className="w-full py-4 px-8 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white text-lg font-semibold shadow transition-all disabled:opacity-50"
+                className="w-full py-4 px-8 rounded-2xl bg-blue-500 hover:bg-blue-600 text-white text-xl font-semibold shadow transition-all disabled:opacity-50"
               >
-                {isEvaluating ? 'Evaluating...' : 'Submit for AI Feedback'}
+                {isEvaluating ? 'Değerlendiriliyor...' : 'AI Değerlendirmesine Gönder'}
               </button>
             )}
-            {feedback && <div className="text-red-500 text-sm font-medium mt-2">{feedback}</div>}
+            {feedback && <div className="text-red-500 text-base font-medium mt-2">{feedback}</div>}
           </div>
 
           {/* AI Feedback Alanı */}
           {aiScore !== null && (
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col gap-6">
-              <div className="flex items-center gap-3 mb-2">
-                <Brain className="w-7 h-7 text-green-500" />
-                <div className="text-lg font-bold text-gray-900">AI Feedback & Score</div>
+            <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 flex flex-col gap-7">
+              <div className="flex items-center gap-4 mb-2">
+                <Brain className="w-8 h-8 text-green-500" />
+                <div className="text-xl font-bold text-gray-900">AI Geri Bildirim & Puan</div>
               </div>
               {/* Büyük, renkli puan kutusu */}
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg border-4 border-white">
-                  <span className="text-3xl font-extrabold text-white">{aiScore}</span>
+              <div className="flex items-center gap-5 mb-2">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg border-4 border-white">
+                  <span className="text-4xl font-extrabold text-white">{aiScore}</span>
                 </div>
-                <div className="text-lg text-gray-700 font-semibold">out of 100</div>
+                <div className="text-xl text-gray-700 font-semibold">/ 100</div>
               </div>
               {/* Analiz bölümleri */}
               {aiAnalysis && (() => {
                 const sections = parseAnalysis(aiAnalysis);
                 return (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-5">
                     {['Task Achievement', 'Organization', 'Language', 'Content'].map((key) => (
                       sections[key] && (
-                        <div key={key} className="bg-gray-50 rounded-xl border border-gray-100 p-5">
-                          <div className="text-base font-bold text-emerald-700 mb-2">{key}</div>
-                          <div className="text-gray-800 whitespace-pre-line text-base" dangerouslySetInnerHTML={{ __html: sections[key].replace(key, '').trim() }} />
+                        <div key={key} className="bg-gray-50 rounded-xl border border-gray-100 p-6">
+                          <div className="text-lg font-bold text-emerald-700 mb-2">{key}</div>
+                          <div className="text-gray-800 whitespace-pre-line text-lg" dangerouslySetInnerHTML={{ __html: sections[key].replace(key, '').trim() }} />
                         </div>
                       )
                     ))}
                     {/* Final Score */}
                     {sections['Final Score'] && (
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl font-bold text-base shadow-sm">{sections['Final Score'].replace('Final Score:', '').replace('**', '').trim()}</span>
+                        <span className="bg-emerald-100 text-emerald-700 px-5 py-2 rounded-xl font-bold text-lg shadow-sm">{sections['Final Score'].replace('Final Score:', '').replace('**', '').trim()}</span>
                       </div>
                     )}
                   </div>
@@ -720,37 +713,31 @@ HATA KODLARI: [GR, VOC, WO, STRUCT, CONTENT]
               })()}
               {/* Hata kodları ve öneriler (örnek, burada errorCodes badge olarak) */}
               {errorCodes.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
+                <div className="flex flex-wrap gap-3 mt-4">
                   {errorCodes.map((code, i) => (
-                    <span key={i} className="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-bold tracking-wide border border-red-200">{code}</span>
+                    <span key={i} className="bg-red-100 text-red-700 px-4 py-1 rounded-lg text-base font-bold tracking-wide border border-red-200">{code}</span>
                   ))}
                 </div>
               )}
-              <button
-                onClick={startGame}
-                className="w-full py-4 px-8 rounded-2xl bg-green-500 hover:bg-green-600 text-white text-lg font-semibold shadow transition-all mt-2"
-              >
-                Write Another Essay
-              </button>
             </div>
           )}
         </div>
 
         {/* Sağ: AI Writing Tips */}
-        <aside className="md:col-span-1 flex flex-col gap-8">
-          <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col gap-4 sticky top-8">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-6 h-6 text-yellow-400" />
-              <div className="text-lg font-bold text-gray-900">AI Writing Tips</div>
+        <aside className="lg:col-span-1 flex flex-col gap-8 order-3">
+          <div className="bg-white rounded-2xl shadow border border-gray-100 p-8 flex flex-col gap-5 sticky top-8 max-w-[140px] min-w-[120px] mx-auto">
+            <div className="flex items-center gap-3 mb-2">
+              <Sparkles className="w-7 h-7 text-yellow-400" />
+              <div className="text-xl font-bold text-gray-900">AI Yazma İpuçları</div>
             </div>
-            <ul className="list-disc pl-5 text-gray-700 text-base space-y-2">
-              <li>Start with a clear introduction and thesis statement.</li>
-              <li>Use one main idea per paragraph.</li>
-              <li>Support your ideas with examples or reasons.</li>
-              <li>Use linking words (Firstly, However, In conclusion...)</li>
-              <li>Check your grammar and spelling before submitting.</li>
-              <li>Write at least 5 paragraphs (Intro, 3 Body, Conclusion).</li>
-              <li>Stay on topic and answer the prompt directly.</li>
+            <ul className="list-disc pl-6 text-gray-700 text-lg space-y-2">
+              <li>Açık bir giriş ve tez cümlesiyle başlayın.</li>
+              <li>Her paragrafta tek ana fikir kullanın.</li>
+              <li>Fikirlerinizi örnek veya gerekçelerle destekleyin.</li>
+              <li>Bağlaçlar kullanın (Öncelikle, Ancak, Sonuç olarak...)</li>
+              <li>Göndermeden önce gramer ve yazımı kontrol edin.</li>
+              <li>En az 5 paragraf yazın (Giriş, 3 Gelişme, Sonuç).</li>
+              <li>Konuya sadık kalın ve soruyu doğrudan yanıtlayın.</li>
             </ul>
           </div>
         </aside>
