@@ -47,7 +47,7 @@ export class GeminiService {
     }
   }
 
-  async evaluateParaphrase(originalSentence: string, paraphrasedSentence: string) {
+  async evaluateParaphrase(originalSentence: string, paraphrasedSentence: string, paraphraseType: string) {
     try {
       const response = await fetch(`${this.apiEndpoint}?key=${this.apiKey}`, {
         method: 'POST',
@@ -57,27 +57,39 @@ export class GeminiService {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Please evaluate the following sentences and provide feedback in Turkish. Keep the sentences in their original language (English) but provide all feedback and suggestions in Turkish. Respond in JSON format only.
-Önemli Kurallar:
-1. Benzerlik oranı %45 ile %85 arasında olduğunda cümle doğru kabul edilmelidir
-2. %85'den fazla benzerlik oranına sahip cümleler çok benzer kabul edilip reddedilmelidir
-3. %45'ten az benzerlik oranına sahip cümleler anlam bütünlüğünü kaybetmiş kabul edilip reddedilmelidir
-4. Her türlü hata detaylı açıklanmalıdır
-5. İyileştirme önerileri somut ve uygulanabilir olmalıdır
-6. Benzerlik oranı yüzde olarak belirtilmelidir
-7. Cümlelerin dili değiştirilmemeli, sadece yönlendirmeler Türkçe olmalıdır
+              text: `Paraphrase değerlendirmesi yapacaksın. Aşağıdaki kurallara göre değerlendir ve JSON formatında yanıt ver:
 
-Example: You can rephrase 'Coastal infrastructure resilience is at serious risk due to the increasing frequency of extreme weather events (Jones, 2023, p. 112).' as 'The rising occurrence of severe weather phenomena puts coastal infrastructure durability under significant threat (Jones, 2023, p. 112).'
+DEĞERLENDIRME KRİTERLERİ:
+1. Parafraz türü kontrolü: "${paraphraseType}" türüne uygun mu?
+2. Anlam korunması: Orijinal anlam korunmuş mu?
+3. Kelime değişimi: Farklı kelimeler kullanılmış mı?
+4. Kaynak belirtimi: Doğru şekilde kaynak gösterilmiş mi?
+5. Dil bilgisi: Gramatikal olarak doğru mu?
+
+PARAFRAZ TÜRÜ KURALLARI:
+- "parenthetical": Kaynak parantez içinde olmalı: (Author, Year) veya (Author, Year, p.X)
+- "reporting": Yazar cümle içinde + fiil: "Smith (2020) argues/states/claims that..."
+- "according": "According to" ile başlamalı: "According to Smith (2020), ..."
+
+PUANLAMA:
+- Tür uygunluğu: 40 puan
+- Anlam korunması: 30 puan  
+- Kelime değişimi: 20 puan
+- Dil bilgisi: 10 puan
+
+70+ puan = doğru (correct: true)
+70 altı = yanlış (correct: false)
 
 Orijinal: ${originalSentence}
 Parafraz: ${paraphrasedSentence}
+Tür: ${paraphraseType}
 
-Yanıt formatı:
+JSON formatında yanıt ver:
 {
   "correct": true/false,
-  "similarity": "0-100",
-  "feedback": "Değerlendirme sonucu",
-  "suggestion": "İyileştirme önerisi"
+  "similarity": "puanı 0-100 arasında",
+  "feedback": "Türkçe detaylı açıklama",
+  "suggestion": "Türkçe iyileştirme önerisi"
 }`
             }]
           }]
@@ -141,6 +153,69 @@ Kelime: ${word}`
     }
   }
 
+  public async generateWordFormsParagraph(words: string[]): Promise<{ paragraph: string; solutions: Record<string, string> }> {
+    const prompt = `
+      Create a B1-level English paragraph that includes 10 blanks.
+      Use different forms of the following 10 headwords: ${words.join(', ')}.
+
+      RULES:
+      1.  The paragraph must be coherent and on a single topic.
+      2.  For each of the 10 words, use a form of it (e.g., for 'benefit', use 'beneficial' or 'benefited').
+      3.  Replace the word you used with a blank '_______'.
+      4.  Immediately after each blank, add the original headword in parentheses. Example: "The new park was _______ (benefit) for the whole community."
+      5.  Return the response ONLY in JSON format, with two keys: "paragraph" and "solutions".
+      6.  The "paragraph" key should contain the full paragraph string with blanks and hints.
+      7.  The "solutions" key should be an object where keys are the headwords and values are the correct word forms used in the paragraph.
+
+      EXAMPLE JSON OUTPUT:
+      {
+        "paragraph": "The new policy was _______ (benefit) to all employees. It _______ (create) a better work environment...",
+        "solutions": {
+          "benefit": "beneficial",
+          "create": "created"
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch(`${this.apiEndpoint}?key=${this.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          "generationConfig": {
+            "responseMimeType": "application/json",
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const data = await response.json();
+      const content = data.candidates[0].content.parts[0].text;
+      
+      if (!content) {
+          throw new Error('Invalid API response: No text part found.');
+      }
+      
+      const parsedContent = JSON.parse(content);
+
+      if (!parsedContent.paragraph || !parsedContent.solutions) {
+        throw new Error('Invalid JSON structure from API');
+      }
+
+      return parsedContent;
+
+    } catch (error) {
+      console.error('Gemini API error (generateWordFormsParagraph):', error);
+      // Return a fallback/error structure
+      return {
+        paragraph: 'Error: Could not generate the paragraph. Please try again.',
+        solutions: {},
+      };
+    }
+  }
+
   private parseEvaluationResponse(text: string) {
     try {
       // More precise JSON regex to avoid capturing invalid content
@@ -174,8 +249,8 @@ Kelime: ${word}`
       return {
         correct: false,
         similarity: '0',
-        feedback: 'Sorry, an error occurred while processing the response. Please try again.',
-        suggestion: 'There was a problem analyzing the system response. You can try again with a new sentence.'
+        feedback: 'Değerlendirme işlemi sırasında hata oluştu. Lütfen tekrar deneyin.',
+        suggestion: 'Sistem yanıtını analiz ederken sorun oluştu. Yeni bir cümle ile tekrar deneyebilirsiniz.'
       };
     }
   }

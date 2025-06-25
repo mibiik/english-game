@@ -73,9 +73,9 @@ const HomePage: React.FC<HomePageProps> = ({
     { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: `/speaking?unit=${unit}&level=${level}`, color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
     { id: 'flashcard', title: 'Kelime Kartları', icon: <BookOpen />, link: `/flashcard?unit=${unit}&level=${level}`, color: 'from-indigo-500 to-purple-600', shadow: 'hover:shadow-indigo-500/30' },
     { id: 'multipleChoice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-yellow-600', shadow: 'hover:shadow-amber-500/30' },
-    { id: 'sentenceCompletion', title: 'Cümle Tamamlama', icon: <Star />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-sky-500 to-cyan-600', shadow: 'hover:shadow-sky-500/30' },
+    { id: 'sentenceCompletion', title: 'Boşluk Doldurma', icon: <Star />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-sky-500 to-cyan-600', shadow: 'hover:shadow-sky-500/30' },
     { id: 'wordForms', title: 'Kelime Formları', icon: <Layers />, link: `/word-forms?unit=${unit}&level=${level}`, color: 'from-emerald-500 to-teal-600', shadow: 'hover:shadow-emerald-500/30' },
-    { id: 'wordStory', title: 'Academic Essay', icon: <BookOpen />, link: `/word-story?unit=${unit}&level=${level}`, color: 'from-pink-500 to-purple-600', shadow: 'hover:shadow-pink-500/30' },
+    { id: 'essayWriting', title: 'Essay Yazma', icon: <BookOpen />, link: `/essay-writing`, color: 'from-indigo-500 to-purple-600', shadow: 'hover:shadow-indigo-500/30' },
   ];
 
   const headingLines = ["Koç Üniversitesi", "ELC Özel"];
@@ -139,7 +139,7 @@ const HomePage: React.FC<HomePageProps> = ({
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.8 }}
             >
-              Modern ve etkileşimli oyunlarla kelime dağarcığınızı sınıra kadar zorlayın.
+              Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.
             </motion.p>
           </div>
 
@@ -178,7 +178,7 @@ const HomePage: React.FC<HomePageProps> = ({
                   </div>
                   <h3 className="font-bold text-white text-lg">{game.title}</h3>
                   <div className="text-sm font-medium text-gray-500 group-hover:text-cyan-400 transition-colors mt-1">
-                    <span>Oyna</span>
+                    <span>Başla</span>
                   </div>
                 </div>
               </Link>

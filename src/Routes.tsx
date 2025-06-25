@@ -10,13 +10,12 @@ import { SpeakingGame } from './components/GameModes/SpeakingGame';
 import { WordRace } from './components/GameModes/WordRace';
 import { MemoryGame } from './components/GameModes/MemoryGame';
 import WordFormsGame from './components/GameModes/WordFormsGame';
-import WordStoryGame from './components/GameModes/WordStoryGame';
+import EssayWritingPage from './pages/EssayWritingPage';
 import { Navbar } from './components/Navbar';
+import { WordDetail, newDetailedWords_part1 } from './data/words';
+import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 import ProfilePage from './pages/ProfilePage';
 import { GameWrapper } from './components/GameWrapper';
-import { WordDetail } from './data/words';
-import { newDetailedWords_part1 } from './data/words';
-import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 
 interface AppRoutesProps {
   currentUnit: string;
@@ -55,7 +54,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/word-race" element={<GameWrapperWithParams component={WordRace} />} />
           <Route path="/memory-game" element={<GameWrapperWithParams component={MemoryGame} />} />
           <Route path="/word-forms" element={<GameWrapperWithParams component={WordFormsGame} />} />
-          <Route path="/word-story" element={<GameWrapperWithParams component={WordStoryGame} />} />
+          <Route path="/essay-writing" element={<EssayWritingPage />} />
         </Routes>
       </div>
     </>

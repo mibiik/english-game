@@ -1,389 +1,551 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Target, CheckCircle, XCircle, Lightbulb, RefreshCw, Trophy } from 'lucide-react';
-import { WordDetail } from '../data/words';
-import { newDetailedWords_part1 } from '../data/words';
-import { detailedWords_part1 as upperIntermediateWordsRaw } from '../data/word4';
+import { ArrowLeft, Target, CheckCircle, XCircle, Lightbulb, RefreshCw, Trophy, Sparkles, MessageCircle } from 'lucide-react';
+import { GeminiService } from '../services/geminiService';
 
-interface ParaphraseChallenge {
-  id: number;
-  originalSentence: string;
-  targetStyle: string;
-  hints: string[];
-  possibleAnswers: string[];
-  difficulty: 'easy' | 'medium' | 'hard';
+interface ParaphraseAttempt {
+  type: 'parenthetical' | 'reporting' | 'according';
+  typeName: string;
+  answer: string;
+  feedback?: {
+    correct: boolean;
+    similarity: string;
+    feedback: string;
+    suggestion: string;
+  };
+  isEvaluated: boolean;
 }
 
 const ParaphrasePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const unit = searchParams.get('unit') || '1';
-  const level = searchParams.get('level') || 'intermediate';
   
-  const [currentChallenge, setCurrentChallenge] = useState<ParaphraseChallenge | null>(null);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [showHints, setShowHints] = useState(false);
-  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
-  const [score, setScore] = useState(0);
-  const [totalAttempts, setTotalAttempts] = useState(0);
+  const [originalSentence, setOriginalSentence] = useState<string>('');
+  const [isLoadingSentence, setIsLoadingSentence] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [challengeIndex, setChallengeIndex] = useState(0);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  
+  const [paraphraseAttempts, setParaphraseAttempts] = useState<ParaphraseAttempt[]>([
+    {
+      type: 'parenthetical',
+      typeName: 'Parenthetical Citation',
+      answer: '',
+      isEvaluated: false
+    },
+    {
+      type: 'reporting',
+      typeName: 'Reporting Verb Citation', 
+      answer: '',
+      isEvaluated: false
+    },
+    {
+      type: 'according',
+      typeName: 'According to Citation',
+      answer: '',
+      isEvaluated: false
+    }
+  ]);
 
-  // Kelime verilerini al
-  const words: WordDetail[] = level === 'upper-intermediate' 
-    ? upperIntermediateWordsRaw.filter(word => word.unit === unit)
-    : newDetailedWords_part1.filter(word => word.unit === unit);
+  const geminiService = GeminiService.getInstance();
 
-  // Paraphrase challenge'ları oluştur
-  const generateChallenges = (): ParaphraseChallenge[] => {
-    const selectedWords = words.slice(0, 5); // İlk 5 kelimeyi al
-    
-    return selectedWords.map((word, index) => ({
-      id: index + 1,
-      originalSentence: `The research demonstrates that ${word.headword} is crucial for academic success.`,
-      targetStyle: index % 3 === 0 ? 'Parantez içi alıntı' : index % 3 === 1 ? 'Fiil ile anlatımsal alıntı' : 'According to ile anlatımsal alıntı',
-      hints: [
-        `"${word.headword}" kelimesini kullanın`,
-        `${word.turkish} anlamına gelir`,
-        `Kelime formları: ${Object.values(word.forms).flat().join(', ')}`
-      ],
-      possibleAnswers: [
-        `According to research, ${word.headword} is crucial for academic success.`,
-        `Research shows that ${word.headword} is crucial for academic success.`,
-        `Studies indicate that ${word.headword} is crucial for academic success.`
-      ],
-      difficulty: index < 2 ? 'easy' : index < 4 ? 'medium' : 'hard'
-    }));
-  };
-
-  const [challenges] = useState<ParaphraseChallenge[]>(generateChallenges());
-
-  const startGame = () => {
-    setGameStarted(true);
-    setCurrentChallenge(challenges[0]);
-    setChallengeIndex(0);
-    setScore(0);
-    setTotalAttempts(0);
-  };
-
-  const checkAnswer = () => {
-    if (!currentChallenge || !userAnswer.trim()) return;
-
-    setTotalAttempts(prev => prev + 1);
-    
-    // Basit kontrol - kelime içeriyor mu ve mantıklı mı
-    const isCorrect = currentChallenge.possibleAnswers.some(answer => 
-      userAnswer.toLowerCase().includes(answer.toLowerCase().split(' ').slice(0, 3).join(' '))
-    ) || userAnswer.toLowerCase().includes('according to') || userAnswer.toLowerCase().includes('research shows');
-
-    if (isCorrect) {
-      setFeedback('correct');
-      setScore(prev => prev + 1);
-      setTimeout(() => {
-        nextChallenge();
-      }, 2000);
-    } else {
-      setFeedback('incorrect');
-      setTimeout(() => {
-        setFeedback(null);
-      }, 2000);
+  const generateSentence = async () => {
+    setIsLoadingSentence(true);
+    try {
+      const sentence = await geminiService.generateAcademicSentence();
+      setOriginalSentence(sentence);
+    } catch (error) {
+      console.error('Sentence generation error:', error);
+      setOriginalSentence('Climate change affects biodiversity significantly (Smith, 2020, p.45).');
+    } finally {
+      setIsLoadingSentence(false);
     }
   };
 
-  const nextChallenge = () => {
-    if (challengeIndex < challenges.length - 1) {
-      setChallengeIndex(prev => prev + 1);
-      setCurrentChallenge(challenges[challengeIndex + 1]);
-      setUserAnswer('');
-      setFeedback(null);
-      setShowHints(false);
+  const startGame = async () => {
+    if (!originalSentence) {
+      await generateSentence();
+    }
+    setGameStarted(true);
+    setCurrentStep(0);
+  };
+
+  const evaluateCurrentAttempt = async () => {
+    if (!paraphraseAttempts[currentStep].answer.trim()) return;
+    
+    setIsEvaluating(true);
+    try {
+      const feedback = await geminiService.evaluateParaphrase(
+        originalSentence,
+        paraphraseAttempts[currentStep].answer,
+        paraphraseAttempts[currentStep].type
+      );
+      
+      const updatedAttempts = [...paraphraseAttempts];
+      updatedAttempts[currentStep] = {
+        ...updatedAttempts[currentStep],
+        feedback,
+        isEvaluated: true
+      };
+      setParaphraseAttempts(updatedAttempts);
+      
+    } catch (error) {
+      console.error('Evaluation error:', error);
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
+  const goToNextStep = () => {
+    if (currentStep < 2) {
+      setCurrentStep(currentStep + 1);
     } else {
       setShowResult(true);
     }
   };
 
-  const resetGame = () => {
+  const updateAnswer = (answer: string) => {
+    const updatedAttempts = [...paraphraseAttempts];
+    updatedAttempts[currentStep] = {
+      ...updatedAttempts[currentStep],
+      answer
+    };
+    setParaphraseAttempts(updatedAttempts);
+  };
+
+  const resetGame = async () => {
     setGameStarted(false);
     setShowResult(false);
-    setCurrentChallenge(null);
-    setUserAnswer('');
-    setFeedback(null);
-    setScore(0);
-    setTotalAttempts(0);
-    setChallengeIndex(0);
-    setShowHints(false);
+    setCurrentStep(0);
+    setParaphraseAttempts([
+      {
+        type: 'parenthetical',
+        typeName: 'Parenthetical Citation',
+        answer: '',
+        isEvaluated: false
+      },
+      {
+        type: 'reporting',
+        typeName: 'Reporting Verb Citation', 
+        answer: '',
+        isEvaluated: false
+      },
+      {
+        type: 'according',
+        typeName: 'According to Citation',
+        answer: '',
+        isEvaluated: false
+      }
+    ]);
+    await generateSentence();
+  };
+
+  useEffect(() => {
+    generateSentence();
+  }, []);
+
+  const getParaphraseHints = (type: string) => {
+    switch (type) {
+      case 'parenthetical':
+        return [
+          '📌 Parenthetical Citation: Place the source in parentheses at the end',
+          '✅ Correct: "Climate change affects biodiversity (Smith, 2020)."',
+          '✅ Correct: "Global warming is critical (Jones, 2023, p.45)."',
+          '❌ Wrong: Don\'t forget the parentheses'
+        ];
+      case 'reporting':
+        return [
+          '📌 Reporting Verb Citation: Include author name with a reporting verb',
+          '✅ Correct: "Smith (2020) argues that climate change is serious."',
+          '✅ Correct: "Jones (2023) states that biodiversity is declining."',
+          '🎯 Verbs: argues, states, claims, suggests, indicates, asserts'
+        ];
+      case 'according':
+        return [
+          '📌 According to Citation: Start with "According to"',
+          '✅ Correct: "According to Smith (2020), climate change is serious."',
+          '✅ Correct: "According to research (Jones, 2023), biodiversity is declining."',
+          '❌ Wrong: Don\'t forget to start with "According to"'
+        ];
+      default:
+        return [];
+    }
   };
 
   if (!gameStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/10 backdrop-blur-md rounded-3xl p-8 max-w-2xl w-full text-center border border-white/20"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <BookOpen className="w-10 h-10 text-white" />
-          </motion.div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-2xl w-full border border-gray-200 dark:border-gray-700">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Paraphrase Challenge</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Paraphrase AI-generated sentences in 3 different citation styles
+            </p>
+          </div>
           
-          <h1 className="text-4xl font-bold text-white mb-4">Paraphrase Challenge</h1>
-          <p className="text-purple-200 text-lg mb-6">
-            Akademik cümleleri farklı şekillerde yeniden ifade etmeyi öğrenin
-          </p>
-          
-          <div className="bg-white/5 rounded-2xl p-6 mb-8 text-left">
-            <h3 className="text-white font-semibold mb-3">Nasıl Oynanır:</h3>
-            <ul className="text-purple-200 space-y-2">
-              <li>• Verilen cümleyi farklı bir şekilde yeniden yazın</li>
-              <li>• Parantez içi alıntı, fiil ile anlatımsal alıntı kullanın</li>
-              <li>• İpuçları için 💡 butonuna tıklayın</li>
-              <li>• {challenges.length} farklı challenge'ı tamamlayın</li>
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
+            <h3 className="text-gray-900 dark:text-white font-semibold mb-3">How to Play:</h3>
+            <ul className="text-gray-700 dark:text-gray-300 space-y-2 text-sm">
+              <li>• AI will generate an academic sentence for you</li>
+              <li>• Rewrite this sentence using 3 different paraphrase methods:</li>
+              <li className="ml-6">1. Parenthetical citation</li>
+              <li className="ml-6">2. Reporting verb citation</li>
+              <li className="ml-6">3. "According to" citation</li>
+              <li>• AI will evaluate each of your attempts</li>
             </ul>
           </div>
 
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{challenges.length}</div>
-              <div className="text-purple-300 text-sm">Challenge</div>
+          {originalSentence && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+              <h4 className="text-blue-800 dark:text-blue-300 text-sm font-semibold mb-2">Generated Sentence:</h4>
+              <p className="text-gray-900 dark:text-white text-sm">{originalSentence}</p>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{words.length}</div>
-              <div className="text-purple-300 text-sm">Kelime</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{level === 'intermediate' ? 'Int' : 'Up-Int'}</div>
-              <div className="text-purple-300 text-sm">Seviye</div>
-            </div>
-          </div>
+          )}
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={startGame}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-8 rounded-2xl text-xl font-bold shadow-lg hover:shadow-purple-500/25 transition-all"
+            disabled={isLoadingSentence || !originalSentence}
+            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold transition-colors"
           >
-            Oyuna Başla
-          </motion.button>
+            {isLoadingSentence ? (
+              <div className="flex items-center justify-center gap-2">
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                Generating Sentence...
+              </div>
+            ) : (
+              'Start Game'
+            )}
+          </button>
 
           <button
             onClick={() => navigate('/')}
-            className="mt-4 flex items-center justify-center gap-2 text-purple-300 hover:text-white transition-colors mx-auto"
+            className="mt-4 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors mx-auto"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Ana Sayfaya Dön
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
           </button>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   if (showResult) {
-    const percentage = Math.round((score / challenges.length) * 100);
+    const correctAnswers = paraphraseAttempts.filter(attempt => attempt.feedback?.correct).length;
+    const percentage = Math.round((correctAnswers / 3) * 100);
+    
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white/10 backdrop-blur-md rounded-3xl p-8 max-w-2xl w-full text-center border border-white/20"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <Trophy className="w-12 h-12 text-white" />
-          </motion.div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-2xl w-full border border-gray-200 dark:border-gray-700">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trophy className="w-10 h-10 text-white" />
+            </div>
 
-          <h2 className="text-4xl font-bold text-white mb-4">Tebrikler!</h2>
-          <p className="text-purple-200 text-lg mb-8">Paraphrase Challenge'ı tamamladınız</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Results</h2>
+            <p className="text-gray-600 dark:text-gray-400">Paraphrase Challenge completed</p>
+          </div>
 
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-white/5 rounded-2xl p-4">
-              <div className="text-3xl font-bold text-white">{score}</div>
-              <div className="text-purple-300">Doğru</div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{correctAnswers}</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">Correct</div>
             </div>
-            <div className="bg-white/5 rounded-2xl p-4">
-              <div className="text-3xl font-bold text-white">{challenges.length}</div>
-              <div className="text-purple-300">Toplam</div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">3</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">Total</div>
             </div>
-            <div className="bg-white/5 rounded-2xl p-4">
-              <div className="text-3xl font-bold text-white">%{percentage}</div>
-              <div className="text-purple-300">Başarı</div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{percentage}%</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">Success</div>
             </div>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            {paraphraseAttempts.map((attempt, index) => (
+              <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  {attempt.feedback?.correct ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  )}
+                  <span className="text-gray-900 dark:text-white font-semibold">{attempt.typeName}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-sm ml-auto">
+                    Similarity: {attempt.feedback?.similarity}%
+                  </span>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 text-sm mb-2">{attempt.answer}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-xs">{attempt.feedback?.feedback}</p>
+              </div>
+            ))}
           </div>
 
           <div className="flex gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={resetGame}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-2xl font-bold"
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors"
             >
-              Tekrar Oyna
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              Play Again
+            </button>
+            <button
               onClick={() => navigate('/')}
-              className="flex-1 bg-white/10 text-white py-3 px-6 rounded-2xl font-bold border border-white/20"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-900 dark:text-white py-3 px-6 rounded-lg font-semibold transition-colors"
             >
-              Ana Sayfa
-            </motion.button>
+              Home
+            </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
+  const currentAttempt = paraphraseAttempts[currentStep];
+  const hints = getParaphraseHints(currentAttempt.type);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            Ana Sayfa
+            Home
           </button>
           
           <div className="flex items-center gap-4">
-            <div className="text-white text-lg font-semibold">
-              {challengeIndex + 1} / {challenges.length}
+            <div className="text-gray-900 dark:text-white text-lg font-semibold">
+              {currentStep + 1} / 3
             </div>
-            <div className="text-purple-300">
-              Skor: {score}
+            <div className="text-gray-600 dark:text-gray-400">
+              {currentAttempt.typeName}
             </div>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-white/10 rounded-full h-2 mb-8">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${((challengeIndex + 1) / challenges.length) * 100}%` }}
-            className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full transition-all duration-500"
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-8">
+          <div 
+            style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
+            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
           />
         </div>
 
-        {currentChallenge && (
-          <motion.div
-            key={currentChallenge.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20"
-          >
-            {/* Challenge Info */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-white text-xl font-bold">Challenge {currentChallenge.id}</h3>
-                <p className="text-purple-300">{currentChallenge.targetStyle}</p>
-              </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+          {/* Challenge Info */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+              <Target className="w-5 h-5 text-white" />
             </div>
-
-            {/* Original Sentence */}
-            <div className="bg-white/5 rounded-2xl p-6 mb-6">
-              <h4 className="text-purple-300 text-sm font-semibold mb-2">Orijinal Cümle:</h4>
-              <p className="text-white text-lg leading-relaxed">{currentChallenge.originalSentence}</p>
+            <div>
+              <h3 className="text-gray-900 dark:text-white text-xl font-bold">{currentAttempt.typeName}</h3>
+              <p className="text-gray-600 dark:text-gray-400">Paraphrase the AI-generated sentence</p>
             </div>
+          </div>
 
-            {/* User Input */}
-            <div className="mb-6">
-              <label className="block text-purple-300 text-sm font-semibold mb-2">
-                Yeniden İfade Edin:
-              </label>
-              <textarea
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
-                rows={3}
-                placeholder="Cümleyi farklı bir şekilde yazın..."
-              />
-            </div>
+          {/* Original Sentence */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+            <h4 className="text-blue-800 dark:text-blue-300 text-sm font-semibold mb-2 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              AI-Generated Sentence:
+            </h4>
+            <p className="text-gray-900 dark:text-white text-lg">{originalSentence}</p>
+          </div>
 
-            {/* Hints */}
-            <AnimatePresence>
-              {showHints && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 mb-6"
-                >
-                  <h5 className="text-yellow-300 font-semibold mb-2 flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4" />
-                    İpuçları:
-                  </h5>
-                  <ul className="text-yellow-200 space-y-1">
-                    {currentChallenge.hints.map((hint, index) => (
-                      <li key={index}>• {hint}</li>
-                    ))}
-                  </ul>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* Hints */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+            <h5 className="text-yellow-800 dark:text-yellow-300 font-semibold mb-2 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4" />
+              {currentAttempt.typeName} Tips:
+            </h5>
+            <ul className="text-yellow-700 dark:text-yellow-200 space-y-1 text-sm">
+              {hints.map((hint, index) => (
+                <li key={index}>• {hint}</li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Feedback */}
-            <AnimatePresence>
-              {feedback && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className={`flex items-center gap-3 p-4 rounded-2xl mb-6 ${
-                    feedback === 'correct' 
-                      ? 'bg-green-500/10 border border-green-500/20' 
-                      : 'bg-red-500/10 border border-red-500/20'
-                  }`}
-                >
-                  {feedback === 'correct' ? (
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                  ) : (
-                    <XCircle className="w-6 h-6 text-red-400" />
-                  )}
-                  <span className={feedback === 'correct' ? 'text-green-300' : 'text-red-300'}>
-                    {feedback === 'correct' ? 'Harika! Doğru cevap.' : 'Tekrar deneyin. İpuçlarına bakabilirsiniz.'}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* User Input */}
+          <div className="mb-6">
+            <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
+              Your Paraphrase:
+            </label>
+            <textarea
+              value={currentAttempt.answer}
+              onChange={(e) => updateAnswer(e.target.value)}
+              className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              rows={3}
+                              placeholder={`Rewrite the sentence using ${currentAttempt.typeName} method...`}
+              disabled={currentAttempt.isEvaluated}
+            />
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowHints(!showHints)}
-                className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white rounded-2xl border border-white/20 hover:bg-white/20 transition-all"
+          {/* Feedback */}
+          <AnimatePresence>
+            {currentAttempt.feedback && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-6"
               >
-                <Lightbulb className="w-5 h-5" />
-                İpuçları
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={checkAnswer}
-                disabled={!userAnswer.trim() || feedback === 'correct'}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                {/* Score Header */}
+                <div className={`flex items-center gap-3 p-4 rounded-t-lg border-t border-l border-r ${
+                  currentAttempt.feedback.correct 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                }`}>
+                  <div className="flex-shrink-0">
+                    {currentAttempt.feedback.correct ? (
+                      <CheckCircle className="w-6 h-6 text-green-500" />
+                    ) : (
+                      <XCircle className="w-6 h-6 text-red-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className={`font-semibold ${currentAttempt.feedback.correct ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>
+                      AI Evaluation
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Score: {currentAttempt.feedback.similarity}/100
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    currentAttempt.feedback.correct 
+                      ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' 
+                      : 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200'
+                  }`}>
+                    {currentAttempt.feedback.correct ? 'Passed' : 'Needs Work'}
+                  </div>
+                </div>
+
+                {/* Feedback Content */}
+                <div className="bg-white dark:bg-gray-800 border-l border-r border-gray-200 dark:border-gray-600 p-4">
+                  <div className="space-y-3">
+                    {currentAttempt.feedback.feedback.split('\n').filter(line => line.trim()).map((paragraph, index) => {
+                      // Clean and format the text
+                      let cleanText = paragraph.trim();
+                      
+                      // Remove stars and markdown formatting
+                      cleanText = cleanText.replace(/\*+/g, '');
+                      cleanText = cleanText.replace(/^#+\s*/g, '');
+                      cleanText = cleanText.replace(/^-+\s*/g, '');
+                      
+                      // Skip empty lines or separator lines
+                      if (!cleanText || cleanText.match(/^-+$/) || cleanText.length < 3) {
+                        return null;
+                      }
+
+                      // Check if it's a header (contains common header words)
+                      const isHeader = cleanText.match(/^(TASK ACHIEVEMENT|ORGANIZATION|CONTENT|LANGUAGE|OVERALL|FEEDBACK|EVALUATION|SCORE)/i);
+                      
+                      if (isHeader) {
+                        return (
+                          <div key={index} className="border-l-4 border-blue-400 pl-3 py-2 bg-blue-50 dark:bg-blue-900/20">
+                            <h4 className="font-semibold text-blue-800 dark:text-blue-300 text-sm uppercase tracking-wide">
+                              {cleanText}
+                            </h4>
+                          </div>
+                        );
+                      }
+
+                      // Regular paragraph
+                      return (
+                        <div key={index} className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed pl-4">
+                          {cleanText}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Suggestion */}
+                {currentAttempt.feedback.suggestion && (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-b-lg p-4">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <div className="font-medium text-yellow-800 dark:text-yellow-300 text-sm mb-1">
+                          Suggestion
+                        </div>
+                        <div className="text-yellow-700 dark:text-yellow-200 text-sm">
+                          {currentAttempt.feedback.suggestion.replace(/\*+/g, '')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            {!currentAttempt.isEvaluated ? (
+              <button
+                onClick={evaluateCurrentAttempt}
+                disabled={!currentAttempt.answer.trim() || isEvaluating}
+                className="flex-1 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white py-3 px-6 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
               >
-                Kontrol Et
-              </motion.button>
-            </div>
-          </motion.div>
-        )}
+                              {isEvaluating ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  AI Evaluating...
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-5 h-5" />
+                  Evaluate with AI
+                </>
+              )}
+              </button>
+            ) : (
+              <button
+                onClick={goToNextStep}
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                {currentStep < 2 ? (
+                  <>
+                    <ArrowLeft className="w-5 h-5 rotate-180" />
+                    Next Type
+                  </>
+                ) : (
+                  <>
+                    <Trophy className="w-5 h-5" />
+                    View Results
+                  </>
+                )}
+              </button>
+            )}
+            
+            {currentAttempt.isEvaluated && (
+              <button
+                onClick={() => {
+                  const updatedAttempts = [...paraphraseAttempts];
+                  updatedAttempts[currentStep] = {
+                    ...updatedAttempts[currentStep],
+                    answer: '',
+                    feedback: undefined,
+                    isEvaluated: false
+                  };
+                  setParaphraseAttempts(updatedAttempts);
+                }}
+                className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-5 h-5" />
+                Try Again
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -124,7 +124,7 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100 relative">
+    <div className="bg-white p-rounded-xl shadow-lg border border-purple-100 relative">
       <button 
         onClick={onClose}
         className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
