@@ -47,7 +47,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
       />
       <div className="pt-32">
         <Routes>
-          <Route path="/" element={<HomePage filteredWords={filteredWords} />} />
+          <Route path="/" element={<HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/paraphrase" element={<ParaphrasePage />} />
           <Route path="/preposition-mastery" element={<PrepositionMasteryGame />} />

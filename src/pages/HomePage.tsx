@@ -56,11 +56,15 @@ interface GameMode {
   shadow: string;
 }
 
-const HomePage: React.FC<{ filteredWords: any[] }> = ({ filteredWords }) => {
-  const [searchParams] = useSearchParams();
+interface HomePageProps {
+  filteredWords: any[];
+  currentUnit: string;
+  currentLevel: string;
+}
 
-  const unit = searchParams.get('unit') || "1";
-  const level = searchParams.get('level') || 'intermediate';
+const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, currentLevel }) => {
+  const unit = currentUnit;
+  const level = currentLevel;
 
   const gameModes: GameMode[] = [
     { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
@@ -105,8 +109,6 @@ const HomePage: React.FC<{ filteredWords: any[] }> = ({ filteredWords }) => {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
-
-
 
   return (
     <div className="min-h-screen bg-black text-gray-100 overflow-x-hidden">
