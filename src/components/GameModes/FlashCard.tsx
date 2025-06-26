@@ -13,13 +13,17 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [score, setScore] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [repeatList, setRepeatList] = useState<WordDetail[]>([]);
+  const [isRepeatMode, setIsRepeatMode] = useState(false);
 
-  const startNewRound = useCallback(() => {
-    const shuffled = [...words].sort(() => 0.5 - Math.random());
-    setRoundWords(shuffled.slice(0, 15)); // Her turda 15 kelime
+  const startNewRound = useCallback((customList?: WordDetail[]) => {
+    const base = customList && customList.length > 0 ? customList : words;
+    const shuffled = [...base].sort(() => 0.5 - Math.random());
+    setRoundWords(shuffled.slice(0, 15));
     setCurrentWordIndex(0);
     setIsFlipped(false);
     setScore(0);
+    setIsRepeatMode(!!customList);
   }, [words]);
 
   useEffect(() => {
@@ -33,10 +37,21 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
   };
 
   const handleNextCard = (known: boolean) => {
-    if (known) {
+    const currentWord = roundWords[currentWordIndex];
+    if (!known) {
+      setRepeatList(prev => {
+        // Aynı kelime tekrar eklenmesin
+        if (prev.find(w => w.headword === currentWord.headword)) return prev;
+        return [...prev, currentWord];
+      });
+    } else {
       setScore(score + 1);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1000);
+      // Eğer tekrar modundaysa ve biliyorum dediyse, tekrar listesinden çıkar
+      if (isRepeatMode) {
+        setRepeatList(prev => prev.filter(w => w.headword !== currentWord.headword));
+      }
     }
 
     setIsFlipped(false);
@@ -44,8 +59,19 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
       if (currentWordIndex < roundWords.length - 1) {
         setCurrentWordIndex(currentWordIndex + 1);
       } else {
-        // Son kelimeden sonra turu yeniden başlat
-        startNewRound();
+        // Tur bitti
+        if (!isRepeatMode && repeatList.length > 0) {
+          // Tekrar moduna geç
+          startNewRound(repeatList);
+        } else if (isRepeatMode && repeatList.length > 0) {
+          // Tekrar modunda, hala tekrar listesi varsa devam et
+          startNewRound(repeatList);
+        } else {
+          // Tekrar listesi boşsa yeni rastgele tur başlat
+          setRepeatList([]);
+          setIsRepeatMode(false);
+          startNewRound();
+        }
       }
     }, 200);
   };
@@ -69,7 +95,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
             Kelime {currentWordIndex + 1}/{roundWords.length}
           </div>
           <button
-            onClick={startNewRound}
+            onClick={() => startNewRound(repeatList)}
             className="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
             title="Yeni Tur"
           >

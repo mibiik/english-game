@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Target, CheckCircle, XCircle, Lightbulb, RefreshCw, Trophy, Sparkles, MessageCircle } from 'lucide-react';
@@ -27,6 +27,7 @@ const ParaphrasePage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const pageInitialized = useRef(false);
   
   const [paraphraseAttempts, setParaphraseAttempts] = useState<ParaphraseAttempt[]>([
     {
@@ -52,6 +53,7 @@ const ParaphrasePage: React.FC = () => {
   const geminiService = GeminiService.getInstance();
 
   const generateSentence = async () => {
+    if (isLoadingSentence) return;
     setIsLoadingSentence(true);
     try {
       const sentence = await geminiService.generateAcademicSentence();
@@ -73,7 +75,7 @@ const ParaphrasePage: React.FC = () => {
   };
 
   const evaluateCurrentAttempt = async () => {
-    if (!paraphraseAttempts[currentStep].answer.trim()) return;
+    if (!paraphraseAttempts[currentStep].answer.trim() || isEvaluating) return;
     
     setIsEvaluating(true);
     try {
@@ -143,7 +145,10 @@ const ParaphrasePage: React.FC = () => {
   };
 
   useEffect(() => {
-    generateSentence();
+    if (pageInitialized.current === false) {
+      generateSentence();
+      pageInitialized.current = true;
+    }
   }, []);
 
   const getParaphraseHints = (type: string) => {

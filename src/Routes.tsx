@@ -19,6 +19,8 @@ import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 import ProfilePage from './pages/ProfilePage';
 import { GameWrapper } from './components/GameWrapper';
 import PrepositionMasteryGame from './components/GameModes/PrepositionMasteryGame';
+import { DefinitionToWordGame } from './components/GameModes/DefinitionToWordGame';
+import { LearningMode } from './components/GameModes/LearningMode';
 
 
 interface AppRoutesProps {
@@ -60,6 +62,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/memory-game" element={<GameWrapper component={MemoryGame} words={filteredWords} />} />
           <Route path="/word-forms" element={<GameWrapper component={WordFormsGame} words={filteredWords} />} />
           <Route path="/essay-writing" element={<EssayWritingPage />} />
+          <Route path="/definition-to-word" element={<DefinitionToWordGame />} />
+          <Route path="/learning-mode" element={<GameWrapper component={LearningMode} words={filteredWords} />} />
         </Routes>
       </div>
     </>

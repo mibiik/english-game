@@ -1,182 +1,181 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { GeminiService } from '../../services/geminiService';
-import { newDetailedWords_part1 as intermediateWords, WordDetail } from '../../data/words';
-import { detailedWords_part1 as upperIntermediateWords } from '../../data/word4';
+import { WordDetail } from '../../data/words';
+import { WordFormsQuestion } from '../../types';
 
 const geminiService = GeminiService.getInstance();
 
-const WordFormsGame: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const unit = searchParams.get('unit') || '1';
-  const level = searchParams.get('level') || 'intermediate';
+interface WordFormsGameProps {
+  words: WordDetail[];
+}
 
+const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [paragraph, setParagraph] = useState<string>('');
-  const [solutions, setSolutions] = useState<Record<string, string>>({});
-  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [feedback, setFeedback] = useState<Record<string, 'correct' | 'incorrect' | 'unanswered'>>({});
+  const [questions, setQuestions] = useState<WordFormsQuestion[]>([]);
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [isChecked, setIsChecked] = useState(false);
-  
-  const wordSource = useMemo(() => {
-    return level === 'intermediate' ? intermediateWords : upperIntermediateWords;
-  }, [level]);
+  const gameInitialized = useRef(false);
 
   const fetchGameData = async () => {
     setIsLoading(true);
     setError(null);
     setIsChecked(false);
-    setParagraph('');
-    setSolutions({});
-    setUserAnswers({});
-    setFeedback({});
-
+    setQuestions([]);
+    
     try {
-      const unitWords = wordSource.filter(w => w.unit === unit);
-      if (unitWords.length < 10) {
-        throw new Error(`Unit ${unit} does not have enough words for this game.`);
+      if (words.length < 10) {
+        throw new Error(`This unit requires at least 10 words for this game.`);
       }
       
-      const selectedWords = [...unitWords].sort(() => 0.5 - Math.random()).slice(0, 10);
+      const selectedWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 10);
       const headwords = selectedWords.map(w => w.headword);
       
-      const { paragraph: newParagraph, solutions: newSolutions } = await geminiService.generateWordFormsParagraph(headwords);
+      const newQuestions = await geminiService.generateWordFormsExercise(headwords);
 
-      if (!newParagraph || Object.keys(newSolutions).length === 0) {
-        throw new Error('Failed to generate a valid paragraph from the AI service.');
+      if (!newQuestions || newQuestions.length === 0) {
+        throw new Error('Failed to generate a valid exercise from the AI service. Please try again.');
       }
       
-      setParagraph(newParagraph);
-      setSolutions(newSolutions);
-
-      const initialAnswers: Record<string, string> = {};
-      const initialFeedback: Record<string, 'correct' | 'incorrect' | 'unanswered'> = {};
-      Object.keys(newSolutions).forEach(key => {
-        initialAnswers[key] = '';
-        initialFeedback[key] = 'unanswered';
-      });
-      setUserAnswers(initialAnswers);
-      setFeedback(initialFeedback);
+      setQuestions(newQuestions);
+      setUserAnswers(new Array(newQuestions.length).fill(''));
 
     } catch (e: any) {
-      setError(e.message || 'An unexpected error occurred.');
+      setError(e.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
   
   useEffect(() => {
-    fetchGameData();
-  }, [unit, level]);
+    if (gameInitialized.current === false && words.length > 0) {
+        fetchGameData();
+        gameInitialized.current = true;
+    }
+  }, [words]);
 
-  const handleInputChange = (headword: string, value: string) => {
-    setUserAnswers(prev => ({ ...prev, [headword]: value }));
+  const handleInputChange = (index: number, value: string) => {
+    const newAnswers = [...userAnswers];
+    newAnswers[index] = value;
+    setUserAnswers(newAnswers);
   };
 
   const checkAnswers = () => {
-    const newFeedback: Record<string, 'correct' | 'incorrect' | 'unanswered'> = {};
-    Object.keys(solutions).forEach(headword => {
-      const isCorrect = userAnswers[headword]?.trim().toLowerCase() === solutions[headword]?.toLowerCase();
-      newFeedback[headword] = isCorrect ? 'correct' : 'incorrect';
-    });
-    setFeedback(newFeedback);
     setIsChecked(true);
   };
   
-  const renderParagraph = () => {
-    const parts = paragraph.split(/(_______ \([^)]+\))/g);
-    return parts.map((part, index) => {
-      const match = part.match(/_______ \(([^)]+)\)/);
-      if (match) {
-        const headword = match[1];
-        const feedbackStatus = feedback[headword];
-        
-        let borderColor = 'border-slate-300 focus:border-blue-500';
-        if (isChecked) {
-          borderColor = feedbackStatus === 'correct' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50';
-        }
-
-        return (
-          <span key={index} className="inline-block mx-1 align-bottom">
-            <input
-              type="text"
-              value={userAnswers[headword] || ''}
-              onChange={(e) => handleInputChange(headword, e.target.value)}
-              placeholder={`(${headword})`}
-              aria-label={headword}
-              disabled={isChecked}
-              className={`w-28 sm:w-36 px-2 py-1 border-b-2 transition-colors duration-300 rounded-t-md focus:outline-none ${borderColor} text-center`}
-            />
-          </span>
-        );
-      }
-      return <span key={index}>{part}</span>;
-    });
-  };
-
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen bg-slate-50"><Loader2 className="w-12 h-12 animate-spin text-blue-600" /></div>;
+    return (
+        <div className="flex flex-col justify-center items-center h-screen bg-gray-50 text-gray-800">
+            <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
+            <p className="mt-4 text-lg">Generating your personalized exercise...</p>
+        </div>
+    );
   }
 
   if (error) {
     return <div className="flex flex-col justify-center items-center h-screen bg-red-50 text-red-700 p-4 text-center">
-      <p>{error}</p>
-      <button onClick={fetchGameData} className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Try Again</button>
+      <p className="text-xl">{error}</p>
+      <button onClick={fetchGameData} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors">
+        <RefreshCw className="w-5 h-5" /> Try Again
+      </button>
     </div>;
   }
 
     return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-8 flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-4 sm:p-8"
-      >
-        <h1 className="text-xl sm:text-3xl font-bold text-slate-800 mb-2 text-center sm:text-left">Word Forms Challenge</h1>
-        <p className="text-sm sm:text-base text-slate-600 mb-6 text-center sm:text-left">Fill in the blanks with the correct form of the word in parentheses.</p>
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex items-center justify-center text-gray-800">
+        <div className="w-full max-w-3xl">
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center mb-10"
+            >
+                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Word Forms Challenge</h1>
+                <p className="text-md sm:text-lg text-gray-600 mt-2">Complete each sentence with the correct form of the given word.</p>
+            </motion.div>
 
-        <div className="text-base sm:text-lg leading-relaxed sm:leading-loose text-slate-700 bg-slate-100 p-4 sm:p-6 rounded-xl border border-slate-200">
-          {renderParagraph()}
-          </div>
+            <div className="space-y-4">
+                {questions.map((q, index) => {
+                    const isCorrect = userAnswers[index].trim().toLowerCase() === q.solution.toLowerCase();
+                    const sentenceParts = q.sentence.split('[BLANK]');
+                    return (
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="bg-white p-6 rounded-xl shadow-md border border-gray-200"
+                        >
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                               <div className="flex-1">
+                                    <p className="text-gray-700 text-xl leading-relaxed">
+                                       <span className="text-indigo-600 font-bold mr-3">{index + 1}.</span>
+                                        {sentenceParts[0]}
+                                        <span className="inline-block w-48 mx-1">
+                                            <input
+                                                type="text"
+                                                value={userAnswers[index]}
+                                                onChange={(e) => handleInputChange(index, e.target.value)}
+                                                disabled={isChecked}
+                                                className={`w-full bg-gray-100 border-b-2 text-gray-800 text-center text-lg p-1 focus:outline-none transition-all duration-300 rounded-t-md ${
+                                                    isChecked 
+                                                    ? (isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50')
+                                                    : 'border-gray-300 focus:border-indigo-500 focus:bg-white'
+                                                }`}
+                                            />
+                                        </span>
+                                        {sentenceParts[1]}
+                                    </p>
+                                    <div className="pl-8 sm:pl-9 mt-1">
+                                        <span className="text-gray-500 text-sm">
+                                            (Use a form of: <strong className="font-semibold text-gray-700">{q.headword}</strong>)
+                                        </span>
+                                    </div>
+                               </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
-          <motion.button
-            onClick={checkAnswers}
-            disabled={isChecked}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-          >
-            {isChecked ? <CheckCircle className="w-5 h-5" /> : null}
-            Check Answers
-          </motion.button>
-          <motion.button
-            onClick={fetchGameData}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto flex-1 px-6 py-3 bg-slate-200 text-slate-800 font-semibold rounded-lg hover:bg-slate-300 transition-colors flex items-center justify-center gap-2"
-          >
-            <RefreshCw className="w-5 h-5" />
-            New Paragraph
-            </motion.button>
+                                <div className={`transition-all duration-300 ${isChecked ? 'w-32 opacity-100' : 'w-0 opacity-0'}`}>
+                                    {isChecked && (
+                                        <div className={`flex items-center text-md font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                            {isCorrect ? <CheckCircle className="w-6 h-6 mr-2" /> : <XCircle className="w-6 h-6 mr-2" />}
+                                            <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                             {isChecked && !isCorrect && (
+                                <motion.div 
+                                    initial={{opacity: 0, y: -10}}
+                                    animate={{opacity: 1, y: 0}}
+                                    className="pl-8 sm:pl-9 mt-3 text-green-600 text-md"
+                                >
+                                    Correct answer: <strong className="font-bold">{q.solution}</strong>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    )
+                })}
+            </div>
+
+            <div className="mt-12 flex justify-center gap-4">
+                <motion.button
+                    onClick={checkAnswers}
+                    disabled={isChecked}
+                    whileHover={{ scale: 1.05 }}
+                    className="px-10 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all text-lg"
+                >
+                    Check Answers
+                </motion.button>
+                <motion.button
+                    onClick={fetchGameData}
+                    whileHover={{ scale: 1.05 }}
+                    className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+                >
+                    <RefreshCw className="w-5 h-5" />
+                </motion.button>
+            </div>
         </div>
-
-        {isChecked && (
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-            <h3 className="font-bold mb-2">Correct Answers:</h3>
-            <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-1">
-              {Object.entries(solutions).map(([headword, solution]) => (
-                <li key={headword}>
-                  <span className="font-semibold">{headword}:</span> {solution}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        </motion.div>
     </div>
   );
 };

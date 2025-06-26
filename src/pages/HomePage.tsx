@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle } from 'lucide-react';
+import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book } from 'lucide-react';
 import logo from './a.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
@@ -62,15 +62,32 @@ interface HomePageProps {
   currentLevel: string;
 }
 
+const gameModeDescriptions: Record<string, string> = {
+  'multiple-choice': 'Verilen kelimenin doğru anlamını şıklar arasından bulun.',
+  'matching': 'Kelimeleri doğru anlamlarıyla eşleştirin.',
+  'sentence-completion': 'Cümledeki boşluğu en uygun kelimeyle doldurun.',
+  'word-forms': 'Kelimenin doğru formunu (isim, fiil, sıfat vb.) seçin.',
+  'definition-to-word': 'Verilen tanıma uygun kelimeyi bulun.',
+  'paraphrase': 'Cümleleri yeniden ifade etme becerilerinizi test edin.',
+  'essay-writing': 'Verilen konuda kısa bir kompozisyon yazarak yazma pratiği yapın.',
+  'preposition-mastery': 'Cümlelerde eksik olan edatları (preposition) tamamlayın.',
+  'flashcard': 'Kelimelerin anlamlarını hızlıca gözden geçirin ve bildiklerinizi işaretleyin.',
+  'word-race': 'Zamana karşı yarışarak verilen kelimenin doğru anlamını bulun.',
+  'speaking': 'Verilen kelimeleri doğru bir şekilde telaffuz ederek konuşma pratiği yapın.',
+  'learning-mode': 'Oyunlara başlamadan önce kelimeleri, anlamlarını ve örnek cümleleri öğrenin.',
+};
+
 const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, currentLevel }) => {
   const unit = currentUnit;
   const level = currentLevel;
 
   const gameModes: GameMode[] = [
+    { id: 'learning-mode', title: 'Öğretici Mod', icon: <Book />, link: `/learning-mode?unit=${unit}&level=${level}`, color: 'from-blue-500 to-indigo-600', shadow: 'hover:shadow-blue-500/30' },
+    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-orange-600', shadow: 'hover:shadow-amber-500/30' },
     { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
     { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <Zap />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-green-500 to-emerald-600', shadow: 'hover:shadow-green-500/30' },
-    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-orange-600', shadow: 'hover:shadow-amber-500/30' },
     { id: 'word-forms', title: 'Kelime Formları', icon: <Layers />, link: `/word-forms?unit=${unit}&level=${level}`, color: 'from-pink-500 to-rose-500', shadow: 'hover:shadow-pink-500/30' },
+    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <Type />, link: '/definition-to-word', color: 'from-green-700 to-blue-700', shadow: 'hover:shadow-green-700/30' },
     { id: 'paraphrase', title: 'Paraphrase', icon: <Sparkles />, link: `/paraphrase`, color: 'from-purple-500 to-indigo-600', shadow: 'hover:shadow-purple-500/30' },
     { id: 'essay-writing', title: 'Essay Yazma', icon: <BookOpen />, link: '/essay-writing', color: 'from-gray-500 to-gray-600', shadow: 'hover:shadow-gray-500/30' },
     { id: 'preposition-mastery', title: 'Preposition Mastery', icon: <Puzzle />, link: '/preposition-mastery', color: 'from-teal-500 to-cyan-600', shadow: 'hover:shadow-teal-500/30' },
@@ -159,31 +176,26 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           variants={cardContainerVariant}
           initial="hidden"
           animate="visible"
         >
-          {gameModes.map((game) => (
-            <motion.div
-              key={game.id}
-              variants={cardItemVariant}
-              whileHover={{ scale: 1.05, zIndex: 10 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <Link to={game.link}>
-                <div className={`group bg-gray-900 hover:bg-gray-800/80 p-5 rounded-lg h-full border border-gray-700 hover:border-gray-500 transition-all duration-200 shadow-lg ${game.shadow}`}>
-                  <div className={`w-12 h-12 flex items-center justify-center rounded-md mb-4 bg-gradient-to-br ${game.color}`}>
-                    {React.cloneElement(game.icon, { className: 'w-7 h-7 text-white' })}
-                  </div>
-                  <h3 className="font-bold text-white text-lg">{game.title}</h3>
-                  <div className="text-sm font-medium text-gray-500 group-hover:text-cyan-400 transition-colors mt-1">
-                    <span>Başla</span>
+          {gameModes.map((mode) => (
+            <Link to={mode.link} key={mode.id} className="block group">
+              <div className={`group bg-gray-900 hover:bg-gray-800/80 p-5 rounded-lg h-full border border-gray-700 hover:border-gray-500 transition-all duration-200 shadow-lg ${mode.shadow}`}>
+                <div className={`w-12 h-12 flex items-center justify-center rounded-md mb-4 bg-gradient-to-br ${mode.color}`}>
+                  {React.cloneElement(mode.icon, { className: 'w-7 h-7 text-white' })}
+                </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{mode.title}</h3>
+                  <div className="text-white opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-transform">
+                    {mode.icon}
                   </div>
                 </div>
-              </Link>
-            </motion.div>
+                <p className="text-gray-300 text-sm mt-2">{gameModeDescriptions[mode.id] || 'Bu mod için açıklama yakında eklenecek.'}</p>
+              </div>
+            </Link>
           ))}
         </motion.div>
       </main>

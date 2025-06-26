@@ -16,3 +16,41 @@ export interface MessageType {
   timestamp: Date;
   read: boolean;
 }
+
+export type Word = {
+  id: number;
+  en: string;
+  tr: string;
+  pronunciation: string;
+  sentence: string;
+  image?: string;
+};
+
+export interface WordDetail {
+  headword: string;
+  turkish: string;
+  unit: string;
+  section: string;
+  forms: {
+    verb: string[];
+    noun: string[];
+    adjective: string[];
+    adverb: string[];
+  };
+  collocations: string[];
+}
+
+export interface WordFormsQuestion {
+  sentence: string;
+  headword: string;
+  solution: string;
+}
+
+export interface PrepositionExercise {
+  sentence: string;
+  correctAnswer: string;
+  options: string[];
+  sourcePrep: {
+    prep: string;
+  };
+}
