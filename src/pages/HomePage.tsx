@@ -97,7 +97,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: `/speaking?unit=${unit}&level=${level}`, color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
   ];
 
-  const headingLines = ["Koç WordPlay'e", "Hoş Geldiniz"];
+  const headingLines = ["Koç WordPlay'e", "Hoş Geldin"];
 
   const sentenceVariant = {
     hidden: { opacity: 0 },
