@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Target, CheckCircle, XCircle, Lightbulb, RefreshCw, Trophy, Sparkles, MessageCircle } from 'lucide-react';
-import { GeminiService } from '../services/geminiService';
+import { geminiService } from '../services/geminiService';
 
 interface ParaphraseAttempt {
   type: 'parenthetical' | 'reporting' | 'according';
@@ -49,8 +49,6 @@ const ParaphrasePage: React.FC = () => {
       isEvaluated: false
     }
   ]);
-
-  const geminiService = GeminiService.getInstance();
 
   const generateSentence = async () => {
     if (isLoadingSentence) return;

@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Lightbulb, Sparkles, CheckCircle, XCircle, RefreshCw, Trophy, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Sparkles, CheckCircle, XCircle, RefreshCw, Trophy, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { GeminiService } from '../../services/geminiService';
+import { generatePrepositionExercise } from '../../services/geminiService';
 import { Preposition, prepositionsByLevel } from '../../data/prepositions';
 import { PrepositionExercise } from '../../types';
 
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
 
-const geminiService = GeminiService.getInstance();
 const BATCH_SIZE = 5;
 
 const PrepositionMasteryGame: React.FC = () => {
@@ -21,30 +20,28 @@ const PrepositionMasteryGame: React.FC = () => {
   const [isEvaluated, setIsEvaluated] = useState(false);
   const [score, setScore] = useState(0);
   const [questionsAttempted, setQuestionsAttempted] = useState(0);
-  const gameInitialized = useRef(false);
 
   const fetchExercisesBatch = useCallback(async (selectedDifficulty: Difficulty) => {
-    if (isLoading) return;
     setIsLoading(true);
     try {
       const prepsToFetch: { prep: string; difficulty: 'easy' | 'medium' | 'hard' }[] = [];
       for (let i = 0; i < BATCH_SIZE; i++) {
-      let prepList: Preposition[] = [];
-      let actualDifficulty: 'easy' | 'medium' | 'hard';
+        let prepList: Preposition[] = [];
+        let actualDifficulty: 'easy' | 'medium' | 'hard';
 
-      if (selectedDifficulty === 'mixed') {
+        if (selectedDifficulty === 'mixed') {
           const allLevels = Object.keys(prepositionsByLevel) as Array<'easy' | 'medium' | 'hard'>;
           actualDifficulty = allLevels[Math.floor(Math.random() * allLevels.length)];
           prepList = prepositionsByLevel[actualDifficulty];
-      } else {
-        actualDifficulty = selectedDifficulty;
+        } else {
+          actualDifficulty = selectedDifficulty;
           prepList = prepositionsByLevel[actualDifficulty];
         }
         const randomPrep = prepList[Math.floor(Math.random() * prepList.length)];
         prepsToFetch.push({ prep: randomPrep.prep, difficulty: actualDifficulty });
       }
 
-      const newExercises = await geminiService.generatePrepositionExercise(prepsToFetch);
+      const newExercises = await generatePrepositionExercise(prepsToFetch);
       setExercises(newExercises);
       setCurrentQuestionIndex(0);
       setIsEvaluated(false);
@@ -54,7 +51,7 @@ const PrepositionMasteryGame: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, []);
 
   const startGame = (selectedDifficulty: Difficulty) => {
     setDifficulty(selectedDifficulty);
@@ -76,16 +73,13 @@ const PrepositionMasteryGame: React.FC = () => {
   const handleNextQuestion = () => {
     if (currentQuestionIndex < exercises.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
-    setIsEvaluated(false);
-    setSelectedAnswer(null);
+      setIsEvaluated(false);
+      setSelectedAnswer(null);
     } else {
-      // End of batch, fetch new ones
-    if (difficulty) {
-        fetchExercisesBatch(difficulty);
-      }
+        setExercises([]); 
     }
   };
-
+  
   const currentExercise = exercises[currentQuestionIndex];
 
   if (!difficulty) {
@@ -118,19 +112,43 @@ const PrepositionMasteryGame: React.FC = () => {
     );
   }
   
-  if (isLoading && exercises.length === 0) {
-     return (
+  if (isLoading) {
+      return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-gray-800">
             <RefreshCw className="w-12 h-12 animate-spin text-indigo-600" />
             <p className="mt-4 text-lg">Preparing your exercises...</p>
-      </div>
-    );
+        </div>
+      );
+  }
+
+  if (exercises.length === 0) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+            <div className="text-center">
+                <Trophy className="w-20 h-20 text-green-500 mx-auto mb-6" />
+                <h2 className="text-3xl font-bold mb-4">Round Complete!</h2>
+                <p className="text-lg text-gray-600 mb-6">Your score for this round: {score} / {questionsAttempted}</p>
+                <button
+                    onClick={() => fetchExercisesBatch(difficulty)}
+                    className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors text-lg"
+                >
+                    Start Next Round
+                </button>
+                 <button
+                    onClick={() => setDifficulty(null)}
+                    className="mt-4 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-800 transition-colors mx-auto"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Levels
+                </button>
+            </div>
+        </div>
+      );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
       <div className="w-full max-w-3xl">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button
             onClick={() => setDifficulty(null)}
@@ -142,18 +160,13 @@ const PrepositionMasteryGame: React.FC = () => {
           <div className="flex items-center gap-4">
             <span className="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-semibold capitalize">{difficulty}</span>
             <div className="text-gray-900 text-lg font-bold">
-              Score: {score} / {questionsAttempted}
+              Score: {score}
             </div>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
           <AnimatePresence mode="wait">
-            {!currentExercise ? (
-              <motion.div key="loader" className="text-center py-20">
-                <RefreshCw className="w-12 h-12 text-indigo-600 animate-spin mx-auto" />
-              </motion.div>
-            ) : (
               <motion.div key={currentQuestionIndex} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}>
                 <div className="text-center mb-8">
                   <p className="text-gray-600 text-lg mb-3">Complete the sentence with the correct preposition.</p>
@@ -199,12 +212,12 @@ const PrepositionMasteryGame: React.FC = () => {
                       onClick={handleNextQuestion}
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-8 rounded-lg font-semibold transition-colors text-lg"
                     >
-                      Next Question <ChevronRight className="w-5 h-5 inline-block" />
+                      {currentQuestionIndex === exercises.length - 1 ? 'Finish Round' : 'Next Question'}
+                      <ChevronRight className="w-5 h-5 inline-block" />
                     </button>
                   </motion.div>
                 )}
               </motion.div>
-            )}
           </AnimatePresence>
         </div>
       </div>

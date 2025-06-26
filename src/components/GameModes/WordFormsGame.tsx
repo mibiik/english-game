@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { GeminiService } from '../../services/geminiService';
+import { generateWordFormsExercise } from '../../services/geminiService';
 import { WordDetail } from '../../data/words';
 import { WordFormsQuestion } from '../../types';
-
-const geminiService = GeminiService.getInstance();
 
 interface WordFormsGameProps {
   words: WordDetail[];
@@ -33,7 +31,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
       const selectedWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 10);
       const headwords = selectedWords.map(w => w.headword);
       
-      const newQuestions = await geminiService.generateWordFormsExercise(headwords);
+      const newQuestions = await generateWordFormsExercise(headwords);
 
       if (!newQuestions || newQuestions.length === 0) {
         throw new Error('Failed to generate a valid exercise from the AI service. Please try again.');
