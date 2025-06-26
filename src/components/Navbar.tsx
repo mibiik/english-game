@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown } from 'lucide-react';
-import logo from './a.png';
+import logo from '../pages/a.png';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
 
