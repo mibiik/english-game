@@ -96,10 +96,10 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: `/speaking?unit=${unit}&level=${level}`, color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
   ];
 
-  const headingLines = ["Koç Üniversitesi", "ELC Özel"];
+  const headingLines = ["Koç WordPlay'e", "Hoş Geldiniz"];
 
   const sentenceVariant = {
-    hidden: { opacity: 1 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
@@ -128,22 +128,22 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   };
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <motion.div
           initial="hidden"
           animate="visible"
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative mb-20"
+          className="relative mb-20 text-left"
         >
           <div className="max-w-xl">
             <motion.h1
-              className="text-5xl md:text-6xl font-black text-white tracking-tighter text-left"
+              className="text-5xl md:text-6xl font-black text-white tracking-tighter font-outfit uppercase drop-shadow-[0_0_12px_rgba(0,190,255,0.3)]"
               variants={sentenceVariant}
             >
               {headingLines.map((line, lineIndex) => (
                 <span className="block" key={lineIndex}>
-                  {line.split("").map((char, charIndex) => (
+                  {line && line.split("").map((char, charIndex) => (
                     <motion.span key={char + "-" + charIndex} variants={letterVariant}>
                       {char}
                     </motion.span>
@@ -152,7 +152,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               ))}
             </motion.h1>
             <motion.p 
-              className="mt-6 mb-8 text-lg text-gray-400 text-left"
+              className="mt-6 mb-8 text-lg text-gray-300"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.8 }}
@@ -175,29 +175,21 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           />
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-          variants={cardContainerVariant}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {gameModes.map((mode) => (
             <Link to={mode.link} key={mode.id} className="block group">
-              <div className={`group bg-gray-900 hover:bg-gray-800/80 p-5 rounded-lg h-full border border-gray-700 hover:border-gray-500 transition-all duration-200 shadow-lg ${mode.shadow}`}>
+              <div className={`group bg-white/5 backdrop-blur-md p-5 rounded-2xl h-full border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 shadow-lg ${mode.shadow}`}>
                 <div className={`w-12 h-12 flex items-center justify-center rounded-md mb-4 bg-gradient-to-br ${mode.color}`}>
                   {React.cloneElement(mode.icon, { className: 'w-7 h-7 text-white' })}
                 </div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">{mode.title}</h3>
-                  <div className="text-white opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-transform">
-                    {mode.icon}
-                  </div>
+                  <h3 className="text-xl font-bold text-white transition-colors">{mode.title}</h3>
                 </div>
-                <p className="text-gray-300 text-sm mt-2">{gameModeDescriptions[mode.id] || 'Bu mod için açıklama yakında eklenecek.'}</p>
+                <p className="text-gray-400 text-sm mt-2">{gameModeDescriptions[mode.id] || 'Bu mod için açıklama yakında eklenecek.'}</p>
               </div>
             </Link>
           ))}
-        </motion.div>
+        </div>
       </main>
       <div className="w-full text-center mt-8 mb-4">
         <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>

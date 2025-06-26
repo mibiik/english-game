@@ -123,10 +123,7 @@ export default {
   			'sky-glow': '0 0 5px #87ceeb, 0 0 20px #b0e0e6'
   		},
   		fontFamily: {
-  			sans: [
-  				'Poppins',
-                    ...defaultTheme.fontFamily.sans
-                ]
+  			outfit: ['"Outfit"', 'sans-serif'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
