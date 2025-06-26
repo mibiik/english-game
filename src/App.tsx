@@ -78,6 +78,7 @@ function AppContent() {
     const urlUnit = searchParams.get('unit');
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
     
+    // Sadece parametre varsa güncelle
     if (urlUnit && urlUnit !== currentUnit) {
       setCurrentUnit(urlUnit);
       localStorage.setItem('currentUnit', urlUnit);
@@ -86,7 +87,8 @@ function AppContent() {
       setCurrentLevel(urlLevel);
       localStorage.setItem('currentLevel', urlLevel);
     }
-  }, [searchParams, currentUnit, currentLevel]);
+    // Parametre yoksa hiçbir şey yapma
+  }, [searchParams]);
 
   // Filtrelenmiş kelimeleri güncelle
   useEffect(() => {
