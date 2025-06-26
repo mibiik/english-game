@@ -9,11 +9,16 @@ import ProfilePage from './pages/ProfilePage';
 import { newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from './data/word4';
 import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
+import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 import { auth } from './config/firebase';
+import { X, Sparkles } from 'lucide-react';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
 const preIntermediateWords: WordDetail[] = preIntermediateWordsRaw;
+const foundationWords: WordDetail[] = foundationWordsRaw;
+
+
 
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
@@ -23,8 +28,8 @@ function AppContent() {
   
   // URL parametrelerinden başlangıç değerlerini al
   const [currentUnit, setCurrentUnit] = useState(() => searchParams.get('unit') || "1");
-  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate'>(() => 
-    (searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate') || 'intermediate'
+  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'>(() => 
+    (searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') || 'foundation'
   );
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
 
@@ -44,7 +49,7 @@ function AppContent() {
   };
 
   // Level değiştiğinde URL'yi güncelle
-  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => {
+  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => {
     console.log('App: Setting current level to:', level);
     setCurrentLevel(level);
     updateURLParams(currentUnit, level);
@@ -53,7 +58,7 @@ function AppContent() {
   // URL parametreleri değiştiğinde state'i güncelle
   useEffect(() => {
     const urlUnit = searchParams.get('unit');
-    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
+    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
     
     console.log('App: URL params changed:', { urlUnit, urlLevel, currentUnit, currentLevel });
     
@@ -75,6 +80,8 @@ function AppContent() {
       sourceData = upperIntermediateWords;
     } else if (currentLevel === 'pre-intermediate') {
       sourceData = preIntermediateWords;
+    } else if (currentLevel === 'foundation') {
+      sourceData = foundationWords;
     } else {
       sourceData = intermediateWords;
     }

@@ -11,7 +11,10 @@ const API_KEYS = [
   'AIzaSyDiVeORIE-f1NIasO4FZFb2OqOMQaAr7MY',  // 1. API Key
   'AIzaSyDjMxAzVQ3slraF0cmvHA-v_Rw80r3mZ70',  // 2. API Key
   'AIzaSyCXpPzPMMfUj60yMZyPvL3_rsoOftP7e58',  // 3. API Key
-  'AIzaSyACHekasMC_i6B3iWqSsR_0r3dUKGtrf_4'   // 4. API Key
+  'AIzaSyACHekasMC_i6B3iWqSsR_0r3dUKGtrf_4',  // 4. API Key
+  'AIzaSyCd0iVc-UaD5tq8CUE-EPzJqUxzpscyWj0', // 5. API Key
+  'AIzaSyD90i-sOZcmqPRr0Yz1sr4HjAwHDixq_SQ', // 6. API Key
+  'AIzaSyBehNtVq1zERg1Rs9yLaDAAiHEFOHBmBrc'  // 7. API Key
 ];
 
 let currentKeyIndex = 0;
@@ -110,33 +113,98 @@ const EssayWritingPage: React.FC = () => {
     setFeedback(null);
     try {
       const language = feedbackLanguage === 'turkish' ? 'Turkish' : 'English';
-      const evaluationPrompt = `Evaluate this essay using Koç University ELC academic writing standards. Be detailed but constructive.
+      const evaluationPrompt = `Evaluate this essay using encouraging and constructive feedback approach. Be supportive while providing helpful guidance.
 
-EVALUATION CRITERIA (100 points total):
-1. TASK ACHIEVEMENT (25 pts): Does it answer the prompt directly? Clear position?
-2. ORGANIZATION (25 pts): Introduction-Body-Conclusion structure? Logical flow? Transitions?
-3. CONTENT & IDEAS (25 pts): Relevant examples? Depth of analysis? Supporting details?
-4. LANGUAGE USE (25 pts): Grammar accuracy? Vocabulary range? Sentence variety?
+EVALUATION CRITERIA (100 points total) - SMART SCORING:
+1. TASK ACHIEVEMENT (25 pts): 
+   - Excellent/Perfect: 23-25 points (fully addresses prompt, clear position)
+   - Good: 20-22 points (addresses most aspects well)
+   - Basic: 18-19 points (attempts to address prompt)
+   - Minimum: 15-17 points (partial attempt)
 
-REQUIRED FORMAT:
-- Score each criterion /25 and give total /100
-- Provide specific feedback for Introduction, Body paragraphs, and Conclusion
-- Note strengths and areas for improvement
-- Academic tone suggestions
-- If below 200 words or off-topic, deduct points
-- NO bold text, NO asterisks, NO markdown formatting
-- Use plain text only
+2. ORGANIZATION (25 pts):
+   - Excellent/Perfect: 23-25 points (clear intro-body-conclusion, smooth transitions)
+   - Good: 20-22 points (good structure, some transitions)
+   - Basic: 18-19 points (basic structure present)
+   - Minimum: 15-17 points (attempted structure)
+
+3. CONTENT & IDEAS (25 pts):
+   - Excellent/Perfect: 23-25 points (rich ideas, strong examples, depth)
+   - Good: 20-22 points (good ideas with some examples)
+   - Basic: 18-19 points (relevant ideas)
+   - Minimum: 15-17 points (basic relevant content)
+
+4. LANGUAGE USE (25 pts):
+   - Excellent/Perfect: 23-25 points (varied vocabulary, complex sentences, minimal errors)
+   - Good: 20-22 points (good vocabulary, some variety)
+   - Basic: 18-19 points (understandable, basic vocabulary)
+   - Minimum: 15-17 points (communication successful despite errors)
+
+SMART FEEDBACK APPROACH:
+- Recognize true excellence with 90-100 points
+- Reward genuine quality with appropriate scores
+- Minimum 80/100 only for basic attempts
+- High-quality essays deserve 90+ recognition
+- Perfect essays should get 95-100 points
+- Be honest about quality while staying encouraging
+
+REQUIRED FORMAT - USE CLEAR HEADINGS:
+- Score generously: minimum 80/100 for serious attempts
+- Organize feedback under clear headings
+- Start each section with strengths, then suggestions
+- Use plain text only, NO bold/asterisks/markdown
 - For positive feedback, start lines with [POSITIVE]
-- For negative feedback, start lines with [NEGATIVE]
-- For neutral feedback, start lines with [NEUTRAL]
+- For constructive suggestions, start lines with [NEUTRAL]
+- Avoid [NEGATIVE] - use encouraging language instead
 
 Essay Prompt: "${prompt}"
 Student Essay: "${essay}"
 
-Provide feedback in ${language} using this format:
-OVERALL SCORE: X/100
-DETAILED FEEDBACK:
-[your evaluation]`;
+Provide encouraging feedback in ${language} using this EXACT format:
+
+OVERALL SCORE: X/100 (80-85: Basic, 85-90: Good, 90-95: Excellent, 95-100: Perfect)
+
+TASK ACHIEVEMENT (X/25):
+[POSITIVE] [Detailed analysis of how well they addressed the prompt - 2-3 sentences about specific strengths in understanding and responding to the question]
+[POSITIVE] [Recognition of their position/stance and how clearly they communicated it]
+[NEUTRAL] [Specific suggestions for improving prompt response - mention what aspects could be addressed more thoroughly]
+[NEUTRAL] [Guidance on how to strengthen their thesis or main argument with concrete examples]
+
+ORGANIZATION (X/25):
+[POSITIVE] [Detailed feedback on their essay structure - comment on introduction effectiveness, paragraph transitions, logical flow]
+[POSITIVE] [Praise for specific organizational strengths like topic sentences, paragraph unity, or conclusion effectiveness]
+[NEUTRAL] [Detailed suggestions for improving essay structure - specific advice on transitions, paragraph development, or conclusion strengthening]
+[NEUTRAL] [Guidance on academic essay formatting and how to enhance the overall flow between ideas]
+
+CONTENT & IDEAS (X/25):
+[POSITIVE] [Thorough analysis of their ideas - mention specific examples, arguments, or insights they provided that were effective]
+[POSITIVE] [Recognition of creativity, originality, or depth in their thinking and how well they supported their points]
+[NEUTRAL] [Detailed suggestions for content development - how to expand ideas, add more examples, or improve argument depth]
+[NEUTRAL] [Specific advice on incorporating more evidence, examples from experience, or academic references to strengthen content]
+
+LANGUAGE USE (X/25):
+[POSITIVE] [Detailed feedback on their vocabulary range, sentence variety, and effective language choices they made]
+[POSITIVE] [Recognition of specific grammar structures, academic tone, or sophisticated language use they demonstrated]
+[NEUTRAL] [Comprehensive language improvement suggestions - specific grammar points, vocabulary enhancement, sentence structure variety]
+[NEUTRAL] [Detailed guidance on academic writing style, word choice precision, and ways to eliminate common errors]
+
+DETAILED STRENGTHS ANALYSIS:
+[POSITIVE] [First major strength - elaborate on what they did exceptionally well with specific examples from their essay]
+[POSITIVE] [Second major strength - detailed explanation of another area where they excelled]
+[POSITIVE] [Third major strength - thorough analysis of additional positive aspects of their writing]
+[POSITIVE] [Fourth strength if applicable - recognition of any unique or particularly impressive elements]
+
+COMPREHENSIVE DEVELOPMENT AREAS:
+[NEUTRAL] [First development area - detailed, actionable advice with specific steps they can take to improve]
+[NEUTRAL] [Second development area - thorough explanation of how to enhance this aspect with concrete examples]
+[NEUTRAL] [Third development area - comprehensive guidance on another improvement opportunity]
+[NEUTRAL] [Additional specific tips for overall essay enhancement and academic writing growth]
+
+DETAILED ENCOURAGEMENT & NEXT STEPS:
+[POSITIVE] [Comprehensive motivational message about their writing potential and specific progress they've shown]
+[POSITIVE] [Recognition of their effort and specific elements that show promise for future writing success]
+[NEUTRAL] [Detailed guidance on next steps for continued improvement with specific practice suggestions]
+[POSITIVE] [Final encouraging message about their academic writing journey and potential for excellence]`;
       
       const data = await makeAPIRequest(evaluationPrompt);
       const text = data.candidates[0].content.parts[0].text.trim();

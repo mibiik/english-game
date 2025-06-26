@@ -111,7 +111,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
   if (!gameStarted) {
     return (
       <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Cümle Tamamlama</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Boşluk Doldurma</h2>
         <p className="text-gray-600 mb-8 text-center max-w-md">Yapay zeka tarafından oluşturulan cümlelerdeki boşlukları doğru kelimelerle doldurun.</p>
         <button
           onClick={() => setGameStarted(true)}

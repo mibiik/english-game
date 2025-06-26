@@ -10,16 +10,16 @@ interface NavbarProps {
   onShowAuth: () => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
-  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
 }
 
 // BottomSheet Bileşeni
 type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
-  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
 };
@@ -88,7 +88,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
-  const levels: { id: 'intermediate' | 'upper-intermediate' | 'pre-intermediate'; name: string }[] = [
+  const levels: { id: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'; name: string }[] = [
+    { id: 'foundation', name: 'Foundation' },
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
@@ -215,6 +216,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const lastScrollY = useRef(0);
   const navigate = useNavigate();
   
@@ -247,21 +249,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800 h-32 flex items-center transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex items-center justify-between">
+      <nav className={`fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800 transition-all duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`} style={{ height: showAnnouncement ? '168px' : '128px' }}>
+        {/* Ana Navbar */}
+        <div className="h-32 flex items-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="flex items-center justify-between">
             
             <div className="flex-shrink-0 flex items-center relative">
               <Link to="/" onClick={() => { setIsMenuOpen(false); setIsBottomSheetOpen(false); }}>
                 <img src={logo} alt="Logo" className="h-20 w-auto" />
               </Link>
+
               {/* Mobilde seçim butonu */}
               <button
                 className="ml-6 md:hidden px-5 py-3 rounded-2xl bg-gray-800 text-lg font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
                 onClick={() => setIsBottomSheetOpen(true)}
                 aria-label="Kurs ve Ünite Seçimi"
               >
-                {currentLevel === 'intermediate' ? 'Int' : currentLevel === 'upper-intermediate' ? 'Up-Int' : 'Pre-Int'} | {currentUnit}
+                {currentLevel === 'foundation' ? 'Found' : currentLevel === 'pre-intermediate' ? 'Pre-Int' : currentLevel === 'intermediate' ? 'Int' : 'Up-Int'} | {currentUnit}
               </button>
             </div>
 
@@ -286,9 +291,39 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <User className="w-7 h-7" />
               </motion.button>
             </div>
-
           </div>
         </div>
+      </div>
+        
+        {/* Duyuru Şeridi */}
+        {showAnnouncement && (
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-600 text-white h-10 shadow-xl border-t border-orange-400/30">
+            {/* Subtle glow efekti */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+            
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+              <div className="flex items-center justify-center h-full relative">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">☀️</span>
+                  <span className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white drop-shadow-sm">
+                    YENİ YAZ LİSTESİ GÜNCELLENDİ
+                  </span>
+                  <span className="text-sm">✨</span>
+                </div>
+                <button
+                  onClick={() => setShowAnnouncement(false)}
+                  className="absolute right-0 p-1.5 rounded-full hover:bg-orange-700/40 transition-all duration-200 hover:scale-105 group"
+                  aria-label="Duyuruyu kapat"
+                >
+                  <X className="w-4 h-4 text-white/90 group-hover:text-white transition-colors" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Minimal alt çizgi */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-300/50 to-transparent"></div>
+          </div>
+        )}
       </nav>
 
       {/* Mobile Menu Panel kaldırıldı */}

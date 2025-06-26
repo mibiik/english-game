@@ -15,15 +15,17 @@ import { Navbar } from './components/Navbar';
 import { WordDetail, newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
+import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 import ProfilePage from './pages/ProfilePage';
 import { GameWrapper } from './components/GameWrapper';
 import PrepositionMasteryGame from './components/GameModes/PrepositionMasteryGame';
 
+
 interface AppRoutesProps {
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
-  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
   filteredWords: WordDetail[];
 }
 
@@ -73,6 +75,9 @@ function getWordsByParams(unit: string, level: string): WordDetail[] {
       break;
     case 'pre-intermediate':
       sourceData = preIntermediateWordsRaw;
+      break;
+    case 'foundation':
+      sourceData = foundationWordsRaw;
       break;
     case 'intermediate':
     default:

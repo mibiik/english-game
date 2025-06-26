@@ -181,7 +181,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             </div>
             <div className="flex justify-center space-x-4 mt-8">
                 <button onClick={startNewGame} className="w-full text-center rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:scale-105 transition-transform duration-200">
-                    Yeni Oyun
+                    Devam Et
                 </button>
                 <button onClick={() => navigate('/')} className="w-full text-center rounded-lg bg-gray-700 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:bg-gray-600 transition-colors duration-200">
                     Ana Menü

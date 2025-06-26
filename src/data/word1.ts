@@ -8123,4 +8123,3 @@ export interface WordDetail {
     collocations: ['to warn sb about sth', 'to give sb a warning'],
   },
 ];
-```

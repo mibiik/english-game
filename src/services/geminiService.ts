@@ -255,23 +255,32 @@ Kelime: ${word}`
     }
   }
 
-  public async generatePrepositionExercise(): Promise<{ sentence: string; correctAnswer: string; options: string[] }> {
+  public async generatePrepositionExercise(
+    preposition: string, 
+    difficulty: 'easy' | 'medium' | 'hard'
+  ): Promise<{ sentence: string; correctAnswer: string; options: string[] }> {
+    const levelDescription = {
+      easy: 'A1-A2 level',
+      medium: 'B1-B2 level',
+      hard: 'C1 level'
+    };
+
     const prompt = `
-    Generate a simple English sentence for an A2-B1 level learner that is missing a preposition.
-    The sentence should test common prepositions like "in", "on", "at", "for", "to", "with", "from", "about".
-    Provide the sentence with a "[BLANK]" placeholder for the missing preposition.
-    Also provide the correct preposition and three plausible but incorrect preposition options.
+    Generate an English sentence for a ${levelDescription[difficulty]} learner that correctly uses the preposition "${preposition}".
+    The sentence should be a clear example of the preposition's use. Crucially, keep the sentence structure and vocabulary simple and appropriate for the specified learning level. Avoid complex clauses or overly formal language.
+    Provide the sentence with a "[BLANK]" placeholder instead of the preposition.
+    Also provide the correct preposition ("${preposition}") and three plausible but incorrect preposition options. The distractors should be common prepositions and make some sense in the context but be clearly wrong.
 
     Format the output as a single, clean JSON object with the following keys:
     - "sentence": The sentence with the placeholder.
-    - "correctAnswer": The correct preposition.
+    - "correctAnswer": The correct preposition, which must be "${preposition}".
     - "options": An array of four strings, containing the correct answer and three distractors, shuffled.
 
-    Example:
+    Example for "interested in" at medium difficulty:
     {
-      "sentence": "She is interested [BLANK] learning a new language.",
-      "correctAnswer": "in",
-      "options": ["on", "at", "in", "for"]
+      "sentence": "She is [BLANK] learning a new language.",
+      "correctAnswer": "interested in",
+      "options": ["interesting", "interested on", "interested in", "interest for"]
     }
     `;
     try {
@@ -303,11 +312,22 @@ Kelime: ${word}`
         throw new Error('Invalid JSON structure from preposition exercise API');
       }
 
+      // Ensure the correct answer is always in the options
+      if (!parsedContent.options.includes(parsedContent.correctAnswer)) {
+        parsedContent.options.pop();
+        parsedContent.options.push(parsedContent.correctAnswer);
+      }
+
       return parsedContent;
 
     } catch (error) {
       console.error("Error calling Gemini for preposition exercise:", error);
-      throw new Error("Failed to generate preposition exercise from AI.");
+      // Fallback in case of error
+      return {
+        sentence: "This is a fallback [BLANK] an error.",
+        correctAnswer: "due to",
+        options: ["due to", "because", "on", "in"]
+      };
     }
   }
 }

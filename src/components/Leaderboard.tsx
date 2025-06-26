@@ -19,7 +19,7 @@ const gameModeIcons: Record<GameMode, React.ReactNode> = {
 
 const gameModeNames: Record<GameMode, string> = {
   'matching': 'Eşleştirme',
-  'sentence-completion': 'Cümle Tamamlama',
+  'sentence-completion': 'Boşluk Doldurma',
   'multiple-choice': 'Çoktan Seçmeli',
   'flashcard': 'Kelime Kartları',
   'speaking': 'Konuşma',
