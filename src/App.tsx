@@ -8,9 +8,12 @@ import { authService } from './services/authService';
 import ProfilePage from './pages/ProfilePage';
 import { newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from './data/word4';
+import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
+import { auth } from './config/firebase';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
+const preIntermediateWords: WordDetail[] = preIntermediateWordsRaw;
 
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
@@ -20,8 +23,8 @@ function AppContent() {
   
   // URL parametrelerinden başlangıç değerlerini al
   const [currentUnit, setCurrentUnit] = useState(() => searchParams.get('unit') || "1");
-  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate'>(() => 
-    (searchParams.get('level') as 'intermediate' | 'upper-intermediate') || 'intermediate'
+  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate'>(() => 
+    (searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate') || 'intermediate'
   );
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
 
@@ -41,7 +44,7 @@ function AppContent() {
   };
 
   // Level değiştiğinde URL'yi güncelle
-  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate') => {
+  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => {
     console.log('App: Setting current level to:', level);
     setCurrentLevel(level);
     updateURLParams(currentUnit, level);
@@ -50,7 +53,7 @@ function AppContent() {
   // URL parametreleri değiştiğinde state'i güncelle
   useEffect(() => {
     const urlUnit = searchParams.get('unit');
-    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate';
+    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
     
     console.log('App: URL params changed:', { urlUnit, urlLevel, currentUnit, currentLevel });
     
@@ -70,6 +73,8 @@ function AppContent() {
     
     if (currentLevel === 'upper-intermediate') {
       sourceData = upperIntermediateWords;
+    } else if (currentLevel === 'pre-intermediate') {
+      sourceData = preIntermediateWords;
     } else {
       sourceData = intermediateWords;
     }

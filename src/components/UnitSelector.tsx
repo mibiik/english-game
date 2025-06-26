@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Book, Layers } from 'lucide-react';
 
-type Level = 'intermediate' | 'upper-intermediate';
+type Level = 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
 
 interface UnitSelectorProps {
   currentUnit: string;
@@ -83,6 +83,7 @@ export const UnitSelector: React.FC<UnitSelectorProps> = ({
 }) => {
   const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
   const levels: { id: Level; name: string }[] = [
+    { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
   ];

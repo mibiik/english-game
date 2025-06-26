@@ -10,16 +10,16 @@ interface NavbarProps {
   onShowAuth: () => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
-  currentLevel: 'intermediate' | 'upper-intermediate';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void;
 }
 
 // BottomSheet Bileşeni
 type BottomSheetProps = {
   open: boolean;
   onClose: () => void;
-  currentLevel: 'intermediate' | 'upper-intermediate';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
 };
@@ -88,7 +88,8 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
-  const levels: { id: 'intermediate' | 'upper-intermediate'; name: string }[] = [
+  const levels: { id: 'intermediate' | 'upper-intermediate' | 'pre-intermediate'; name: string }[] = [
+    { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
   ];
@@ -172,7 +173,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
               <div className="text-center">
                 <div className="text-xs text-gray-500">Kur</div>
                 <div className="text-lg font-bold text-fuchsia-400">
-                  {currentLevel === 'intermediate' ? 'Intermediate' : 'Upper-Int'}
+                  {levels.find(l => l.id === currentLevel)?.name || 'Intermediate'}
                 </div>
               </div>
               <div className="w-px h-8 bg-gray-600"></div>
@@ -260,7 +261,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setIsBottomSheetOpen(true)}
                 aria-label="Kurs ve Ünite Seçimi"
               >
-                {currentLevel === 'intermediate' ? 'Int' : 'Up-Int'} | {currentUnit}
+                {currentLevel === 'intermediate' ? 'Int' : currentLevel === 'upper-intermediate' ? 'Up-Int' : 'Pre-Int'} | {currentUnit}
               </button>
             </div>
 
@@ -302,5 +303,49 @@ export const Navbar: React.FC<NavbarProps> = ({
         setCurrentUnit={setCurrentUnit}
       />
     </>
+  );
+};
+
+const LevelDisplay: React.FC<{ level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' }> = ({ level }) => {
+  const levelMap = {
+    'pre-intermediate': { text: 'Pre-Int', color: 'bg-green-500' },
+    'intermediate': { text: 'Int', color: 'bg-cyan-500' },
+    'upper-intermediate': { text: 'Up-Int', color: 'bg-purple-500' },
+  };
+  const { text, color } = levelMap[level];
+
+  return (
+    <div className={`text-xs font-semibold text-white px-2 py-1 rounded-full ${color}`}>
+      {text}
+    </div>
+  );
+};
+
+const MobileNav: React.FC<{
+  isOpen: boolean,
+  user: any,
+  onShowAuth: () => void,
+  onLogout: () => Promise<void>,
+  currentUnit: string,
+  setCurrentUnit: (unit: string) => void,
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate',
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void
+}> = ({ isOpen, user, onShowAuth, onLogout, currentUnit, setCurrentUnit, currentLevel, setCurrentLevel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="mt-6">
+      <label htmlFor="level-select-mobile" className="block text-sm font-medium text-gray-400 mb-2">Level</label>
+      <select
+        id="level-select-mobile"
+        value={currentLevel}
+        onChange={(e) => setCurrentLevel(e.target.value as 'intermediate' | 'upper-intermediate' | 'pre-intermediate')}
+        className="w-full bg-gray-700 text-white rounded-md px-3 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-500"
+      >
+        <option value="pre-intermediate">Pre-Intermediate</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="upper-intermediate">Upper-Intermediate</option>
+      </select>
+    </div>
   );
 };

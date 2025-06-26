@@ -14,14 +14,16 @@ import EssayWritingPage from './pages/EssayWritingPage';
 import { Navbar } from './components/Navbar';
 import { WordDetail, newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
+import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
 import ProfilePage from './pages/ProfilePage';
 import { GameWrapper } from './components/GameWrapper';
+import PrepositionMasteryGame from './components/GameModes/PrepositionMasteryGame';
 
 interface AppRoutesProps {
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
-  currentLevel: 'intermediate' | 'upper-intermediate';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate') => void;
   filteredWords: WordDetail[];
 }
 
@@ -46,6 +48,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/" element={<HomePage filteredWords={filteredWords} />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/paraphrase" element={<ParaphrasePage />} />
+          <Route path="/preposition-mastery" element={<PrepositionMasteryGame />} />
           <Route path="/matching-game" element={<MatchingGameWrapperWithParams />} />
           <Route path="/sentence-completion" element={<GameWrapperWithParams component={SentenceCompletion} />} />
           <Route path="/multiple-choice" element={<GameWrapperWithParams component={MultipleChoice} />} />
@@ -62,7 +65,21 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 };
 
 function getWordsByParams(unit: string, level: string): WordDetail[] {
-  let sourceData: WordDetail[] = level === 'upper-intermediate' ? upperIntermediateWordsRaw : newDetailedWords_part1;
+  let sourceData: WordDetail[];
+
+  switch (level) {
+    case 'upper-intermediate':
+      sourceData = upperIntermediateWordsRaw;
+      break;
+    case 'pre-intermediate':
+      sourceData = preIntermediateWordsRaw;
+      break;
+    case 'intermediate':
+    default:
+      sourceData = newDetailedWords_part1;
+      break;
+  }
+
   console.log('getWordsByParams called with:', { unit, level });
   console.log('Source data length:', sourceData.length);
   console.log('Available units in source data:', [...new Set(sourceData.map(w => w.unit))].sort());

@@ -254,4 +254,60 @@ Kelime: ${word}`
       };
     }
   }
+
+  public async generatePrepositionExercise(): Promise<{ sentence: string; correctAnswer: string; options: string[] }> {
+    const prompt = `
+    Generate a simple English sentence for an A2-B1 level learner that is missing a preposition.
+    The sentence should test common prepositions like "in", "on", "at", "for", "to", "with", "from", "about".
+    Provide the sentence with a "[BLANK]" placeholder for the missing preposition.
+    Also provide the correct preposition and three plausible but incorrect preposition options.
+
+    Format the output as a single, clean JSON object with the following keys:
+    - "sentence": The sentence with the placeholder.
+    - "correctAnswer": The correct preposition.
+    - "options": An array of four strings, containing the correct answer and three distractors, shuffled.
+
+    Example:
+    {
+      "sentence": "She is interested [BLANK] learning a new language.",
+      "correctAnswer": "in",
+      "options": ["on", "at", "in", "for"]
+    }
+    `;
+    try {
+      const response = await fetch(`${this.apiEndpoint}?key=${this.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          "generationConfig": {
+            "responseMimeType": "application/json",
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+        throw new Error('Invalid API response structure for preposition exercise.');
+      }
+
+      const content = data.candidates[0].content.parts[0].text;
+      const parsedContent = JSON.parse(content);
+
+      if (!parsedContent.sentence || !parsedContent.correctAnswer || !parsedContent.options) {
+        throw new Error('Invalid JSON structure from preposition exercise API');
+      }
+
+      return parsedContent;
+
+    } catch (error) {
+      console.error("Error calling Gemini for preposition exercise:", error);
+      throw new Error("Failed to generate preposition exercise from AI.");
+    }
+  }
 }
