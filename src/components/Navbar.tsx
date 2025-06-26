@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown } from 'lucide-react';
 import logo from '../pages/a.png';
@@ -219,6 +219,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const lastScrollY = useRef(0);
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -295,8 +296,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
         
-        {/* Duyuru Şeridi */}
-        {showAnnouncement && (
+        {/* Duyuru Şeridi - Sadece ana sayfada göster */}
+        {showAnnouncement && location.pathname === '/' && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-600 text-white h-10 shadow-xl border-t border-orange-400/30">
             {/* Subtle glow efekti */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
@@ -306,7 +307,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center gap-3">
                   <span className="text-lg">☀️</span>
                   <span className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white drop-shadow-sm">
-                    YENİ YAZ LİSTESİ GÜNCELLENDİ
+                  Tüm seviyeler için Yaz Kelime Listeleri güncellendi. Keşfet!
                   </span>
                   <span className="text-sm">✨</span>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Sun, X } from 'lucide-react';
+import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle } from 'lucide-react';
 import logo from './a.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
@@ -58,8 +58,7 @@ interface GameMode {
 
 const HomePage: React.FC<{ filteredWords: any[] }> = ({ filteredWords }) => {
   const [searchParams] = useSearchParams();
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [isBannerVisible, setIsBannerVisible] = useState(false);
+
   const unit = searchParams.get('unit') || "1";
   const level = searchParams.get('level') || 'intermediate';
 
@@ -107,20 +106,7 @@ const HomePage: React.FC<{ filteredWords: any[] }> = ({ filteredWords }) => {
     visible: { y: 0, opacity: 1 },
   };
 
-  useEffect(() => {
-    if (localStorage.getItem('summerUpdateBannerDismissed_v4') !== 'true') {
-      setIsBannerVisible(true);
-    }
-  }, []);
 
-  const handleDismissBanner = () => {
-    setIsBannerVisible(false);
-    localStorage.setItem('summerUpdateBannerDismissed_v4', 'true');
-  };
-
-  useEffect(() => {
-    const isFirstVisit = !localStorage.getItem('hasVisited');
-  }, []);
 
   return (
     <div className="min-h-screen bg-black text-gray-100 overflow-x-hidden">
@@ -199,80 +185,8 @@ const HomePage: React.FC<{ filteredWords: any[] }> = ({ filteredWords }) => {
           ))}
         </motion.div>
       </main>
-      <div className="w-full text-center mt-16 mb-4">
+      <div className="w-full text-center mt-8 mb-4">
         <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>
-      </div>
-
-      <div className="bg-gray-900 min-h-screen">
-        <AnimatePresence>
-          {isBannerVisible && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
-              style={{ background: 'linear-gradient(to right, #FBBF24, #F97316)' }}
-            >
-              <div className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between flex-wrap">
-                  <div className="w-0 flex-1 flex items-center">
-                    <span className="flex p-2 rounded-lg bg-orange-600/80">
-                      <Sun className="h-6 w-6 text-white" aria-hidden="true" />
-                    </span>
-                    <p className="ml-3 font-medium text-white truncate">
-                      <span className="md:hidden">Yeni Yaz Listeleri Yayında!</span>
-                      <span className="hidden md:inline">Tüm seviyeler için Yaz Kelime Listeleri güncellendi. Keşfet!</span>
-                    </p>
-                  </div>
-                  <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-3">
-                    <button
-                      type="button"
-                      className="-mr-1 flex p-2 rounded-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-white sm:-mr-2"
-                      onClick={handleDismissBanner}
-                    >
-                      <span className="sr-only">Kapat</span>
-                      <X className="h-6 w-6 text-white" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="relative isolate pt-14">
-          
-          <div className="py-24 sm:py-32 lg:pb-40">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="mx-auto max-w-2xl text-center">
-                <motion.h2
-                  className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                >
-                  {headingLines.map((line, lineIndex) => (
-                    <span className="block" key={lineIndex}>
-                      {line.split("").map((char, charIndex) => (
-                        <motion.span key={char + "-" + charIndex} variants={letterVariant}>
-                          {char}
-                        </motion.span>
-                      ))}
-                    </span>
-                  ))}
-                </motion.h2>
-                <motion.p 
-                  className="mt-6 text-lg text-gray-400"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                >
-                  Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.
-                </motion.p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
