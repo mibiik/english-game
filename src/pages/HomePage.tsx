@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book } from 'lucide-react';
+import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, X } from 'lucide-react';
 import logo from './a.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
@@ -78,6 +78,7 @@ const gameModeDescriptions: Record<string, string> = {
 };
 
 const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, currentLevel }) => {
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const unit = currentUnit;
   const level = currentLevel;
 
@@ -129,6 +130,37 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden">
+      {/* Duyuru Şeridi */}
+      <AnimatePresence>
+        {showAnnouncement && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg overflow-hidden"
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-center h-12 relative">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">☀️</span>
+                  <span className="font-inter font-medium text-sm sm:text-base text-white drop-shadow-sm">
+                    Tüm seviyeler için Yaz Kelime Listeleri güncellendi. Keşfet!
+                  </span>
+                  <span className="text-sm">✨</span>
+                </div>
+                <button
+                  onClick={() => setShowAnnouncement(false)}
+                  className="absolute right-2 p-1.5 rounded-full hover:bg-orange-700/40 transition-all duration-200 hover:scale-105 group"
+                  aria-label="Duyuruyu kapat"
+                >
+                  <X className="w-4 h-4 text-white/90 group-hover:text-white transition-colors" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <motion.div
           initial="hidden"
