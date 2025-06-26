@@ -24,7 +24,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     setError(null);
     setIsChecked(false);
     setQuestions([]);
-    
+
     try {
       if (words.length < 10) {
         throw new Error(`This unit requires at least 10 words for this game.`);
@@ -51,7 +51,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   
   useEffect(() => {
     if (gameInitialized.current === false && words.length > 0) {
-        fetchGameData();
+    fetchGameData();
         gameInitialized.current = true;
     }
   }, [words]);
@@ -65,7 +65,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   const checkAnswers = () => {
     setIsChecked(true);
   };
-  
+
   if (isLoading) {
     return (
         <div className="flex flex-col justify-center items-center h-screen bg-gray-50 text-gray-800">
@@ -87,11 +87,11 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex items-center justify-center text-gray-800">
         <div className="w-full max-w-3xl">
-            <motion.div 
+        <motion.div 
                 initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
                 className="text-center mb-10"
-            >
+      >
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Word Forms Challenge</h1>
                 <p className="text-md sm:text-lg text-gray-600 mt-2">Complete each sentence with the correct form of the given word.</p>
             </motion.div>
@@ -156,24 +156,24 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                         </motion.div>
                     )
                 })}
-            </div>
+          </div>
 
             <div className="mt-12 flex justify-center gap-4">
-                <motion.button
-                    onClick={checkAnswers}
-                    disabled={isChecked}
+          <motion.button
+            onClick={checkAnswers}
+            disabled={isChecked}
                     whileHover={{ scale: 1.05 }}
                     className="px-10 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all text-lg"
-                >
-                    Check Answers
-                </motion.button>
-                <motion.button
-                    onClick={fetchGameData}
+          >
+            Check Answers
+          </motion.button>
+          <motion.button
+            onClick={fetchGameData}
                     whileHover={{ scale: 1.05 }}
                     className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
-                >
-                    <RefreshCw className="w-5 h-5" />
-                </motion.button>
+          >
+            <RefreshCw className="w-5 h-5" />
+            </motion.button>
             </div>
         </div>
     </div>

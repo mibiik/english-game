@@ -146,7 +146,7 @@ const ParaphrasePage: React.FC = () => {
 
   useEffect(() => {
     if (pageInitialized.current === false) {
-      generateSentence();
+    generateSentence();
       pageInitialized.current = true;
     }
   }, []);

@@ -70,7 +70,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
           // Tekrar listesi boşsa yeni rastgele tur başlat
           setRepeatList([]);
           setIsRepeatMode(false);
-          startNewRound();
+        startNewRound();
         }
       }
     }, 200);

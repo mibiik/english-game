@@ -29,15 +29,15 @@ const PrepositionMasteryGame: React.FC = () => {
     try {
       const prepsToFetch: { prep: string; difficulty: 'easy' | 'medium' | 'hard' }[] = [];
       for (let i = 0; i < BATCH_SIZE; i++) {
-        let prepList: Preposition[] = [];
-        let actualDifficulty: 'easy' | 'medium' | 'hard';
+      let prepList: Preposition[] = [];
+      let actualDifficulty: 'easy' | 'medium' | 'hard';
 
-        if (selectedDifficulty === 'mixed') {
+      if (selectedDifficulty === 'mixed') {
           const allLevels = Object.keys(prepositionsByLevel) as Array<'easy' | 'medium' | 'hard'>;
           actualDifficulty = allLevels[Math.floor(Math.random() * allLevels.length)];
           prepList = prepositionsByLevel[actualDifficulty];
-        } else {
-          actualDifficulty = selectedDifficulty;
+      } else {
+        actualDifficulty = selectedDifficulty;
           prepList = prepositionsByLevel[actualDifficulty];
         }
         const randomPrep = prepList[Math.floor(Math.random() * prepList.length)];
@@ -76,16 +76,16 @@ const PrepositionMasteryGame: React.FC = () => {
   const handleNextQuestion = () => {
     if (currentQuestionIndex < exercises.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
-      setIsEvaluated(false);
-      setSelectedAnswer(null);
+    setIsEvaluated(false);
+    setSelectedAnswer(null);
     } else {
       // End of batch, fetch new ones
-      if (difficulty) {
+    if (difficulty) {
         fetchExercisesBatch(difficulty);
       }
     }
   };
-  
+
   const currentExercise = exercises[currentQuestionIndex];
 
   if (!difficulty) {
@@ -119,12 +119,12 @@ const PrepositionMasteryGame: React.FC = () => {
   }
   
   if (isLoading && exercises.length === 0) {
-      return (
+     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-gray-800">
             <RefreshCw className="w-12 h-12 animate-spin text-indigo-600" />
             <p className="mt-4 text-lg">Preparing your exercises...</p>
-        </div>
-      );
+      </div>
+    );
   }
 
   return (

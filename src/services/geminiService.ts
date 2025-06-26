@@ -80,7 +80,7 @@ export class GeminiService {
       Paraphrase Type: "${paraphraseType}"
 
       JSON OUTPUT FORMAT:
-      {
+{
         "correct": boolean,
         "similarity": "score as a string from 0-100",
         "feedback": "Detailed feedback in Turkish, explaining the score and evaluation.",
@@ -104,7 +104,7 @@ export class GeminiService {
       if (!content) {
         throw new Error('Invalid API response: No content found.');
       }
-      
+
       const parsedContent = JSON.parse(content);
       
       return this.parseEvaluationResponse(JSON.stringify(parsedContent));
@@ -184,7 +184,7 @@ Kelime: ${word}`
             "sentence": "He is a well-known [BLANK] in the art world.",
             "headword": "create",
             "solution": "creator"
-          }
+        }
         ]
       }
     `;
@@ -195,9 +195,9 @@ Kelime: ${word}`
         model: API_KEYS.gemini.model,
         generationConfig: {
           responseMimeType: "application/json",
-        }
+          }
       });
-      
+
       const result = await model.generateContent(prompt);
       const response = result.response;
       const content = response.text();
@@ -290,7 +290,7 @@ Kelime: ${word}`
         "exercises": [
           ${examples}
         ]
-      }
+    }
     `;
     try {
       const genAI = new GoogleGenerativeAI(API_KEYS.gemini.key);
@@ -312,11 +312,11 @@ Kelime: ${word}`
       }
 
       const exercises: PrepositionExercise[] = parsedContent.exercises.map((ex: any, index: number) => {
-        // Ensure the correct answer is always in the options
+      // Ensure the correct answer is always in the options
         if (!ex.options.includes(ex.correctAnswer)) {
           ex.options.pop();
           ex.options.push(ex.correctAnswer);
-        }
+      }
         return { 
           sentence: ex.sentence,
           correctAnswer: ex.correctAnswer,
@@ -375,5 +375,5 @@ export const getDefinitionsForWords = async (words: string[]): Promise<Record<st
             acc[word] = 'Definition could not be loaded.';
             return acc;
         }, {} as Record<string, string>);
-    }
+  }
 };
