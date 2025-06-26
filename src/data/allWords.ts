@@ -1,11 +1,31 @@
-import { newDetailedWords_part1, WordDetail } from './words';
-import { wordDetails } from './wordDetails';
-import { detailedWords_part1 as words4 } from './word4';
+import { newDetailedWords_part1 as foundationWords } from './word1';
+import { newDetailedWords_part1 as preIntermediateWords } from './word2';
+import { detailedWords_part1 as upperIntermediateWords } from './word4';
+import { newDetailedWords_part1 as intermediateWords } from './words';
 
-// Tüm kelime kaynaklarını birleştirip sadece 'headword' alanını alarak tek bir dizi oluşturuyoruz.
-const wordsFromNewDetailed = newDetailedWords_part1.map((word: WordDetail) => word.headword);
-const wordsFromDetailed = wordDetails.map((word: any) => word.headword); // Bu dosya kendi tipini export etmiyor, any kullanmak zorundayız.
-const wordsFromWord4 = words4.map((word: WordDetail) => word.headword);
+export interface WordData {
+  english: string;
+  turkish: string;
+}
 
-// Tekrarları önlemek için Set kullanıyoruz ve ardından tekrar diziye çeviriyoruz.
-export const allWords: string[] = [...new Set([...wordsFromNewDetailed, ...wordsFromDetailed, ...wordsFromWord4])]; 
+const extractWordData = (wordDetail: any): WordData[] => {
+  const words: WordData[] = [];
+  if (wordDetail.headword && wordDetail.turkish) {
+    words.push({ english: wordDetail.headword, turkish: wordDetail.turkish });
+  }
+  // Diğer formları da ekleyebilirsiniz (opsiyonel)
+  // wordDetail.forms.verb.forEach(v => words.push({ english: v, turkish: `fiil: ${wordDetail.turkish}` }));
+  return words;
+};
+
+const allDetailedWords = [
+  ...foundationWords,
+  ...preIntermediateWords,
+  ...upperIntermediateWords,
+  ...intermediateWords
+];
+
+export const allWordsWithTranslations: WordData[] = allDetailedWords.flatMap(extractWordData);
+
+// Geriye dönük uyumluluk için sadece İngilizce kelimeleri içeren dizi
+export const allWords: string[] = allDetailedWords.map(w => w.headword); 

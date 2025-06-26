@@ -51,14 +51,14 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/paraphrase" element={<ParaphrasePage />} />
           <Route path="/preposition-mastery" element={<PrepositionMasteryGame />} />
-          <Route path="/matching-game" element={<MatchingGameWrapperWithParams />} />
-          <Route path="/sentence-completion" element={<GameWrapperWithParams component={SentenceCompletion} />} />
-          <Route path="/multiple-choice" element={<GameWrapperWithParams component={MultipleChoice} />} />
-          <Route path="/flashcard" element={<GameWrapperWithParams component={FlashCard} />} />
-          <Route path="/speaking" element={<GameWrapperWithParams component={SpeakingGame} />} />
-          <Route path="/word-race" element={<GameWrapperWithParams component={WordRace} />} />
-          <Route path="/memory-game" element={<GameWrapperWithParams component={MemoryGame} />} />
-          <Route path="/word-forms" element={<GameWrapperWithParams component={WordFormsGame} />} />
+          <Route path="/matching-game" element={<MatchingGameWrapper words={filteredWords} />} />
+          <Route path="/sentence-completion" element={<GameWrapper component={SentenceCompletion} words={filteredWords} />} />
+          <Route path="/multiple-choice" element={<GameWrapper component={MultipleChoice} words={filteredWords} />} />
+          <Route path="/flashcard" element={<GameWrapper component={FlashCard} words={filteredWords} />} />
+          <Route path="/speaking" element={<GameWrapper component={SpeakingGame} words={filteredWords} />} />
+          <Route path="/word-race" element={<GameWrapper component={WordRace} words={filteredWords} />} />
+          <Route path="/memory-game" element={<GameWrapper component={MemoryGame} words={filteredWords} />} />
+          <Route path="/word-forms" element={<GameWrapper component={WordFormsGame} words={filteredWords} />} />
           <Route path="/essay-writing" element={<EssayWritingPage />} />
         </Routes>
       </div>
@@ -108,8 +108,15 @@ function getWordsByParams(unit: string, level: string): WordDetail[] {
 
 function useGameParams() {
   const [params] = useSearchParams();
-  const unit = params.get('unit') || '1';
-  const level = params.get('level') || 'intermediate';
+  let unit = params.get('unit');
+  let level = params.get('level');
+
+  if (!unit) {
+    unit = localStorage.getItem('currentUnit') || '1';
+  }
+  if (!level) {
+    level = localStorage.getItem('currentLevel') || 'foundation';
+  }
   return { unit, level };
 }
 

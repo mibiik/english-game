@@ -26,11 +26,27 @@ function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   
-  // URL parametrelerinden başlangıç değerlerini al
-  const [currentUnit, setCurrentUnit] = useState(() => searchParams.get('unit') || "1");
-  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'>(() => 
-    (searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') || 'foundation'
-  );
+  // URL parametrelerinden, localStorage'dan veya varsayılanlardan başlangıç değerlerini al
+  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'>(() => {
+    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+    if (urlLevel) {
+      localStorage.setItem('currentLevel', urlLevel);
+      return urlLevel;
+    }
+    const savedLevel = localStorage.getItem('currentLevel') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+    return savedLevel || 'foundation';
+  });
+
+  const [currentUnit, setCurrentUnit] = useState(() => {
+    const urlUnit = searchParams.get('unit');
+    if (urlUnit) {
+      localStorage.setItem('currentUnit', urlUnit);
+      return urlUnit;
+    }
+    const savedUnit = localStorage.getItem('currentUnit');
+    return savedUnit || "1";
+  });
+
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
 
   // URL parametrelerini güncelle
@@ -41,36 +57,36 @@ function AppContent() {
     setSearchParams(newParams, { replace: true });
   };
 
-  // Unit değiştiğinde URL'yi güncelle
+  // Unit değiştiğinde URL'yi ve localStorage'ı güncelle
   const handleSetCurrentUnit = (unit: string) => {
     console.log('App: Setting current unit to:', unit);
     setCurrentUnit(unit);
+    localStorage.setItem('currentUnit', unit);
     updateURLParams(unit, currentLevel);
   };
 
-  // Level değiştiğinde URL'yi güncelle
+  // Level değiştiğinde URL'yi ve localStorage'ı güncelle
   const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => {
     console.log('App: Setting current level to:', level);
     setCurrentLevel(level);
+    localStorage.setItem('currentLevel', level);
     updateURLParams(currentUnit, level);
   };
 
-  // URL parametreleri değiştiğinde state'i güncelle
+  // URL parametreleri değiştiğinde state'i ve localStorage'ı güncelle
   useEffect(() => {
     const urlUnit = searchParams.get('unit');
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
     
-    console.log('App: URL params changed:', { urlUnit, urlLevel, currentUnit, currentLevel });
-    
     if (urlUnit && urlUnit !== currentUnit) {
-      console.log('App: Updating unit from URL:', urlUnit);
       setCurrentUnit(urlUnit);
+      localStorage.setItem('currentUnit', urlUnit);
     }
     if (urlLevel && urlLevel !== currentLevel) {
-      console.log('App: Updating level from URL:', urlLevel);
       setCurrentLevel(urlLevel);
+      localStorage.setItem('currentLevel', urlLevel);
     }
-  }, [searchParams]);
+  }, [searchParams, currentUnit, currentLevel]);
 
   // Filtrelenmiş kelimeleri güncelle
   useEffect(() => {
