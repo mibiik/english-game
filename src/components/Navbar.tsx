@@ -308,9 +308,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center gap-3">
                   <span className="text-lg">☀️</span>
                   <span className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white drop-shadow-sm">
-                  Tüm seviyeler için Yaz Kelime Listesi güncellendi.Keşfet!
+                  Tüm seviyeler için Yaz Kelime Listeleri güncellendi. \n Keşfet!
                   </span>
-                  <span className="text-sm"></span>
+                  <span className="text-sm">✨</span>
                 </div>
                 <button
                   onClick={() => setShowAnnouncement(false)}

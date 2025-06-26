@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, X } from 'lucide-react';
+import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book } from 'lucide-react';
 import logo from './a.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
@@ -78,7 +78,6 @@ const gameModeDescriptions: Record<string, string> = {
 };
 
 const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, currentLevel }) => {
-  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const unit = currentUnit;
   const level = currentLevel;
 
@@ -97,7 +96,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: `/speaking?unit=${unit}&level=${level}`, color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
   ];
 
-  const headingLines = ["Koç WordPlay'e", "Hoş Geldin"];
+  const headingLines = ["Koç WordPlay'e", "Hoş Geldiniz"];
 
   const sentenceVariant = {
     hidden: { opacity: 0 },
@@ -130,37 +129,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden">
-      {/* Duyuru Şeridi */}
-      <AnimatePresence>
-        {showAnnouncement && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg overflow-hidden"
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-center h-12 relative">
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">☀️</span>
-                  <span className="font-inter font-medium text-sm sm:text-base text-white drop-shadow-sm">
-                    Tüm seviyeler için Yaz Kelime Listeleri güncellendi. Keşfet!
-                  </span>
-                  <span className="text-sm">✨</span>
-                </div>
-                <button
-                  onClick={() => setShowAnnouncement(false)}
-                  className="absolute right-2 p-1.5 rounded-full hover:bg-orange-700/40 transition-all duration-200 hover:scale-105 group"
-                  aria-label="Duyuruyu kapat"
-                >
-                  <X className="w-4 h-4 text-white/90 group-hover:text-white transition-colors" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <motion.div
           initial="hidden"
@@ -213,13 +181,13 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               <div className={`group bg-white/5 backdrop-blur-md p-5 rounded-2xl h-full border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 shadow-lg ${mode.shadow}`}>
                 <div className={`w-12 h-12 flex items-center justify-center rounded-md mb-4 bg-gradient-to-br ${mode.color}`}>
                   {React.cloneElement(mode.icon, { className: 'w-7 h-7 text-white' })}
-                </div>
+                  </div>
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white transition-colors">{mode.title}</h3>
                 </div>
                 <p className="text-gray-400 text-sm mt-2">{gameModeDescriptions[mode.id] || 'Bu mod için açıklama yakında eklenecek.'}</p>
-              </div>
-            </Link>
+                </div>
+              </Link>
           ))}
         </div>
       </main>
