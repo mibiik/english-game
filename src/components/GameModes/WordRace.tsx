@@ -1,82 +1,68 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Trophy, Timer, Star, Award } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Trophy, CheckCircle, XCircle } from 'lucide-react';
 import { WordDetail } from '../../data/words';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface WordRaceProps {
   words: WordDetail[];
 }
+
+const RACE_DURATION = 90; // saniye
+const WORDS_IN_RACE = 30; // Yarıştaki toplam kelime sayısı
 
 export function WordRace({ words }: WordRaceProps) {
   const [raceWords, setRaceWords] = useState<WordDetail[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(90);
+  const [timeLeft, setTimeLeft] = useState(RACE_DURATION);
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [correctWords, setCorrectWords] = useState(0);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [achievements, setAchievements] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect', message: string } | null>(null);
 
-  useEffect(() => {
-    if (isGameActive && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-      return () => clearInterval(timer);
-    } else if (timeLeft === 0 && isGameActive) {
-      endGame();
-    }
-  }, [isGameActive, timeLeft]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const startGame = useCallback(() => {
     const shuffledWords = [...words].sort(() => 0.5 - Math.random());
-    setRaceWords(shuffledWords);
+    setRaceWords(shuffledWords.slice(0, WORDS_IN_RACE * 2));
     setCurrentWordIndex(0);
     setScore(0);
-    setTimeLeft(90);
+    setTimeLeft(RACE_DURATION);
     setCorrectWords(0);
-    setCurrentStreak(0);
-    setBestStreak(0);
     setGameOver(false);
     setIsGameActive(true);
-    setAchievements([]);
     setUserInput('');
-    setShowFeedback(false);
-    setIsCorrect(null);
+    setFeedback(null);
   }, [words]);
 
-  const endGame = () => {
+  useEffect(() => {
+    if(isGameActive) inputRef.current?.focus();
+  }, [isGameActive]);
+
+  const endGame = useCallback(() => {
     setGameOver(true);
     setIsGameActive(false);
-    checkAchievements();
-  };
+  }, []);
 
-  const nextWord = () => {
-    if (currentWordIndex < raceWords.length - 1) {
-      setCurrentWordIndex(prev => prev + 1);
-      setUserInput('');
-      setShowFeedback(false);
-      setIsCorrect(null);
-    } else {
-      endGame(); // Kelimeler biterse oyunu bitir
+  useEffect(() => {
+    if (isGameActive && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft <= 0 && isGameActive) {
+      endGame();
     }
-  };
+  }, [isGameActive, timeLeft, endGame]);
 
-  const checkAchievements = () => {
-    const newAchievements: string[] = [];
-    if (score >= 500) newAchievements.push('Kelime Ustası');
-    if (bestStreak >= 10) newAchievements.push('Kombo Kralı');
-    if (correctWords >= 30) newAchievements.push('Hız Ustası');
-    setAchievements(newAchievements);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserInput(e.target.value);
-  };
+  const nextWord = useCallback(() => {
+    if (currentWordIndex + 1 >= raceWords.length) {
+        endGame();
+        return;
+    }
+    setFeedback(null);
+    setCurrentWordIndex(prev => prev + 1);
+    setUserInput('');
+  }, [currentWordIndex, raceWords.length, endGame]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,165 +70,140 @@ export function WordRace({ words }: WordRaceProps) {
 
     const currentWord = raceWords[currentWordIndex];
     const answer = userInput.trim().toLowerCase();
-    const correct = answer === currentWord.turkish.toLowerCase();
+    const isCorrect = answer === currentWord.turkish.toLowerCase();
 
-    setShowFeedback(true);
-    setIsCorrect(correct);
-
-    if (correct) {
-      const newStreak = currentStreak + 1;
-      const streakBonus = Math.floor(newStreak / 3) * 5;
-      const timeBonus = Math.floor(timeLeft / 30) * 10;
-      const points = 10 + streakBonus + timeBonus;
-
+    if (isCorrect) {
+      const points = 10 + Math.floor(timeLeft / 15);
       setScore(prev => prev + points);
       setCorrectWords(prev => prev + 1);
-      setCurrentStreak(newStreak);
-      setBestStreak(prev => Math.max(prev, newStreak));
-
-      setTimeout(nextWord, 1000);
+      setFeedback({ type: 'correct', message: `+${points}` });
+      setTimeout(nextWord, 500);
     } else {
-      setCurrentStreak(0);
-      setTimeout(nextWord, 2000);
+      setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}`});
+      setTimeout(nextWord, 1300);
     }
   };
-
+  
+  const timePercentage = (timeLeft / RACE_DURATION) * 100;
   const currentWord = raceWords[currentWordIndex];
 
-  return (
-    <div className="p-6 space-y-6">
-      {!isGameActive && !gameOver && (
-        <div className="text-center space-y-6">
-          <h2 className="text-3xl font-bold text-purple-600">Kelime Yarışması</h2>
-          <p className="text-gray-600">
-            90 saniye içinde ne kadar çok kelime öğrenebilirsin? Hızlı ol, doğru cevapla ve puanını katlayarak artır!
-          </p>
-          <button
-            onClick={startGame}
-            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl
-              text-xl font-bold shadow-lg transform transition-all duration-300
-              hover:scale-105 hover:shadow-xl active:scale-95"
-          >
-            Yarışmayı Başlat
+  // Ana Ekran ve Oyun Bitiş Ekranı
+  if (!isGameActive) {
+    return (
+      <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="text-center bg-gray-800/50 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-purple-500/20 w-full max-w-md"
+        >
+          <Trophy className="w-16 h-16 mx-auto text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)] mb-4" />
+          <h2 className="text-4xl font-extrabold text-white mb-2">Kelime Yarışı</h2>
+          {gameOver ? (
+            <>
+              <p className="text-lg text-gray-300 mt-4">Yarış bitti!</p>
+              <p className="text-5xl font-bold my-4 text-purple-400">{score}</p>
+              <div className="text-gray-400">
+                {correctWords} doğru kelime ile yarışı tamamladın.
+              </div>
+            </>
+          ) : (
+            <div className="text-gray-400 my-6 space-y-2">
+              <p>Ekrana gelen kelimenin Türkçe karşılığını yaz.</p>
+              <p>Süren dolmadan en yüksek puanı topla!</p>
+            </div>
+          )}
+          <button onClick={startGame} className="mt-8 w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl text-xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-purple-500/30 active:scale-95">
+            {gameOver ? 'Tekrar Yarış' : 'Yarışı Başlat'}
           </button>
-        </div>
-      )}
+        </motion.div>
+      </div>
+    );
+  }
 
-      {isGameActive && currentWord && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div className="space-y-1">
-              <div className="text-3xl font-bold text-purple-600">
-                {score} Puan
-              </div>
-              <div className="text-sm text-purple-400">
-                Doğru: {correctWords} | Seri: {currentStreak} | En İyi: {bestStreak}
-              </div>
-            </div>
-            <div className="text-2xl font-bold text-red-500 animate-pulse">
-              {timeLeft}s
-            </div>
+  return (
+    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4 font-sans">
+      <div className="w-full max-w-lg">
+          {/* Süre Çubuğu */}
+          <div className="w-full bg-gray-700/50 rounded-full h-3 mb-4 border border-gray-600">
+            <motion.div
+              className="h-full rounded-full"
+              style={{
+                  background: `linear-gradient(90deg, ${
+                  timePercentage > 50 ? 'rgb(74 222 128)' : timePercentage > 20 ? 'rgb(250 204 21)' : 'rgb(239 68 68)'
+                  }, ${
+                  timePercentage > 50 ? 'rgb(34 197 94)' : timePercentage > 20 ? 'rgb(234 179 8)' : 'rgb(220 38 38)'
+                  })`
+              }}
+              initial={{ width: '100%' }}
+              animate={{ width: `${timePercentage}%` }}
+              transition={{ duration: 1, ease: 'linear' }}
+            />
           </div>
 
-          <div className="bg-white p-8 rounded-xl shadow-lg border border-purple-100">
-            <div className="text-4xl font-bold text-center mb-8
-              bg-gradient-to-r from-purple-600 to-indigo-600
-              text-transparent bg-clip-text">
-              {currentWord.headword}
+          {/* Kart */}
+          <motion.div 
+            key={currentWordIndex}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gray-800/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-purple-500/20"
+          >
+            {/* HUD */}
+            <div className="flex justify-between items-center text-lg text-gray-300 mb-8">
+                <div>Skor: <span className="font-bold text-xl text-white">{score}</span></div>
+                <div>{correctWords} / {WORDS_IN_RACE}</div>
+                <div className="font-bold text-xl text-white">{timeLeft}s</div>
             </div>
+            
+            {/* Kelime */}
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={currentWord.headword}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <h3 className="text-5xl md:text-6xl font-extrabold text-center text-white" style={{textShadow: '0 0 15px rgba(255,255,255,0.2)'}}>
+                        {currentWord.headword}
+                    </h3>
+                </motion.div>
+            </AnimatePresence>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <p className="text-center text-purple-300/80 my-4 text-md">Türkçe karşılığını yaz</p>
+
+            {/* Geri bildirim */}
+            <div className="h-10 flex items-center justify-center">
+                <AnimatePresence>
+                    {feedback && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className={`flex items-center gap-2 font-semibold px-4 py-2 rounded-full text-lg
+                            ${feedback.type === 'correct' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
+                        >
+                            {feedback.type === 'correct' ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                            {feedback.message}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+            
+            {/* Giriş Alanı */}
+            <form onSubmit={handleSubmit} className="mt-4">
               <input
+                ref={inputRef}
                 type="text"
                 value={userInput}
-                onChange={handleInputChange}
-                placeholder="Türkçe karşılığını yazın..."
-                className="w-full p-4 text-lg border-2 border-purple-200 rounded-xl
-                  focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none
-                  transition-all duration-300"
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="..."
+                className="w-full p-4 text-center text-2xl bg-gray-900/50 border-2 border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
                 autoFocus
+                autoComplete="off"
               />
-              <button
-                type="submit"
-                className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500
-                  text-white rounded-xl text-lg font-semibold shadow-md
-                  transform transition-all duration-300
-                  hover:scale-102 hover:shadow-lg active:scale-98"
-              >
-                Kontrol Et
-              </button>
             </form>
-
-            {showFeedback && (
-              <div className={`mt-6 text-center text-lg font-medium
-                ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                {isCorrect
-                  ? `Harika! +${10 + Math.floor(currentStreak / 3) * 5 + Math.floor(timeLeft / 30) * 10} puan kazandın!`
-                  : `Yanlış! Doğru cevap: ${currentWord.turkish}`}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {gameOver && (
-        <div className="bg-white p-8 rounded-xl shadow-lg border border-purple-100 space-y-6">
-          <h2 className="text-3xl font-bold text-center text-purple-600 mb-6">
-            Yarışma Sonu!
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-purple-800 mb-2">
-                  <Trophy className="inline-block w-6 h-6 mr-2" />
-                  Skor Detayları
-                </h3>
-                <p className="text-purple-700">Toplam Puan: <span className="font-bold">{score}</span></p>
-                <p className="text-purple-700">En İyi Seri: <span className="font-bold">{bestStreak}</span></p>
-              </div>
-
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2">
-                  <Timer className="inline-block w-6 h-6 mr-2" />
-                  Performans
-                </h3>
-                <p className="text-blue-700">Doğru Kelimeler: <span className="font-bold">{correctWords}</span></p>
-                <p className="text-blue-700">Kelime/Dakika: <span className="font-bold">
-                  {Math.round((correctWords / 90) * 60)}
-                </span></p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {achievements.length > 0 && (
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                    <Star className="inline-block w-6 h-6 mr-2" />
-                    Başarılar
-                  </h3>
-                  {achievements.map((achievement, index) => (
-                    <div key={index} className="flex items-center text-yellow-700 mb-2">
-                      <Award className="w-5 h-5 mr-2" />
-                      {achievement}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                onClick={startGame}
-                className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-500
-                  text-white rounded-xl text-lg font-semibold shadow-md
-                  transform transition-all duration-300
-                  hover:scale-102 hover:shadow-lg active:scale-98"
-              >
-                Tekrar Oyna
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+      </div>
     </div>
   );
 }

@@ -117,63 +117,74 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-8 p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="space-y-1">
-            <div className="text-2xl font-bold text-purple-600">
-              Skor: {score}
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] p-4 bg-gray-900 text-white">
+      <div className="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-8 relative overflow-hidden">
+        {/* Arka plan desenleri */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+          <svg width="100%" height="100%"><defs><pattern id="p" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 25h50M25 0v50" stroke="rgba(120, 120, 255, 0.2)" strokeWidth="1"></path></pattern></defs><rect width="100%" height="100%" fill="url(#p)"></rect></svg>
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex justify-between items-center mb-6">
+            <div className="space-y-1">
+              <div className="text-2xl font-bold text-cyan-400">
+                Skor: {score}
+              </div>
+              <div className="text-sm text-cyan-200/70">
+                Seri: {streak} | En İyi: {bestStreak}
+              </div>
             </div>
-            <div className="text-sm text-purple-400">
-              Seri: {streak} | En İyi: {bestStreak}
+            <div className="text-lg font-semibold bg-gray-700/50 text-gray-300 px-3 py-1 rounded-lg">
+              {currentWordIndex + 1} / {roundWords.length}
             </div>
           </div>
-           <div className="text-lg font-semibold text-gray-700">
-            {currentWordIndex + 1} / {roundWords.length}
+
+          <div className="text-center my-8">
+            <div className="text-5xl font-extrabold tracking-wider text-white mb-3" style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.4)' }}>
+              {currentWord.headword}
+            </div>
+            <div className="text-xl text-gray-400 font-light">
+              {currentWord.turkish}
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-transparent bg-clip-text">
-            {currentWord.headword}
-          </div>
-          <div className="text-lg text-gray-600 mb-2">
-            {currentWord.turkish}
-          </div>
-
+        <div className="relative z-10 flex flex-col items-center space-y-6">
           <div className="flex gap-4">
             <button
               onClick={() => speak(currentWord.headword)}
-              className="p-4 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+              className="group p-4 rounded-full bg-blue-600/30 text-blue-300 border-2 border-blue-500/50 hover:bg-blue-600/50 hover:scale-105 transition-all duration-300 shadow-lg"
               title="Kelimeyi dinle"
             >
-              <Volume2 className="w-6 h-6" />
+              <Volume2 className="w-7 h-7 transform group-hover:animate-pulse" />
             </button>
 
             <button
               onClick={startListening}
               disabled={isListening}
-              className={`p-4 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-green-500 hover:bg-green-600'} text-white transition-colors`}
+              className={`p-5 rounded-full text-white transition-all duration-300 shadow-xl border-2 ${isListening ? 'bg-red-500/80 border-red-400 animate-pulse scale-110' : 'bg-green-600/50 border-green-500/60 hover:bg-green-600/80 hover:scale-105'}`}
               title="Telaffuz et"
             >
-              <Mic className="w-6 h-6" />
+              <Mic className="w-8 h-8" />
             </button>
 
             <button
               onClick={nextWord}
-              className="p-4 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+              className="group p-4 rounded-full bg-purple-600/30 text-purple-300 border-2 border-purple-500/50 hover:bg-purple-600/50 hover:scale-105 transition-all duration-300 shadow-lg"
               title="Yeni kelime"
             >
-              <RefreshCw className="w-6 h-6" />
+              <RefreshCw className="w-7 h-7 transform group-hover:rotate-90 transition-transform duration-300" />
             </button>
           </div>
 
-          {feedback && (
-            <div className={`mt-4 p-4 rounded-lg flex items-center gap-2 ${showResult ? (isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') : 'bg-blue-100 text-blue-700'}`}>
-              {showResult && (isCorrect ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />)}
-              <span>{feedback}</span>
-            </div>
-          )}
+          <div className="h-20 w-full">
+            {feedback && (
+              <div className={`mt-4 p-4 rounded-lg flex items-center justify-center gap-3 text-base font-semibold ${showResult ? (isCorrect ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30') : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'}`}>
+                {showResult && (isCorrect ? <CheckCircle className="w-6 h-6" /> : <XCircle className="w-6 h-6" />)}
+                <span>{feedback}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

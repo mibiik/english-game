@@ -12,6 +12,8 @@ import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2'
 import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 import { auth } from './config/firebase';
 import { X, Sparkles } from 'lucide-react';
+import { WelcomePopup } from './components/WelcomePopup';
+import { userService } from './services/userService';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
@@ -23,6 +25,7 @@ const foundationWords: WordDetail[] = foundationWordsRaw;
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   
@@ -48,6 +51,26 @@ function AppContent() {
   });
 
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
+
+  useEffect(() => {
+    const hasSeenPopup = localStorage.getItem('hasSeenWelcomePopup');
+    if (!hasSeenPopup) {
+      const timer = setTimeout(() => {
+        setShowWelcomePopup(true);
+      }, 10000); // 10 saniye bekle
+
+      return () => clearTimeout(timer); // component unmount olursa timer'ı temizle
+    }
+  }, []);
+
+  const handleWelcomeClose = async (name: string | null) => {
+    if (name) {
+      localStorage.setItem('userName', name);
+      await userService.saveUserName(name);
+    }
+    localStorage.setItem('hasSeenWelcomePopup', 'true');
+    setShowWelcomePopup(false);
+  };
 
   // URL parametrelerini güncelle
   const updateURLParams = (unit: string, level: string) => {
@@ -136,6 +159,7 @@ function AppContent() {
       />
       {showAuth && <Auth onClose={() => setShowAuth(false)} />}
       {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
+      {showWelcomePopup && <WelcomePopup onClose={handleWelcomeClose} />}
     </div>
   );
 }

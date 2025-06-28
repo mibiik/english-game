@@ -31,40 +31,40 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gray-800 text-white">
       {/* Header */}
-      <div className="flex items-center p-4 border-b bg-white shadow-sm">
+      <div className="flex items-center p-3 border-b border-gray-700 bg-gray-800 shadow-md">
         {isMobile && onBack && (
           <button 
             onClick={onBack}
-            className="mr-2 p-1 rounded-full hover:bg-gray-100"
+            className="mr-3 p-2 rounded-full hover:bg-gray-700 transition-colors"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={22} />
           </button>
         )}
         
         <Avatar src={user.avatar} alt={user.name} size="md" />
         
-        <div className="ml-3 flex-1">
-          <h2 className="font-semibold">{user.name}</h2>
-          <p className="text-xs text-gray-500">
-            {user.isOnline ? 'Çevrimiçi' : 'Son görülme: ' + user.lastSeen}
+        <div className="ml-4 flex-1">
+          <h2 className="font-bold text-lg">{user.name}</h2>
+          <p className="text-xs text-green-400">
+            {user.isOnline ? 'Çevrimiçi' : `Son görülme: ${user.lastSeen}`}
           </p>
         </div>
         
-        <div className="flex space-x-2">
-          <button className="p-2 rounded-full hover:bg-gray-100">
-            <Phone size={20} className="text-gray-600" />
+        <div className="flex space-x-3">
+          <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
+            <Phone size={22} className="text-gray-400" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100">
-            <Video size={20} className="text-gray-600" />
+          <button className="p-2 rounded-full hover:bg-gray-700 transition-colors">
+            <Video size={22} className="text-gray-400" />
           </button>
         </div>
       </div>
       
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-        <div className="flex flex-col space-y-3">
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-900">
+        <div className="flex flex-col space-y-4">
           {messages.map((message) => (
             <MessageBubble 
               key={message.id} 
@@ -77,7 +77,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
       
       {/* Message input */}
-      <div className="p-4 bg-white border-t">
+      <div className="p-4 bg-gray-800 border-t border-gray-700">
         <MessageInput onSendMessage={onSendMessage} />
       </div>
     </div>
