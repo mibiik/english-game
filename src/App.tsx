@@ -20,8 +20,6 @@ const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
 const preIntermediateWords: WordDetail[] = preIntermediateWordsRaw;
 const foundationWords: WordDetail[] = foundationWordsRaw;
 
-
-
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -29,7 +27,6 @@ function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   
-  // URL parametrelerinden, localStorage'dan veya varsayılanlardan başlangıç değerlerini al
   const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'>(() => {
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
     if (urlLevel) {
@@ -57,18 +54,20 @@ function AppContent() {
     if (!hasSeenPopup) {
       const timer = setTimeout(() => {
         setShowWelcomePopup(true);
-      }, 10000); // 10 saniye bekle
+      }, 5000); // 5 saniyeye düşürüldü
 
-      return () => clearTimeout(timer); // component unmount olursa timer'ı temizle
+      return () => clearTimeout(timer);
     }
   }, []);
 
   const handleWelcomeClose = async (name: string | null) => {
+    localStorage.setItem('hasSeenWelcomePopup', 'true');
+    localStorage.setItem('cookieConsent', 'true'); // Onay burada veriliyor
+    
     if (name) {
       localStorage.setItem('userName', name);
       await userService.saveUserName(name);
     }
-    localStorage.setItem('hasSeenWelcomePopup', 'true');
     setShowWelcomePopup(false);
   };
 
@@ -111,7 +110,7 @@ function AppContent() {
       localStorage.setItem('currentLevel', urlLevel);
     }
     // Parametre yoksa hiçbir şey yapma
-  }, [searchParams]);
+  }, [searchParams, currentUnit, currentLevel]);
 
   // Filtrelenmiş kelimeleri güncelle
   useEffect(() => {

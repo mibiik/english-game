@@ -106,6 +106,10 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>
+          
+          <p className="text-xs text-gray-500 mt-5">
+            
+          </p>
         </motion.div>
       </div>
     </AnimatePresence>
