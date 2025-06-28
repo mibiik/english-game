@@ -115,7 +115,7 @@ export const getDefinitionsForWords = async (words: string[]): Promise<Record<st
 
     if (words.length === 0) return {};
     
-    const prompt = `For the following list of English words, provide a simple, one-sentence definition for each in English. Return the response as a valid JSON object where keys are the words and values are their definitions. Words: ${words.join(', ')}`;
+    const prompt = `For the following list of English words, provide a simple, one-sentence definition for each in English. The definition MUST NOT contain the word itself. Return the response as a valid JSON object where keys are the words and values are their definitions. Words: ${words.join(', ')}`;
     
     try {
         const definitions = await geminiService.makeRequest<Record<string, string>>(prompt, { generationConfig: { responseMimeType: "application/json" } });
