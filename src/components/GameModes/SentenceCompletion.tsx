@@ -1,14 +1,17 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { WordDetail } from '../../data/words';
 import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
-import { RefreshCw, CheckCircle, XCircle, Info, PlayCircle } from 'lucide-react';
-import { allWords } from '../../data/allWords';
+import { RefreshCw, CheckCircle, XCircle, PlayCircle, Loader2, Trophy } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SentenceCompletionProps {
   words: WordDetail[];
+  unit: string;
 }
 
-export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words }) => {
+const BLANK_PLACEHOLDER = '______';
+
+export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words, unit }) => {
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<SentenceQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -19,7 +22,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
   const [error, setError] = useState<string | null>(null);
   const [gameStarted, setGameStarted] = useState(false);
 
-  const sentenceService = SentenceCompletionService.getInstance();
+  const sentenceService = useMemo(() => SentenceCompletionService.getInstance(), []);
 
   const shuffleArray = useCallback(<T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -30,22 +33,19 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     return shuffled;
   }, []);
 
-  const getRandomWrongOptions = useCallback((correctAnswer: string, count: number): string[] => {
-    const otherWords: string[] = allWords
-      .filter((word: string) => word.toLowerCase() !== correctAnswer.toLowerCase());
-    
-    return shuffleArray(otherWords).slice(0, count);
-  }, [shuffleArray]);
-
   const fetchQuestionsAndStartGame = useCallback(async () => {
     if (words.length === 0) {
-        setError("Oyun için kelime bulunamadı.");
+        setError("Bu ünite için kelime bulunamadı.");
         return;
     }
 
     setLoading(true);
-    setError(null);
     setGameStarted(true);
+    setError(null);
+    setGameCompleted(false);
+    setScore(0);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
 
     const wordTexts = words.map(word => word.headword);
     
@@ -53,7 +53,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
       const generatedQuestions = await sentenceService.generateSentenceCompletions(wordTexts);
       
       if (generatedQuestions.length === 0) {
-        setError('Bu kelimelerle soru oluşturulamadı. Lütfen tekrar deneyin.');
+        setError('Yapay zeka bu kelimelerle soru oluşturamadı. Lütfen tekrar deneyin.');
         setLoading(false);
         return;
       }
@@ -64,27 +64,14 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
       }));
 
       setQuestions(questionsWithShuffledOptions);
-      setCurrentQuestionIndex(0);
-      setSelectedAnswer(null);
-      setIsCorrect(null);
-      setScore(0);
-      setGameCompleted(false);
     } catch (error: any) {
       console.error('Oyun başlatılırken hata:', error);
       setError(error.message || 'Cümleler oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
       setQuestions([]);
-      setCurrentQuestionIndex(0);
-      setGameCompleted(false);
     } finally {
       setLoading(false);
     }
-  }, [words, sentenceService]);
-
-  useEffect(() => {
-    if (gameStarted && words.length > 0) {
-      fetchQuestionsAndStartGame();
-    }
-  }, [words, gameStarted, fetchQuestionsAndStartGame]);
+  }, [words, sentenceService, shuffleArray]);
 
   const handleAnswerSelect = (answer: string) => {
     if (selectedAnswer !== null) return;
@@ -105,78 +92,93 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
       } else {
         setGameCompleted(true);
       }
-    }, 1500);
+    }, correct ? 1200 : 2000);
   };
   
   if (!gameStarted) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Boşluk Doldurma</h2>
-        <p className="text-gray-600 mb-8 text-center max-w-md">Yapay zeka tarafından oluşturulan cümlelerdeki boşlukları doğru kelimelerle doldurun.</p>
-        <button
-          onClick={() => setGameStarted(true)}
-          className="px-8 py-4 bg-purple-600 text-white rounded-xl text-lg font-bold shadow-lg flex items-center gap-3
-            transform transition-all duration-300 hover:scale-105 hover:bg-purple-700 active:scale-95"
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] bg-gray-950 text-white p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center bg-gray-900 p-10 rounded-2xl shadow-2xl border border-gray-800 max-w-lg"
         >
-          <PlayCircle className="w-6 h-6" />
-          Oyuna Başla
-        </button>
+          <div className="w-16 h-16 mx-auto mb-6 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+             <PlayCircle className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-extrabold mb-2 text-white">Boşluk Doldurma</h1>
+          <p className="text-gray-400 mb-8">Yapay zeka ile hazırlanan cümlelerdeki boşlukları doğru kelimelerle tamamla.</p>
+          <button
+            onClick={fetchQuestionsAndStartGame}
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl text-lg font-bold shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-green-500/30 active:scale-95"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Oyuna Başla'}
+          </button>
+        </motion.div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500 mb-4"></div>
-        <p className="text-lg text-purple-700 font-medium">Cümleler oluşturuluyor...</p>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] bg-gray-950 text-white p-4">
+        <Loader2 className="w-12 h-12 animate-spin text-green-400 mb-4" />
+        <p className="text-lg text-gray-300 font-medium">Yapay zeka cümleleri hazırlıyor...</p>
+        <p className="text-sm text-gray-500">Bu işlem biraz zaman alabilir.</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-        <div className="text-red-500 mb-4">
-          <XCircle className="w-16 h-16 mx-auto mb-4" />
-          <p className="text-lg text-center">{error}</p>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] bg-gray-950 text-white p-4">
+        <div className="text-center bg-gray-900 p-10 rounded-2xl shadow-2xl border border-red-800 max-w-lg">
+          <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Bir Sorun Oluştu</h2>
+          <p className="text-red-400 text-center mb-6">{error}</p>
+          <button
+            onClick={fetchQuestionsAndStartGame}
+            className="w-full py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+          >
+            Tekrar Dene
+          </button>
         </div>
-        <button
-          onClick={fetchQuestionsAndStartGame}
-          className="px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors"
-        >
-          Tekrar Dene
-        </button>
       </div>
     );
   }
 
   if (gameCompleted) {
+    const accuracy = Math.round((score / words.length) * 100);
     return (
-      <div className="min-h-screen p-4 sm:p-8 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Tebrikler!</h2>
-            <p className="text-xl text-gray-700">{score} / {questions.length} doğru</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-lg text-gray-700 text-center">
-                Başarı Oranı: {Math.round((score / questions.length) * 100)}%
-              </p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-950 p-4">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-lg mx-auto bg-gray-900 rounded-3xl p-8 text-center border border-gray-800 w-full"
+        >
+          <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-4" />
+          <h2 className="text-3xl font-bold text-white mb-2">Oyun Bitti!</h2>
+          <p className="text-gray-400 mb-8">Harika bir iş çıkardın.</p>
+          
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-gray-800 rounded-xl p-4">
+              <p className="text-3xl font-bold text-green-400">{score}/{words.length}</p>
+              <p className="text-sm text-gray-400">Skor</p>
             </div>
-
-            <button
-              onClick={fetchQuestionsAndStartGame}
-              className="w-full py-3 bg-purple-500 text-white rounded-lg text-lg font-medium
-                hover:bg-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-            >
-              Tekrar Oyna
-            </button>
+            <div className="bg-gray-800 rounded-xl p-4">
+              <p className="text-3xl font-bold text-blue-400">{accuracy}%</p>
+              <p className="text-sm text-gray-400">Başarı</p>
+            </div>
           </div>
-        </div>
+
+          <button 
+            onClick={fetchQuestionsAndStartGame} 
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-medium transition-colors"
+          >
+            Tekrar Oyna
+          </button>
+        </motion.div>
       </div>
     );
   }
@@ -185,72 +187,75 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
 
   if (!currentQuestion) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-        <div className="text-red-500 mb-4">
-          <XCircle className="w-16 h-16 mx-auto mb-4" />
-          <p className="text-lg text-center">Sorular yüklenemedi. Lütfen tekrar deneyin.</p>
-        </div>
-        <button
-          onClick={() => {
-            setGameStarted(false);
-            setQuestions([]);
-            setError(null);
-          }}
-          className="px-6 py-3 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors"
-        >
-          Ana Menüye Dön
-        </button>
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] bg-gray-950 text-white p-4">
+         <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+         <p className="text-lg text-center text-red-400">Sorular yüklenemedi.</p>
       </div>
     );
   }
 
+  const progress = ((currentQuestionIndex + 1) / words.length) * 100;
+
   return (
-    <div className="p-4 sm:p-8 flex flex-col gap-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Soru {currentQuestionIndex + 1} / {questions.length}
-          </h2>
-          <div className="text-lg text-gray-700">
-            Skor: {score}
+    <div className="min-h-screen bg-gray-950 text-white p-4 sm:p-6 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-2xl font-bold text-green-400">Skor: {score}</div>
+          <div className="text-lg text-gray-400">
+            {currentQuestionIndex + 1} / {words.length}
           </div>
         </div>
-        <button
-          onClick={fetchQuestionsAndStartGame}
-          className="p-3 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors shadow-sm"
-          title="Yeni Sorular"
-        >
-          <RefreshCw className="w-6 h-6" />
-        </button>
-      </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <p className="text-xl text-gray-800 mb-8 leading-relaxed">
-          {currentQuestion.sentence}
-        </p>
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-800 rounded-full h-2.5 mb-8">
+          <motion.div
+            className="bg-gradient-to-r from-green-500 to-emerald-500 h-2.5 rounded-full"
+            initial={{ width: '0%' }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
 
-        <div className="space-y-3">
-          {currentQuestion.options.map((option: string, index: number) => {
+        {/* Soru Kartı */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentQuestionIndex}
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="bg-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-800 mb-8"
+          >
+            <p className="text-2xl md:text-3xl text-center text-gray-200 leading-relaxed">
+              {currentQuestion.sentence.replace(currentQuestion.correctAnswer, BLANK_PLACEHOLDER)}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+        
+        {/* Seçenekler */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {currentQuestion.options.map((option) => {
+            const isSelected = selectedAnswer === option;
+            const isTheCorrectAnswer = option === currentQuestion.correctAnswer;
+            
+            let buttonClass = 'border-gray-700 bg-gray-800 hover:bg-gray-700 hover:border-gray-600';
+            if (isSelected) {
+              buttonClass = isCorrect ? 'border-green-500 bg-green-500/20 text-green-300 scale-105' : 'border-red-500 bg-red-500/20 text-red-300 scale-105';
+            } else if (selectedAnswer !== null && isTheCorrectAnswer) {
+              buttonClass = 'border-green-500 bg-green-500/20 text-green-300';
+            }
+
             return (
-              <button
-                key={index}
+              <motion.button
+                key={option}
                 onClick={() => handleAnswerSelect(option)}
                 disabled={selectedAnswer !== null}
-                className={`w-full p-4 rounded-lg text-left transition-all ${selectedAnswer === null ? 'hover:bg-blue-50 text-blue-600' : ''} ${
-                  selectedAnswer === option
-                    ? isCorrect
-                      ? 'bg-green-50 text-green-800 border-2 border-green-400 shadow-sm'
-                      : 'bg-red-50 text-red-800 border-2 border-red-400 shadow-sm'
-                    : selectedAnswer !== null && option === currentQuestion.correctAnswer
-                      ? 'bg-green-50 text-green-800 border-2 border-green-400 shadow-sm'
-                      : 'bg-blue-50 text-blue-600 border border-blue-200 shadow-sm'
-                }`}
+                className={`w-full p-5 rounded-xl text-lg font-semibold border-2 transition-all duration-200 transform disabled:cursor-not-allowed ${buttonClass}`}
+                whileHover={{ scale: selectedAnswer === null ? 1.02 : 1 }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-medium">{option}</span>
-                  <Info className="w-5 h-5 text-blue-400 opacity-50" />
-                </div>
-              </button>
+                {option}
+              </motion.button>
             );
           })}
         </div>

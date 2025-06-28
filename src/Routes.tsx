@@ -62,7 +62,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/memory-game" element={<GameWrapper component={MemoryGame} words={filteredWords} />} />
           <Route path="/word-forms" element={<GameWrapper component={WordFormsGame} words={filteredWords} />} />
           <Route path="/essay-writing" element={<EssayWritingPage />} />
-          <Route path="/definition-to-word" element={<DefinitionToWordGame />} />
+          <Route path="/definition-to-word" element={<GameWrapper component={DefinitionToWordGame} words={filteredWords} />} />
           <Route path="/learning-mode" element={<GameWrapper component={LearningMode} words={filteredWords} />} />
         </Routes>
       </div>

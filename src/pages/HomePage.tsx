@@ -87,7 +87,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
     { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <Zap />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-green-500 to-emerald-600', shadow: 'hover:shadow-green-500/30' },
     { id: 'word-forms', title: 'Kelime Formları', icon: <Layers />, link: `/word-forms?unit=${unit}&level=${level}`, color: 'from-pink-500 to-rose-500', shadow: 'hover:shadow-pink-500/30' },
-    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <Type />, link: '/definition-to-word', color: 'from-green-700 to-blue-700', shadow: 'hover:shadow-green-700/30' },
+    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <Type />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: 'from-green-700 to-blue-700', shadow: 'hover:shadow-green-700/30' },
     { id: 'paraphrase', title: 'Paraphrase', icon: <Sparkles />, link: `/paraphrase`, color: 'from-purple-500 to-indigo-600', shadow: 'hover:shadow-purple-500/30' },
     { id: 'essay-writing', title: 'Essay Yazma', icon: <BookOpen />, link: '/essay-writing', color: 'from-gray-500 to-gray-600', shadow: 'hover:shadow-gray-500/30' },
     { id: 'preposition-mastery', title: 'Preposition Mastery', icon: <Puzzle />, link: '/preposition-mastery', color: 'from-teal-500 to-cyan-600', shadow: 'hover:shadow-teal-500/30' },
@@ -164,8 +164,8 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           <motion.img
             src={logo}
             alt="KoçWordPlay Logo"
-            className="absolute top-0 right-0 w-auto h-48 md:h-56 -mt-10 -mr-4 hidden lg:block"
-            animate={{ y: ["-8px", "8px"] }}
+            className="absolute top-0 right-0 w-auto h-4 opacity-5 -mt-2 -mr-2 hidden lg:block"
+            animate={{ y: ["-1px", "1px"] }}
             transition={{
               repeat: Infinity,
               repeatType: "reverse",

@@ -7,7 +7,8 @@ const API_KEYS = [
     'AIzaSyD90i-sOZcmqPRr0Yz1sr4HjAwHDixq_SQ', // 6. API Key
     'AIzaSyBehNtVq1zERg1Rs9yLaDAAiHEFOHBmBrc',  // 7. API Key
     'AIzaSyAqnYBsqN0FbVwWBpSml_Wf6mCsaPT5nY0',  // 8. API Key
-    'AIzaSyBp7cX2tNq4lbJUTw51J7gsJ_iwhEjEih4'   // 9. API Key
+    'AIzaSyBp7cX2tNq4lbJUTw51J7gsJ_iwhEjEih4',   // 9. API Key
+    'AIzaSyAU5UMyrKcoj5iPU2MYfblFBRcVWi_DI_E'   // 10. API Key
 ];
 
 const STORAGE_KEY = 'gemini_api_key_index';

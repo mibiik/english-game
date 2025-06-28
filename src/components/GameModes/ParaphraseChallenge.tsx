@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../../data/words';
+import { WordDetail } from '../../data/words';
 import { learningStatsTracker } from '../../data/learningStats';
-import { GeminiService } from '../../services/geminiService';
+import { geminiService } from '../../services/geminiService';
 import { RefreshCw, CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 
 interface ParaphraseChallengeProps {
-  words: Word[];
+  words: WordDetail[];
   unit: string;
 }
 
@@ -38,7 +38,7 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
   const [isLoadingMeaning, setIsLoadingMeaning] = useState(false);
   const [showExample, setShowExample] = useState(false);
 
-  const geminiService = GeminiService.getInstance();
+  // geminiService import edildi
 
   const generateRandomSentence = async () => {
     try {
@@ -62,7 +62,7 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
     setSelectedWord(word);
     setIsLoadingMeaning(true);
     try {
-      const meaning = await geminiService.getWordMeaning(word);
+      const meaning = await definitionCacheService.getDefinition(word, 'en');
       const sections = meaning.split('\n\n').map(section => {
         if (section.startsWith('**')) {
           const title = section.replace(/\*\*/g, '').split('\n')[0];

@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { WordDetail } from '../../data/words';
 import { wordTracker } from '../../data/wordTracker';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Award, BarChart2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Zap, Flame, Award, BarChart2, CheckCircle, XCircle, Clock, Brain } from 'lucide-react';
+import { geminiService } from '../../services/geminiService';
+import { definitionCacheService } from '../../services/definitionCacheService';
 
 interface SpeedGameProps {
   words: WordDetail[];
@@ -24,9 +26,12 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
   const [timeLeft, setTimeLeft] = useState(MAX_TIME);
   const [isGameActive, setIsGameActive] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect', message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect' | 'ai-checking' | 'ai-correct', message: string } | null>(null);
+  const [isAiChecking, setIsAiChecking] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
+  const previousWords = useRef<WordDetail[]>([]);
+  const previousUnit = useRef<string>('');
 
   useEffect(() => {
     if (score > highScore) {
@@ -34,6 +39,171 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       localStorage.setItem('speedGameHighScore', score.toString());
     }
   }, [score, highScore]);
+
+  // Ünite veya kelime değişikliğini kontrol et
+  useEffect(() => {
+    const hasWordsChanged = JSON.stringify(previousWords.current) !== JSON.stringify(words);
+    const hasUnitChanged = previousUnit.current !== '' && previousUnit.current !== unit;
+    
+    if (hasWordsChanged || hasUnitChanged) {
+      console.log('🔄 SpeedGame değişiklik algılandı:', { 
+        unit: `${previousUnit.current} → ${unit}`,
+        wordsChanged: hasWordsChanged,
+        unitChanged: hasUnitChanged
+      });
+      
+      // Oyunu sıfırla
+      setCurrentWord(null);
+      setUserInput('');
+      setScore(0);
+      setCombo(0);
+      setTimeLeft(MAX_TIME);
+      setIsGameActive(false);
+      setGameOver(false);
+      setFeedback(null);
+      setIsAiChecking(false);
+    }
+    
+    // Değerleri güncelle
+    previousWords.current = words;
+    previousUnit.current = unit;
+  }, [words, unit]);
+
+  // AI ile cevap kontrol fonksiyonu - çok liberal
+  const checkWithAI = useCallback(async (userAnswer: string, englishWord: string, turkishAnswer: string): Promise<boolean> => {
+    console.log('🤖 AI kontrol başlatıldı:', { userAnswer, englishWord, turkishAnswer });
+    
+    try {
+      const prompt = `
+      ÇOK ÖNEMLİ: Bu bir hız oyunu, kullanıcı hızlı yazıyor. Çok toleranslı ol!
+      
+      İngilizce kelime: "${englishWord}"
+      Kullanıcının yazdığı: "${userAnswer}"
+      Sistem beklediği: "${turkishAnswer}"
+      
+      Kullanıcının cevabı doğru kabul edilebilir mi? Sadece "true" veya "false" yanıtla.
+      
+      ÇOK ESNEK KRİTERLER:
+      - Eş anlamlı kelimeler → DOĞRU
+      - Yakın anlamlar → DOĞRU  
+      - Kısmi cevaplar → DOĞRU
+      - Yazım hataları → DOĞRU (1-2 harf fark olabilir)
+      - Kısaltmalar → DOĞRU
+      - Kelime kökü doğruysa → DOĞRU
+      - Anlamsal benzerlik varsa → DOĞRU
+      
+      Örnekler:
+      - "zarar" için "zara" → true
+      - "kredi" için "itibar" → true  
+      - "gelecek" için "glcek" → true
+      - "güzel" için "gzel" → true
+      - "araba" için "oto" → true
+      
+      Sadece anlamsız/tamamen yanlış cevapları false ver!
+      `;
+      
+      console.log('🤖 AI prompt gönderiliyor...');
+      
+      const result = await geminiService.makeRequest<string>(prompt);
+      const response = (typeof result === 'string' ? result : JSON.stringify(result)).toLowerCase().trim();
+      
+      console.log('🤖 AI yanıtı:', response);
+      
+      const isCorrect = response.includes('true') || response === 'true';
+      console.log('🤖 AI sonucu:', isCorrect ? '✅ DOĞRU' : '❌ YANLIŞ');
+      
+      return isCorrect;
+    } catch (error) {
+      console.error('🤖 AI hatası:', error);
+      
+      // ÇOOOOK esnek fallback - neredeyse her şeyi kabul et
+      const userLower = userAnswer.toLowerCase().trim().replace(/[.,!?;]/g, '');
+      const turkishLower = turkishAnswer.toLowerCase().trim().replace(/[.,!?;]/g, '');
+      
+      console.log('🔄 Fallback kontrol:', { userLower, turkishLower });
+      
+      // Virgülle ayrılmış kontrol
+      if (turkishLower.includes(',')) {
+        const alternatives = turkishLower.split(',').map(alt => alt.trim());
+        const isMatch = alternatives.some(alt => 
+          userLower === alt || 
+          userLower.includes(alt) || 
+          alt.includes(userLower) ||
+          calculateBasicSimilarity(userLower, alt) > 0.4 // %40 benzerlik yeter
+        );
+        console.log('🔄 Virgüllü fallback:', isMatch);
+        return isMatch;
+      }
+      
+      // Tek kelime için süper esnek kontrol
+      const similarity = calculateBasicSimilarity(userLower, turkishLower);
+      const isMatch = similarity > 0.3 || // %30 benzerlik yeter
+                     userLower.includes(turkishLower) || 
+                     turkishLower.includes(userLower) ||
+                     userLower.length >= 3 && turkishLower.startsWith(userLower.slice(0, 3)); // İlk 3 harf aynıysa
+      
+      console.log('🔄 Fallback sonucu:', { similarity: similarity.toFixed(2), isMatch });
+      return isMatch;
+    }
+  }, []);
+
+  // Sadece %100 kesin doğruları yakalar, gerisini AI'ya bırakır
+  const checkAnswer = useCallback((userAnswer: string, correctAnswer: string): boolean => {
+    const normalizeText = (text: string) => text.toLowerCase().trim().replace(/[.,!?;]/g, '');
+    
+    const answer = normalizeText(userAnswer);
+    const correct = normalizeText(correctAnswer);
+    
+    console.log('🔍 Sistem hızlı kontrol:', { answer, correct });
+    
+    // Çok kısa cevapları direkt reddet
+    if (answer.length <= 1) {
+      console.log('❌ Çok kısa cevap');
+      return false;
+    }
+    
+    // Sadece TAM eşleşmeleri kabul et
+    if (answer === correct) {
+      console.log('✅ Tam eşleşme');
+      return true;
+    }
+    
+    // Virgülle ayrılmış alternatifler için tam eşleşme kontrol et
+    const alternatives = correct.split(',').map(alt => normalizeText(alt.trim()));
+    for (const alt of alternatives) {
+      if (answer === alt) {
+        console.log('✅ Alternatif tam eşleşme:', alt);
+        return true;
+      }
+    }
+    
+    console.log('❓ Belirsiz, AI\'ya gönderiliyor');
+    return false;
+  }, []);
+
+  // Basit benzerlik hesaplama
+  const calculateBasicSimilarity = (str1: string, str2: string): number => {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const maxLen = Math.max(len1, len2);
+    
+    if (maxLen === 0) return 1;
+    
+    // Ortak karakterleri say
+    let commonChars = 0;
+    const chars1 = str1.split('');
+    const chars2 = str2.split('');
+    
+    for (const char of chars1) {
+      const index = chars2.indexOf(char);
+      if (index !== -1) {
+        commonChars++;
+        chars2.splice(index, 1); // Kullanılan karakteri kaldır
+      }
+    }
+    
+    return commonChars / maxLen;
+  };
 
   const generateNewWord = useCallback(() => {
     wordTracker.initializeUnit(words, unit);
@@ -47,17 +217,29 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
     setCurrentWord(newWord);
     setUserInput('');
     setFeedback(null);
+    setIsAiChecking(false);
   }, [words, unit]);
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
     setScore(0);
     setCombo(0);
     setTimeLeft(MAX_TIME);
     setGameOver(false);
     setIsGameActive(true);
+    
+    // Kelimelerin Türkçe anlamlarını önceden cache'le
+    console.log('🔄 Kelime anlamları cache\'leniyor...');
+    try {
+      const headwords = words.map(w => w.headword);
+      await definitionCacheService.getDefinitions(headwords, 'tr');
+      console.log('✅ Türkçe anlamlar cache\'lendi');
+    } catch (error) {
+      console.error('❌ Cache hatası:', error);
+    }
+    
     generateNewWord();
     inputRef.current?.focus();
-  }, [generateNewWord]);
+  }, [generateNewWord, words]);
 
   useEffect(() => {
     if (isGameActive && timeLeft > 0) {
@@ -71,27 +253,57 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
     }
   }, [isGameActive, timeLeft]);
 
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentWord || !isGameActive) return;
+    if (!currentWord || !isGameActive || isAiChecking) return;
 
-    const answer = userInput.trim().toLowerCase();
-    const isCorrect = answer === currentWord.turkish.toLowerCase();
+    const answer = userInput.trim();
+    
+    // Eğer cevap boşsa hiçbir şey yapma
+    if (!answer) return;
+    
+    const isCorrect = checkAnswer(answer, currentWord.turkish);
 
     if (isCorrect) {
+      // Sistem doğru diyor - direkt kabul et
       const isFireMode = combo >= COMBO_FOR_FIRE_MODE;
       const points = isFireMode ? 25 : 10;
       setScore(prev => prev + points);
       setCombo(prev => prev + 1);
       setTimeLeft(prev => Math.min(MAX_TIME, prev + TIME_BONUS_PER_CORRECT));
       setFeedback({ type: 'correct', message: `+${points} Puan! +${TIME_BONUS_PER_CORRECT}sn` });
+      
+      setTimeout(generateNewWord, 500);
     } else {
-      setCombo(0);
-      setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}` });
+      // Sistem yanlış diyor - AI'ya sor
+      setIsAiChecking(true);
+      setFeedback({ type: 'ai-checking', message: '🤖 AI kontrol ediyor... Belki doğrudur!' });
+      
+      try {
+        const aiResult = await checkWithAI(answer, currentWord.headword, currentWord.turkish);
+        
+        if (aiResult) {
+          // AI doğru diyor - kabul et
+          const isFireMode = combo >= COMBO_FOR_FIRE_MODE;
+          const points = (isFireMode ? 25 : 10) + 5; // AI bonus +5 puan
+          setScore(prev => prev + points);
+          setCombo(prev => prev + 1);
+          setTimeLeft(prev => Math.min(MAX_TIME, prev + TIME_BONUS_PER_CORRECT));
+          setFeedback({ type: 'ai-correct', message: `AI Onayladı! +${points} Puan! 🤖` });
+        } else {
+          // AI de yanlış diyor
+          setCombo(0);
+          setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}` });
+        }
+      } catch (error) {
+        // AI hatası - sistem cevabını kullan
+        setCombo(0);
+        setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}` });
+      }
+      
+      setIsAiChecking(false);
+      setTimeout(generateNewWord, 1500);
     }
-    
-    setTimeout(generateNewWord, 500);
   };
 
   const isFireMode = combo >= COMBO_FOR_FIRE_MODE;
@@ -106,6 +318,11 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
         >
           <h1 className="text-5xl font-extrabold mb-2 text-cyan-400">Hız Oyunu</h1>
           <p className="text-gray-400 mb-6">Süre dolmadan olabildiğince çok kelimeyi doğru yaz!</p>
+          <div className="bg-green-900/30 p-4 rounded-lg mb-6">
+            <h3 className="text-green-400 font-semibold mb-2">🤖 AI Kontrol!</h3>
+            <p className="text-gray-300 text-sm">Sistem yanlış derse AI hızlıca kontrol eder ve doğru cevapları onaylar!</p>
+            <p className="text-cyan-300 text-xs mt-2">AI onaylı cevaplarda +5 bonus puan!</p>
+          </div>
           <button
             onClick={startGame}
             className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl text-xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/30 active:scale-95"
@@ -194,6 +411,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
                     className="w-full p-4 text-center text-xl bg-gray-900 border-2 border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
                     autoFocus
                     autoComplete="off"
+                    disabled={isAiChecking}
                 />
             </form>
             <div className="h-12 mt-4 flex items-center justify-center">
@@ -204,9 +422,15 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }}
                             className={`flex items-center gap-2 text-lg font-semibold px-4 py-2 rounded-lg
-                                ${feedback.type === 'correct' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
+                                ${feedback.type === 'correct' ? 'bg-green-500/20 text-green-300' : 
+                                  feedback.type === 'ai-correct' ? 'bg-purple-500/20 text-purple-300' :
+                                  feedback.type === 'ai-checking' ? 'bg-blue-500/20 text-blue-300' :
+                                  'bg-red-500/20 text-red-300'}`}
                         >
-                            {feedback.type === 'correct' ? <CheckCircle /> : <XCircle />}
+                            {feedback.type === 'correct' ? <CheckCircle /> : 
+                             feedback.type === 'ai-correct' ? <Brain className="animate-pulse" /> :
+                             feedback.type === 'ai-checking' ? <Brain className="animate-spin" /> :
+                             <XCircle />}
                             {feedback.message}
                         </motion.div>
                     )}

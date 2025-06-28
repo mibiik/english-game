@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { WordDetail } from '../../data/words';
-import { getDefinitionsForWords } from '../../services/geminiService';
+import { definitionCacheService } from '../../services/definitionCacheService';
 import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2 } from 'lucide-react';
 
 interface LearningModeProps {
@@ -56,6 +56,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   
   useEffect(() => {
     setCurrentIndex(0);
+    setDefinitions({}); // Ünite değişince definitions'ı temizle
   }, [showOnlyDifficult, words]);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         const batch = wordsToFetch.slice(i, i + batchSize);
         if (batch.length > 0) {
           try {
-            const newDefinitions = await getDefinitionsForWords(batch);
+            const newDefinitions = await definitionCacheService.getDefinitions(batch, 'en');
             setDefinitions(prev => ({ ...prev, ...newDefinitions }));
           } catch (error) {
             console.error("Error fetching batch definitions:", error);
