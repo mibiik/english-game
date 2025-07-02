@@ -51,8 +51,18 @@ function AppContent() {
 
   useEffect(() => {
     const checkModalStatus = async () => {
-      const hasSeenPopup = await userService.checkIfModalSeen();
-      if (!hasSeenPopup) {
+      // Önce localStorage kontrol et (geçiş dönemi için)
+      const hasSeenPopupLocal = localStorage.getItem('hasSeenWelcomePopupV2') || localStorage.getItem('hasSeenWelcomePopup');
+      
+      if (hasSeenPopupLocal) {
+        // Eski kullanıcı - Firebase'e de kaydet
+        await userService.markModalAsSeen();
+        return; // Modal gösterme
+      }
+      
+      // Firebase kontrolü
+      const hasSeenPopupFirebase = await userService.checkIfModalSeen();
+      if (!hasSeenPopupFirebase) {
         const timer = setTimeout(() => {
           setShowWelcomePopup(true);
         }, 5000);

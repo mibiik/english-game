@@ -99,15 +99,9 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
             onClick={async (e) => {
               if (loading) return;
               e.preventDefault();
-              if (step === 'feedback') {
-                if (!feedback.trim()) {
-                  setError('Lütfen görüş ve önerinizi yazın.');
-                  return;
-                }
-              }
               setError('');
               setLoading(true);
-              if (step === 'name') {
+              if (step === 'name' && feedback.trim()) {
                 try {
                   await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
                 } catch (error) {
