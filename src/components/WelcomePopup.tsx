@@ -32,16 +32,25 @@ const welcomeMessages = [
 
 export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
   const [name, setName] = useState('');
+  const [feedback, setFeedback] = useState('');
   const [randomMessage, setRandomMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setRandomMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
   }, []);
 
   const handleSubmit = () => {
-    if (name.trim()) {
-      onClose(name.trim());
+    if (!name.trim()) {
+      setError('Lütfen ismini yaz.');
+      return;
     }
+    if (!feedback.trim()) {
+      setError('Lütfen geri bildiriminizi yazın.');
+      return;
+    }
+    setError('');
+    onClose(name.trim());
   };
 
   return (
@@ -64,8 +73,16 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
           className="relative z-10 w-full max-w-sm bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-8 text-center"
         >
           <button 
-            onClick={() => onClose(null)}
-            className="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors"
+            onClick={(e) => {
+              e.preventDefault();
+              if (!feedback.trim()) {
+                setError('Lütfen görüş ve önerinizi yazın.');
+                return;
+              }
+              setError('');
+              onClose(null);
+            }}
+            className="absolute top-3 right-3 text-gray-500 hover:text-gray-900 transition-colors"
             aria-label="Kapat"
           >
             <X className="w-6 h-6" />
@@ -88,23 +105,40 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
               e.preventDefault();
               handleSubmit();
             }} 
-            className="relative"
+            className="relative flex flex-col items-center"
           >
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="İsmini yaz..."
-              className="w-full p-3 pr-12 text-center text-lg bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-all"
+              className="w-full p-3 pr-12 text-center text-lg bg-gray-100 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all shadow mb-2"
+              autoFocus
             />
-            <button
-              type="submit"
-              disabled={!name.trim()}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-md bg-gray-700 hover:bg-gray-600 text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              aria-label="Devam et"
-            >
-              <ArrowRight className="w-5 h-5" />
-            </button>
+            <div className="w-full mt-2">
+              <div className="mb-2 text-blue-700 text-sm font-semibold bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
+                Merhaba! <span className="font-bold text-blue-900">Wordplay</span> hakkında ne düşünüyorsun? <br />Görüş ve önerilerini lütfen bizimle paylaş.
+              </div>
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Ne düşünüyorsun? Önerin var mı? Geri bildirimin bizim için çok değerli!"
+                className="w-full p-3 text-base bg-gray-100 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all resize-none shadow-sm mb-2"
+                rows={3}
+                required
+              />
+              <button
+                type="submit"
+                disabled={!name.trim() || !feedback.trim()}
+                className="w-full py-2 mt-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
+                aria-label="Devam et"
+              >
+                Devam et
+              </button>
+              {error && (
+                <div className="text-red-500 text-xs mt-2 text-center">{error}</div>
+              )}
+            </div>
           </form>
           
           <p className="text-xs text-gray-500 mt-5">
