@@ -65,7 +65,7 @@ function AppContent() {
       if (!hasSeenPopupFirebase) {
         const timer = setTimeout(() => {
           setShowWelcomePopup(true);
-        }, 5000);
+        }, 60000); // 1 dakika = 60000 ms
         return () => clearTimeout(timer);
       }
     };

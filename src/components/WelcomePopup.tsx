@@ -126,7 +126,7 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
           </h2>
           <p className="text-gray-300 mb-4 text-sm">
             {step === 'feedback' 
-              ? 'Görüş ve önerilerinizi bizimle paylaşır mısınız?' 
+              ? 'Daha önce doldurduysanız tekrar yapmanıza gerek yok. Görüş ve önerilerinizi bizimle paylaşır mısınız?' 
               : 'İsterseniz isminizi de öğrenebilir miyiz?'
             }
           </p>
