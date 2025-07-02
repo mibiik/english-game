@@ -50,18 +50,21 @@ function AppContent() {
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
 
   useEffect(() => {
-    const hasSeenPopup = localStorage.getItem('hasSeenWelcomePopupV2');
-    if (!hasSeenPopup) {
-      const timer = setTimeout(() => {
-        setShowWelcomePopup(true);
-      }, 5000); // 5 saniyeye düşürüldü
-
-      return () => clearTimeout(timer);
-    }
+    const checkModalStatus = async () => {
+      const hasSeenPopup = await userService.checkIfModalSeen();
+      if (!hasSeenPopup) {
+        const timer = setTimeout(() => {
+          setShowWelcomePopup(true);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
+    };
+    
+    checkModalStatus();
   }, []);
 
   const handleWelcomeClose = async (name: string | null) => {
-    localStorage.setItem('hasSeenWelcomePopupV2', 'true');
+    await userService.markModalAsSeen();
     localStorage.setItem('cookieConsent', 'true'); // Onay burada veriliyor
     
     if (name) {

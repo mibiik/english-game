@@ -37,30 +37,43 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
   const [randomMessage, setRandomMessage] = useState('');
   const [error, setError] = useState('');
   const [step, setStep] = useState<'feedback' | 'name'>('feedback');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setRandomMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
   }, []);
 
   const handleSubmit = async () => {
+    if (loading) return;
+    setLoading(true);
+    
     if (step === 'feedback') {
       if (!feedback.trim()) {
         setError('Lütfen görüş ve önerinizi yazın.');
+        setLoading(false);
         return;
       }
       setError('');
       setStep('name');
+      setLoading(false);
       return;
     }
     
     // step === 'name'
     if (!feedback.trim()) {
       setError('Lütfen geri bildiriminizi yazın.');
+      setLoading(false);
       return;
     }
     setError('');
-    await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
-    onClose(name.trim() || null);
+    try {
+      await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
+      onClose(name.trim() || null);
+    } catch (error) {
+      console.error('Firebase kayıt hatası:', error);
+      setError('Kayıt sırasında hata oluştu.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,6 +97,7 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
         >
           <button 
             onClick={async (e) => {
+              if (loading) return;
               e.preventDefault();
               if (step === 'feedback') {
                 if (!feedback.trim()) {
@@ -92,12 +106,20 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
                 }
               }
               setError('');
+              setLoading(true);
               if (step === 'name') {
-                await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
+                try {
+                  await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
+                } catch (error) {
+                  console.error('Firebase kayıt hatası:', error);
+                  setLoading(false);
+                  return;
+                }
               }
               onClose(name.trim() || null);
             }}
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+            disabled={loading}
             aria-label="Kapat"
           >
             <X className="w-6 h-6" />
@@ -135,10 +157,14 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
                 />
                 <button
                   type="submit"
-                  disabled={!feedback.trim()}
-                  className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                  disabled={!feedback.trim() || loading}
+                  className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                 >
-                  Devam Et
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    'Devam Et'
+                  )}
                 </button>
               </div>
             )}
@@ -157,18 +183,36 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
                   <button
                     type="button"
                     onClick={async () => {
-                      await userService.saveUserFeedback('Anonim', feedback.trim());
-                      onClose(null);
+                      if (loading) return;
+                      setLoading(true);
+                      try {
+                        await userService.saveUserFeedback('Anonim', feedback.trim());
+                        onClose(null);
+                      } catch (error) {
+                        console.error('Firebase kayıt hatası:', error);
+                        setError('Kayıt sırasında hata oluştu.');
+                        setLoading(false);
+                      }
                     }}
-                    className="flex-1 py-2.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white font-medium transition-all"
+                    className="flex-1 py-2.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white font-medium transition-all disabled:opacity-50 flex items-center justify-center"
+                    disabled={loading}
                   >
-                    Geç
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      'Geç'
+                    )}
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all"
+                    className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all disabled:opacity-50 flex items-center justify-center"
+                    disabled={loading}
                   >
-                    Tamamla
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      'Tamamla'
+                    )}
                   </button>
                 </div>
               </div>
