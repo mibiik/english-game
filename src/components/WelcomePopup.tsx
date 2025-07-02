@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, X } from 'lucide-react';
 import kocLogo from '../koc-logo.png';
+import { userService } from '../services/userService';
 
 interface WelcomePopupProps {
   onClose: (name: string | null) => void;
@@ -35,22 +36,31 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
   const [feedback, setFeedback] = useState('');
   const [randomMessage, setRandomMessage] = useState('');
   const [error, setError] = useState('');
+  const [step, setStep] = useState<'feedback' | 'name'>('feedback');
 
   useEffect(() => {
     setRandomMessage(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
   }, []);
 
-  const handleSubmit = () => {
-    if (!name.trim()) {
-      setError('Lütfen ismini yaz.');
+  const handleSubmit = async () => {
+    if (step === 'feedback') {
+      if (!feedback.trim()) {
+        setError('Lütfen görüş ve önerinizi yazın.');
+        return;
+      }
+      setError('');
+      setStep('name');
       return;
     }
+    
+    // step === 'name'
     if (!feedback.trim()) {
       setError('Lütfen geri bildiriminizi yazın.');
       return;
     }
     setError('');
-    onClose(name.trim());
+    await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
+    onClose(name.trim() || null);
   };
 
   return (
@@ -73,31 +83,36 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
           className="relative z-10 w-full max-w-sm bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-8 text-center"
         >
           <button 
-            onClick={(e) => {
+            onClick={async (e) => {
               e.preventDefault();
-              if (!feedback.trim()) {
-                setError('Lütfen görüş ve önerinizi yazın.');
-                return;
+              if (step === 'feedback') {
+                if (!feedback.trim()) {
+                  setError('Lütfen görüş ve önerinizi yazın.');
+                  return;
+                }
               }
               setError('');
-              onClose(null);
+              if (step === 'name') {
+                await userService.saveUserFeedback(name.trim() || 'Anonim', feedback.trim());
+              }
+              onClose(name.trim() || null);
             }}
-            className="absolute top-3 right-3 text-gray-500 hover:text-gray-900 transition-colors"
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
             aria-label="Kapat"
           >
             <X className="w-6 h-6" />
           </button>
 
-          <img src={kocLogo} alt="Koç Üniversitesi Logosu" className="w-32 h-32 mx-auto mb-6 bg-white rounded-full p-2 object-contain" />
+          <img src={kocLogo} alt="Koç Üniversitesi Logosu" className="w-24 h-24 mx-auto mb-4 bg-white rounded-full p-2 object-contain" />
 
-          <h2 className="text-3xl font-bold text-white mb-2">
-            Hoş geldin Koç'lu 😎
+          <h2 className="text-2xl font-bold text-white mb-3">
+            {step === 'feedback' ? 'Wordplay Hakkında' : 'Son Bir Adım'}
           </h2>
-          <p className="text-purple-300/80 mb-4 h-10 flex items-center justify-center">
-            {randomMessage}
-          </p>
-          <p className="text-gray-400 mb-6">
-            Sana nasıl hitap etmeliyiz?
+          <p className="text-gray-300 mb-4 text-sm">
+            {step === 'feedback' 
+              ? 'Görüş ve önerilerinizi bizimle paylaşır mısınız?' 
+              : 'İsterseniz isminizi de öğrenebilir miyiz?'
+            }
           </p>
 
           <form 
@@ -107,43 +122,62 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
             }} 
             className="relative flex flex-col items-center"
           >
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="İsmini yaz..."
-              className="w-full p-3 pr-12 text-center text-lg bg-gray-100 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all shadow mb-2"
-              autoFocus
-            />
-            <div className="w-full mt-2">
-              <div className="mb-2 text-blue-700 text-sm font-semibold bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
-                Merhaba! <span className="font-bold text-blue-900">Wordplay</span> hakkında ne düşünüyorsun? <br />Görüş ve önerilerini lütfen bizimle paylaş.
+            {step === 'feedback' && (
+              <div className="w-full">
+                <textarea
+                  value={feedback}
+                  onChange={(e) => setFeedback(e.target.value)}
+                  placeholder="Wordplay hakkında ne düşünüyorsunuz? Önerilerinizi yazın..."
+                  className="w-full p-3 text-base bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all resize-none mb-3"
+                  rows={4}
+                  required
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={!feedback.trim()}
+                  className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                >
+                  Devam Et
+                </button>
               </div>
-              <textarea
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Ne düşünüyorsun? Önerin var mı? Geri bildirimin bizim için çok değerli!"
-                className="w-full p-3 text-base bg-gray-100 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all resize-none shadow-sm mb-2"
-                rows={3}
-                required
-              />
-              <button
-                type="submit"
-                disabled={!name.trim() || !feedback.trim()}
-                className="w-full py-2 mt-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
-                aria-label="Devam et"
-              >
-                Devam et
-              </button>
-              {error && (
-                <div className="text-red-500 text-xs mt-2 text-center">{error}</div>
-              )}
-            </div>
-          </form>
-          
-          <p className="text-xs text-gray-500 mt-5">
+            )}
             
-          </p>
+            {step === 'name' && (
+              <div className="w-full">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="İsminiz (isteğe bağlı)"
+                  className="w-full p-3 text-center text-base bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all mb-3"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await userService.saveUserFeedback('Anonim', feedback.trim());
+                      onClose(null);
+                    }}
+                    className="flex-1 py-2.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white font-medium transition-all"
+                  >
+                    Geç
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all"
+                  >
+                    Tamamla
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {error && (
+              <div className="text-red-400 text-xs mt-2 text-center">{error}</div>
+            )}
+          </form>
         </motion.div>
       </div>
     </AnimatePresence>

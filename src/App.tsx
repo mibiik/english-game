@@ -50,7 +50,7 @@ function AppContent() {
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
 
   useEffect(() => {
-    const hasSeenPopup = localStorage.getItem('hasSeenWelcomePopup');
+    const hasSeenPopup = localStorage.getItem('hasSeenWelcomePopupV2');
     if (!hasSeenPopup) {
       const timer = setTimeout(() => {
         setShowWelcomePopup(true);
@@ -61,7 +61,7 @@ function AppContent() {
   }, []);
 
   const handleWelcomeClose = async (name: string | null) => {
-    localStorage.setItem('hasSeenWelcomePopup', 'true');
+    localStorage.setItem('hasSeenWelcomePopupV2', 'true');
     localStorage.setItem('cookieConsent', 'true'); // Onay burada veriliyor
     
     if (name) {

@@ -35,4 +35,15 @@ export const userService = {
       console.error("Error saving user/guest name: ", error);
     }
   },
+  saveUserFeedback: async (name: string, feedback: string): Promise<void> => {
+    try {
+      await addDoc(collection(db, 'feedbacks'), {
+        name: name,
+        feedback: feedback,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error saving feedback: ", error);
+    }
+  },
 }; 
