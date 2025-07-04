@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { WordDetail } from '../../data/words';
 import { definitionCacheService } from '../../services/definitionCacheService';
-import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2 } from 'lucide-react';
 
 interface LearningModeProps {
   words: WordDetail[];
@@ -146,6 +146,16 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + wordsToDisplay.length) % wordsToDisplay.length);
   };
 
+  const speakWord = (word: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('Tarayıcınız metin okuma özelliğini desteklemiyor.');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-128px)] bg-black text-white p-4 sm:p-6">
       
@@ -181,6 +191,9 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                 <h2 className="text-4xl sm:text-5xl font-bold text-cyan-400 tracking-wider">
                     {currentWord.headword}
                 </h2>
+                <button onClick={() => speakWord(currentWord.headword)} className="text-gray-400 hover:text-cyan-400 transition-colors">
+                    <Volume2 size={30} />
+                </button>
                 <button onClick={() => toggleDifficultWord(currentWord.headword)} className="group">
                     <Star 
                         className={`transition-all duration-200 ${difficultWords.includes(currentWord.headword) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600 hover:text-yellow-400'}`}
