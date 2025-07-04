@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, RotateCcw, Eye, EyeOff, Star } from 'lucide-react';
 import { WordDetail } from '../../data/words';
+import { gameStateManager } from '../../lib/utils';
+import { updateWordDifficulty } from '../../data/difficultWords';
+import { learningStatsTracker } from '../../data/learningStats';
 
 interface FlashCardProps {
   words: WordDetail[];
+}
+
+interface GameState {
+  currentIndex: number;
+  showTranslation: boolean;
+  knownWords: string[];
+  unknownWords: string[];
+  reviewMode: boolean;
 }
 
 export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
@@ -15,6 +26,42 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [repeatList, setRepeatList] = useState<WordDetail[]>([]);
   const [isRepeatMode, setIsRepeatMode] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [knownWords, setKnownWords] = useState<string[]>([]);
+  const [unknownWords, setUnknownWords] = useState<string[]>([]);
+  const [reviewMode, setReviewMode] = useState(false);
+
+  // Oyun anahtarı
+  const GAME_KEY = 'flashCard';
+
+  // İlk yükleme - localStorage'dan state'i kontrol et
+  useEffect(() => {
+    if (words.length > 0) {
+      const savedState = gameStateManager.loadGameState(GAME_KEY) as GameState | null;
+      if (savedState) {
+        setCurrentIndex(savedState.currentIndex);
+        setShowTranslation(savedState.showTranslation);
+        setKnownWords(savedState.knownWords);
+        setUnknownWords(savedState.unknownWords);
+        setReviewMode(savedState.reviewMode);
+      }
+    }
+  }, [words, GAME_KEY]);
+
+  // Her state değişikliğinde localStorage'a kaydet
+  useEffect(() => {
+    if (words.length > 0) {
+      const gameState: GameState = {
+        currentIndex,
+        showTranslation,
+        knownWords,
+        unknownWords,
+        reviewMode
+      };
+      gameStateManager.saveGameState(GAME_KEY, gameState);
+    }
+  }, [currentIndex, showTranslation, knownWords, unknownWords, reviewMode, words.length, GAME_KEY]);
 
   const startNewRound = useCallback((customList?: WordDetail[]) => {
     const base = customList && customList.length > 0 ? customList : words;
@@ -86,6 +133,10 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
 
   const currentWord = roundWords[currentWordIndex];
   const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
+
+  const currentWords = reviewMode ? 
+    words.filter(word => unknownWords.includes(word.headword)) : 
+    words;
 
   return (
     <div className="flex flex-col items-center space-y-6 p-4">

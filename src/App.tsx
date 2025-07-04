@@ -63,11 +63,11 @@ function AppContent() {
       // Firebase kontrolü
       const hasSeenPopupFirebase = await userService.checkIfModalSeen();
       if (!hasSeenPopupFirebase) {
-        const timer = setTimeout(() => {
-          setShowWelcomePopup(true);
+      const timer = setTimeout(() => {
+        setShowWelcomePopup(true);
         }, 60000); // 1 dakika = 60000 ms
-        return () => clearTimeout(timer);
-      }
+      return () => clearTimeout(timer);
+    }
     };
     
     checkModalStatus();

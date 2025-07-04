@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WordDetail } from '../../data/words';
+import { gameStateManager } from '../../lib/utils';
 import { CheckCircle, X, RotateCcw, Sparkles, ArrowRight, Brain, Flame, Trophy } from 'lucide-react';
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,6 +18,21 @@ interface Question {
   wordId: string;
 }
 
+interface GameState {
+  questions: Question[];
+  currentIndex: number;
+  selectedAnswer: string | null;
+  isCorrect: boolean | null;
+  score: number;
+  streak: number;
+  maxStreak: number;
+  showFeedback: boolean;
+  unitCompleted: boolean;
+  progress: number;
+  showHint: boolean;
+  isDarkMode: boolean;
+}
+
 export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ words, unit }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,6 +47,9 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
   const [progress, setProgress] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  
+  // Oyun anahtarı
+  const GAME_KEY = `definitionToWord_${unit}`;
   
   const gameInitialized = useRef(false);
   const previousUnit = useRef<string>('');
@@ -51,6 +70,27 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
   // Oyunu başlat - Hızlı loading ile
   const initializeGame = async () => {
     if (gameInitialized.current || words.length === 0) return;
+    
+    // Önce kaydedilmiş state'i kontrol et
+    const savedState = gameStateManager.loadGameState(GAME_KEY) as GameState | null;
+    if (savedState && savedState.questions.length > 0) {
+      // Kaydedilmiş oyun var, yükle
+      setQuestions(savedState.questions);
+      setCurrentIndex(savedState.currentIndex);
+      setSelectedAnswer(savedState.selectedAnswer);
+      setIsCorrect(savedState.isCorrect);
+      setScore(savedState.score);
+      setStreak(savedState.streak);
+      setMaxStreak(savedState.maxStreak);
+      setShowFeedback(savedState.showFeedback);
+      setUnitCompleted(savedState.unitCompleted);
+      setProgress(savedState.progress);
+      setShowHint(savedState.showHint);
+      setIsDarkMode(savedState.isDarkMode);
+      gameInitialized.current = true;
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
 
@@ -169,6 +209,27 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
     }
   }, [currentIndex, questions.length]);
 
+  // Her state değişikliğinde localStorage'a kaydet
+  useEffect(() => {
+    if (questions.length > 0 && gameInitialized.current) {
+      const gameState: GameState = {
+        questions,
+        currentIndex,
+        selectedAnswer,
+        isCorrect,
+        score,
+        streak,
+        maxStreak,
+        showFeedback,
+        unitCompleted,
+        progress,
+        showHint,
+        isDarkMode
+      };
+      gameStateManager.saveGameState(GAME_KEY, gameState);
+    }
+  }, [questions, currentIndex, selectedAnswer, isCorrect, score, streak, maxStreak, showFeedback, unitCompleted, progress, showHint, isDarkMode, GAME_KEY]);
+
   // Cevap seçildiğinde
   const handleAnswerSelect = (answer: string) => {
     if (selectedAnswer !== null) return;
@@ -204,7 +265,20 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
 
   // Oyunu yeniden başlat
   const restartGame = () => {
+    gameStateManager.clearGameState(GAME_KEY); // State'i temizle
     gameInitialized.current = false;
+    // State'leri sıfırla
+    setQuestions([]);
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setIsCorrect(null);
+    setScore(0);
+    setStreak(0);
+    setMaxStreak(0);
+    setShowFeedback(false);
+    setShowHint(false);
+    setUnitCompleted(false);
+    setProgress(0);
     initializeGame();
   };
 

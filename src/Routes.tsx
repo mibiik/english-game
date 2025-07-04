@@ -53,17 +53,17 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/paraphrase" element={<ParaphrasePage />} />
           <Route path="/preposition-mastery" element={<PrepositionMasteryGame />} />
-          <Route path="/matching-game" element={<MatchingGameWrapper words={filteredWords} />} />
-          <Route path="/sentence-completion" element={<GameWrapper component={SentenceCompletion} words={filteredWords} />} />
-          <Route path="/multiple-choice" element={<GameWrapper component={MultipleChoice} words={filteredWords} />} />
-          <Route path="/flashcard" element={<GameWrapper component={FlashCard} words={filteredWords} />} />
-          <Route path="/speaking" element={<GameWrapper component={SpeakingGame} words={filteredWords} />} />
-          <Route path="/word-race" element={<GameWrapper component={WordRace} words={filteredWords} />} />
-          <Route path="/memory-game" element={<GameWrapper component={MemoryGame} words={filteredWords} />} />
-          <Route path="/word-forms" element={<GameWrapper component={WordFormsGame} words={filteredWords} />} />
+          <Route path="/matching-game" element={<MatchingGameWrapperWithParams />} />
+          <Route path="/sentence-completion" element={<GameWrapperWithParams component={SentenceCompletion} />} />
+          <Route path="/multiple-choice" element={<GameWrapperWithParams component={MultipleChoice} />} />
+          <Route path="/flashcard" element={<GameWrapperWithParams component={FlashCard} />} />
+          <Route path="/speaking" element={<GameWrapperWithParams component={SpeakingGame} />} />
+          <Route path="/word-race" element={<GameWrapperWithParams component={WordRace} />} />
+          <Route path="/memory-game" element={<GameWrapperWithParams component={MemoryGame} />} />
+          <Route path="/word-forms" element={<GameWrapperWithParams component={WordFormsGame} />} />
           <Route path="/essay-writing" element={<EssayWritingPage />} />
-          <Route path="/definition-to-word" element={<GameWrapper component={DefinitionToWordGame} words={filteredWords} />} />
-          <Route path="/learning-mode" element={<GameWrapper component={LearningMode} words={filteredWords} />} />
+          <Route path="/definition-to-word" element={<GameWrapperWithParams component={DefinitionToWordGame} />} />
+          <Route path="/learning-mode" element={<GameWrapperWithParams component={LearningMode} />} />
         </Routes>
       </div>
     </>
@@ -127,7 +127,6 @@ function useGameParams() {
 function MatchingGameWrapperWithParams() {
   const { unit, level } = useGameParams();
   const [words, setWords] = useState<WordDetail[]>([]);
-  const [gameKey, setGameKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -136,12 +135,6 @@ function MatchingGameWrapperWithParams() {
     console.log('MatchingGame: New words count:', newWords.length);
     setWords(newWords);
     setIsLoading(false);
-    // Oyunu yeniden başlatmak için key'i değiştir
-    setGameKey(prev => {
-      const newKey = prev + 1;
-      console.log('MatchingGame: Game key updated to:', newKey);
-      return newKey;
-    });
   }, [unit, level]);
 
   if (isLoading) {
@@ -155,13 +148,12 @@ function MatchingGameWrapperWithParams() {
     );
   }
 
-  return <MatchingGameWrapper key={gameKey} words={words} />;
+  return <MatchingGameWrapper words={words} />;
 }
 
 function GameWrapperWithParams({ component }: { component: React.ComponentType<any> }) {
   const { unit, level } = useGameParams();
   const [words, setWords] = useState<WordDetail[]>([]);
-  const [gameKey, setGameKey] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -177,12 +169,6 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
     
     setWords(newWords);
     setIsLoading(false);
-    // Oyunu yeniden başlatmak için key'i değiştir
-    setGameKey(prev => {
-      const newKey = prev + 1;
-      console.log('GameWrapper: Game key updated to:', newKey);
-      return newKey;
-    });
   }, [unit, level]);
 
   if (isLoading) {
@@ -200,7 +186,7 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   console.log('GameWrapper: Rendering component:', component.name, 'with words:', words.length);
   
   try {
-    return <GameWrapper key={gameKey} component={component} words={words} />;
+    return React.createElement(component, { words, unit, level });
   } catch (error) {
     console.error('GameWrapper: Error rendering component:', component.name, error);
     return (

@@ -5,10 +5,35 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Flame, Award, BarChart2, CheckCircle, XCircle, Clock, Brain } from 'lucide-react';
 import { geminiService } from '../../services/geminiService';
 import { definitionCacheService } from '../../services/definitionCacheService';
+import { gameStateManager } from '../../lib/utils';
+import { learningStatsTracker } from '../../data/learningStats';
+import { updateWordDifficulty } from '../../data/difficultWords';
+import { CheckCircle as CheckCircleIcon, X, Timer, Trophy, Target, RefreshCw, Clock as ClockIcon } from 'lucide-react';
 
 interface SpeedGameProps {
   words: WordDetail[];
   unit: string;
+}
+
+interface Question {
+  word: WordDetail;
+  options: string[];
+  correctAnswer: string;
+}
+
+interface GameState {
+  questions: Question[];
+  currentQuestionIndex: number;
+  selectedAnswer: string | null;
+  correctAnswersCount: number;
+  totalAnswered: number;
+  timeLeft: number;
+  isGameActive: boolean;
+  isGameCompleted: boolean;
+  showFeedback: boolean;
+  isCorrect: boolean | null;
+  streak: number;
+  bestStreak: number;
 }
 
 const MAX_TIME = 60; // saniye
@@ -16,15 +41,23 @@ const COMBO_FOR_FIRE_MODE = 5;
 const TIME_BONUS_PER_CORRECT = 1; // saniye
 
 export function SpeedGame({ words, unit }: SpeedGameProps) {
-  const [currentWord, setCurrentWord] = useState<WordDetail | null>(null);
-  const [userInput, setUserInput] = useState('');
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [totalAnswered, setTotalAnswered] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(MAX_TIME);
+  const [isGameActive, setIsGameActive] = useState(false);
+  const [isGameCompleted, setIsGameCompleted] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(
     () => Number(localStorage.getItem('speedGameHighScore') || '0')
   );
   const [combo, setCombo] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(MAX_TIME);
-  const [isGameActive, setIsGameActive] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect' | 'ai-checking' | 'ai-correct', message: string } | null>(null);
   const [isAiChecking, setIsAiChecking] = useState(false);
@@ -32,6 +65,12 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previousWords = useRef<WordDetail[]>([]);
   const previousUnit = useRef<string>('');
+
+  // Oyun anahtarı
+  const GAME_KEY = 'speedGame';
+  
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (score > highScore) {
@@ -53,14 +92,20 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       });
       
       // Oyunu sıfırla
-      setCurrentWord(null);
-      setUserInput('');
-      setScore(0);
-      setCombo(0);
+      setQuestions([]);
+      setCurrentQuestionIndex(0);
+      setSelectedAnswer(null);
+      setCorrectAnswersCount(0);
+      setTotalAnswered(0);
       setTimeLeft(MAX_TIME);
       setIsGameActive(false);
       setGameOver(false);
-      setFeedback(null);
+      setShowFeedback(false);
+      setIsCorrect(null);
+      setStreak(0);
+      setBestStreak(0);
+      setScore(0);
+      setCombo(0);
       setIsAiChecking(false);
     }
     
@@ -214,9 +259,9 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       return;
     };
     wordTracker.markWordAsSeen(newWord);
-    setCurrentWord(newWord);
-    setUserInput('');
-    setFeedback(null);
+    setSelectedAnswer(null);
+    setShowFeedback(false);
+    setIsCorrect(null);
     setIsAiChecking(false);
   }, [words, unit]);
 
@@ -255,14 +300,14 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentWord || !isGameActive || isAiChecking) return;
+    if (!selectedAnswer || !isGameActive || isAiChecking) return;
 
-    const answer = userInput.trim();
+    const answer = selectedAnswer.trim();
     
     // Eğer cevap boşsa hiçbir şey yapma
     if (!answer) return;
     
-    const isCorrect = checkAnswer(answer, currentWord.turkish);
+    const isCorrect = checkAnswer(answer, questions[currentQuestionIndex].word.turkish);
 
     if (isCorrect) {
       // Sistem doğru diyor - direkt kabul et
@@ -280,7 +325,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       setFeedback({ type: 'ai-checking', message: '🤖 AI kontrol ediyor... Belki doğrudur!' });
       
       try {
-        const aiResult = await checkWithAI(answer, currentWord.headword, currentWord.turkish);
+        const aiResult = await checkWithAI(answer, questions[currentQuestionIndex].word.headword, questions[currentQuestionIndex].word.turkish);
         
         if (aiResult) {
           // AI doğru diyor - kabul et
@@ -293,12 +338,12 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
         } else {
           // AI de yanlış diyor
           setCombo(0);
-          setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}` });
+          setFeedback({ type: 'incorrect', message: `Doğru: ${questions[currentQuestionIndex].word.turkish}` });
         }
       } catch (error) {
         // AI hatası - sistem cevabını kullan
         setCombo(0);
-        setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}` });
+        setFeedback({ type: 'incorrect', message: `Doğru: ${questions[currentQuestionIndex].word.turkish}` });
       }
       
       setIsAiChecking(false);
@@ -389,7 +434,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
         <div className="bg-gray-800/80 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-gray-700 text-center">
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={currentWord?.headword}
+                    key={questions[currentQuestionIndex]?.word.headword}
                     initial={{ opacity: 0, y: 30, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -30, scale: 0.9 }}
@@ -397,7 +442,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
                     className="relative"
                 >
                     <div className="text-6xl font-extrabold tracking-wide text-white mb-8" style={{ textShadow: "0 0 20px rgba(255,255,255,0.3)" }}>
-                        {currentWord?.headword}
+                        {questions[currentQuestionIndex]?.word.headword}
                     </div>
                 </motion.div>
             </AnimatePresence>
@@ -405,8 +450,8 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
                 <input
                     ref={inputRef}
                     type="text"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
+                    value={selectedAnswer || ''}
+                    onChange={(e) => setSelectedAnswer(e.target.value)}
                     placeholder="Hızlıca yaz..."
                     className="w-full p-4 text-center text-xl bg-gray-900 border-2 border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
                     autoFocus
@@ -427,7 +472,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
                                   feedback.type === 'ai-checking' ? 'bg-blue-500/20 text-blue-300' :
                                   'bg-red-500/20 text-red-300'}`}
                         >
-                            {feedback.type === 'correct' ? <CheckCircle /> : 
+                            {feedback.type === 'correct' ? <CheckCircleIcon /> : 
                              feedback.type === 'ai-correct' ? <Brain className="animate-pulse" /> :
                              feedback.type === 'ai-checking' ? <Brain className="animate-spin" /> :
                              <XCircle />}

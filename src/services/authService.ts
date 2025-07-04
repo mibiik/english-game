@@ -6,7 +6,8 @@ import {
   User as FirebaseUser,
   updateProfile as firebaseUpdateProfile
 } from "firebase/auth";
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 class AuthService {
   private static instance: AuthService;
@@ -45,6 +46,10 @@ class AuthService {
   public async login(email: string, password: string): Promise<FirebaseUser> {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Giriş olayını kaydet
+      if (userCredential.user) {
+        await this.logLoginEvent(userCredential.user.uid, userCredential.user.email, userCredential.user.displayName);
+      }
       return userCredential.user;
     } catch (error) {
       console.error('Kullanıcı girişi sırasında hata oluştu:', error);
@@ -92,6 +97,23 @@ class AuthService {
     } catch (error) {
       console.error('Profil güncellenirken hata oluştu:', error);
       throw error;
+    }
+  }
+
+  // Giriş olayını kaydetmek için yeni özel fonksiyon
+  private async logLoginEvent(userId: string, email: string | null, displayName: string | null): Promise<void> {
+    try {
+      // Giriş log'larını yönetici bildirimleri için ayrı bir koleksiyona kaydediyoruz.
+      await addDoc(collection(db, "admin_notifications"), {
+        userId: userId,
+        email: email,
+        displayName: displayName,
+        timestamp: serverTimestamp(),
+        read: false // Bildirimin okunup okunmadığını takip etmek için bir alan
+      });
+    } catch (error) {
+      console.error("Giriş log'u kaydedilirken hata:", error);
+      // Loglama hatası ana giriş akışını engellememeli, bu yüzden hatayı sadece konsola yazdırıyoruz.
     }
   }
 }

@@ -165,10 +165,10 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
             
             {step === 'name' && (
               <div className="w-full">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
                   placeholder="İsminiz (isteğe bağlı)"
                   className="w-full p-3 text-center text-base bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all mb-3"
                   autoFocus
@@ -197,8 +197,8 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
                       'Geç'
                     )}
                   </button>
-                  <button
-                    type="submit"
+            <button
+              type="submit"
                     className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all disabled:opacity-50 flex items-center justify-center"
                     disabled={loading}
                   >
@@ -207,7 +207,7 @@ export const WelcomePopup: React.FC<WelcomePopupProps> = ({ onClose }) => {
                     ) : (
                       'Tamamla'
                     )}
-                  </button>
+            </button>
                 </div>
               </div>
             )}

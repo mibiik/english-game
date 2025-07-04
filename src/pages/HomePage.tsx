@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book } from 'lucide-react';
+import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, Trash2 } from 'lucide-react';
 import logo from './a.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
+import { gameStateManager } from '../lib/utils';
 
 export interface Word {
   english: string;
@@ -80,6 +81,13 @@ const gameModeDescriptions: Record<string, string> = {
 const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, currentLevel }) => {
   const unit = currentUnit;
   const level = currentLevel;
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const handleClearGameStates = () => {
+    gameStateManager.clearAllGameStates();
+    setShowClearConfirm(true);
+    setTimeout(() => setShowClearConfirm(false), 2000);
+  };
 
   const gameModes: GameMode[] = [
     { id: 'learning-mode', title: 'Öğretici Mod', icon: <Book />, link: `/learning-mode?unit=${unit}&level=${level}`, color: 'from-blue-500 to-indigo-600', shadow: 'hover:shadow-blue-500/30' },
@@ -190,6 +198,35 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               </Link>
           ))}
         </div>
+
+        {/* Devam eden oyunları temizle butonu */}
+        <motion.div 
+          className="mt-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5 }}
+        >
+          <button
+            onClick={handleClearGameStates}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 text-red-300 hover:text-red-200 rounded-lg transition-all duration-300"
+          >
+            <Trash2 className="w-4 h-4" />
+            Devam Eden Oyunları Temizle
+          </button>
+          
+          <AnimatePresence>
+            {showClearConfirm && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-2 text-green-400 text-sm"
+              >
+                ✓ Devam eden oyunlar temizlendi
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </main>
       <div className="w-full text-center mt-8 mb-4">
         <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>

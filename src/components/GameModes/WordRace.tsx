@@ -2,9 +2,26 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Trophy, CheckCircle, XCircle } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { motion, AnimatePresence } from 'framer-motion';
+import { gameStateManager } from '../../lib/utils';
+import { updateWordDifficulty } from '../../data/difficultWords';
+import { learningStatsTracker } from '../../data/learningStats';
+import { Timer, Target, RotateCcw, CheckCircle as CheckCircleIcon, X } from 'lucide-react';
 
 interface WordRaceProps {
   words: WordDetail[];
+}
+
+interface GameState {
+  currentWordIndex: number;
+  userInput: string;
+  score: number;
+  correctCount: number;
+  incorrectCount: number;
+  timeLeft: number;
+  isGameActive: boolean;
+  gameCompleted: boolean;
+  feedback: { message: string; isCorrect: boolean } | null;
+  usedWords: WordDetail[];
 }
 
 const RACE_DURATION = 90; // saniye
@@ -15,33 +32,94 @@ export function WordRace({ words }: WordRaceProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [incorrectCount, setIncorrectCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(RACE_DURATION);
   const [isGameActive, setIsGameActive] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [correctWords, setCorrectWords] = useState(0);
-  const [feedback, setFeedback] = useState<{ type: 'correct' | 'incorrect', message: string } | null>(null);
+  const [gameCompleted, setGameCompleted] = useState(false);
+  const [feedback, setFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
+  const [usedWords, setUsedWords] = useState<WordDetail[]>([]);
+
+  // Oyun anahtarı
+  const GAME_KEY = 'wordRace';
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startGame = useCallback(() => {
-    const shuffledWords = [...words].sort(() => 0.5 - Math.random());
-    setRaceWords(shuffledWords.slice(0, WORDS_IN_RACE * 2));
+    gameStateManager.clearGameState(GAME_KEY); // Yeni oyun başlarken state'i temizle
     setCurrentWordIndex(0);
     setScore(0);
     setTimeLeft(RACE_DURATION);
-    setCorrectWords(0);
-    setGameOver(false);
+    setCorrectCount(0);
+    setIncorrectCount(0);
+    setGameCompleted(false);
     setIsGameActive(true);
     setUserInput('');
     setFeedback(null);
-  }, [words]);
+    setUsedWords([]);
+  }, [GAME_KEY]);
+
+  // İlk yükleme - localStorage'dan state'i kontrol et
+  useEffect(() => {
+    if (words.length > 0) {
+      const savedState = gameStateManager.loadGameState(GAME_KEY) as GameState | null;
+      if (savedState && savedState.usedWords.length > 0) {
+        // Kaydedilmiş oyun var, yükle
+        setCurrentWordIndex(savedState.currentWordIndex);
+        setUserInput(savedState.userInput);
+        setScore(savedState.score);
+        setCorrectCount(savedState.correctCount);
+        setIncorrectCount(savedState.incorrectCount);
+        setTimeLeft(savedState.timeLeft);
+        setIsGameActive(savedState.isGameActive);
+        setGameCompleted(savedState.gameCompleted);
+        setFeedback(savedState.feedback);
+        setUsedWords(savedState.usedWords);
+        
+        // Eğer oyun aktifse timer'ı yeniden başlat
+        if (savedState.isGameActive && savedState.timeLeft > 0) {
+          // Timer'ı başlat
+          timerRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+              if (prev <= 1) {
+                setGameCompleted(true);
+                setIsGameActive(false);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+      }
+    }
+  }, [words, GAME_KEY]);
+
+  // Her state değişikliğinde localStorage'a kaydet
+  useEffect(() => {
+    if (words.length > 0 && (isGameActive || gameCompleted)) {
+      const gameState: GameState = {
+        currentWordIndex,
+        userInput,
+        score,
+        correctCount,
+        incorrectCount,
+        timeLeft,
+        isGameActive,
+        gameCompleted,
+        feedback,
+        usedWords
+      };
+      gameStateManager.saveGameState(GAME_KEY, gameState);
+    }
+  }, [currentWordIndex, userInput, score, correctCount, incorrectCount, timeLeft, isGameActive, gameCompleted, feedback, usedWords, words.length, GAME_KEY]);
 
   useEffect(() => {
     if(isGameActive) inputRef.current?.focus();
   }, [isGameActive]);
 
   const endGame = useCallback(() => {
-    setGameOver(true);
+    setGameCompleted(true);
     setIsGameActive(false);
   }, []);
 
@@ -75,11 +153,11 @@ export function WordRace({ words }: WordRaceProps) {
     if (isCorrect) {
       const points = 10 + Math.floor(timeLeft / 15);
       setScore(prev => prev + points);
-      setCorrectWords(prev => prev + 1);
-      setFeedback({ type: 'correct', message: `+${points}` });
+      setCorrectCount(prev => prev + 1);
+      setFeedback({ message: `+${points}`, isCorrect: true });
       setTimeout(nextWord, 500);
     } else {
-      setFeedback({ type: 'incorrect', message: `Doğru: ${currentWord.turkish}`});
+      setFeedback({ message: `Doğru: ${currentWord.turkish}`, isCorrect: false });
       setTimeout(nextWord, 1300);
     }
   };
@@ -98,12 +176,12 @@ export function WordRace({ words }: WordRaceProps) {
         >
           <Trophy className="w-16 h-16 mx-auto text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)] mb-4" />
           <h2 className="text-4xl font-extrabold text-white mb-2">Kelime Yarışı</h2>
-          {gameOver ? (
+          {gameCompleted ? (
             <>
               <p className="text-lg text-gray-300 mt-4">Yarış bitti!</p>
               <p className="text-5xl font-bold my-4 text-purple-400">{score}</p>
               <div className="text-gray-400">
-                {correctWords} doğru kelime ile yarışı tamamladın.
+                {correctCount} doğru kelime ile yarışı tamamladın.
               </div>
             </>
           ) : (
@@ -113,7 +191,7 @@ export function WordRace({ words }: WordRaceProps) {
             </div>
           )}
           <button onClick={startGame} className="mt-8 w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl text-xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-purple-500/30 active:scale-95">
-            {gameOver ? 'Tekrar Yarış' : 'Yarışı Başlat'}
+            {gameCompleted ? 'Tekrar Yarış' : 'Yarışı Başlat'}
           </button>
         </motion.div>
       </div>
@@ -150,7 +228,7 @@ export function WordRace({ words }: WordRaceProps) {
             {/* HUD */}
             <div className="flex justify-between items-center text-lg text-gray-300 mb-8">
                 <div>Skor: <span className="font-bold text-xl text-white">{score}</span></div>
-                <div>{correctWords} / {WORDS_IN_RACE}</div>
+                <div>{correctCount} / {WORDS_IN_RACE}</div>
                 <div className="font-bold text-xl text-white">{timeLeft}s</div>
             </div>
             
@@ -180,9 +258,9 @@ export function WordRace({ words }: WordRaceProps) {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
                             className={`flex items-center gap-2 font-semibold px-4 py-2 rounded-full text-lg
-                            ${feedback.type === 'correct' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
+                            ${feedback.isCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
                         >
-                            {feedback.type === 'correct' ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                            {feedback.isCorrect ? <CheckCircleIcon size={20} /> : <X size={20} />}
                             {feedback.message}
                         </motion.div>
                     )}

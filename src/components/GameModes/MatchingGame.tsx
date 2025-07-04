@@ -223,9 +223,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         }, 4000);
       } else {
         setTimeout(() => {
-          setShowResult(true);
+            setShowResult(true);
         }, 500);
-      }
+    }
     }
   }, [matchedPairs, gameWords, unitProgress]);
 
@@ -442,16 +442,16 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
                     theme === 'pink' ? 'bg-gradient-to-r from-pink-400 to-rose-500' :
                     'bg-gradient-to-r from-blue-500 to-cyan-500'
                   }`}
-                  style={{ width: `${unitProgress}%` }}
-                />
-              </div>
+                style={{ width: `${unitProgress}%` }}
+              />
+            </div>
               <p className={`${
                 theme === 'blue' ? 'text-blue-700' :
                 theme === 'pink' ? 'text-pink-700' :
                 'text-gray-300'
               }`}>{completedWords} / {totalUnitWords} kelime (%{unitProgress})</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4 my-6">
+          </div>
+          <div className="grid grid-cols-2 gap-4 my-6">
               <div className={`p-4 rounded-xl border ${
                 theme === 'blue' ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200' :
                 theme === 'pink' ? 'bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200' :
@@ -484,21 +484,21 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
                   'text-white'
                 }`}>{attempts > 0 ? `${Math.round((matchedPairs.length / attempts) * 100)}%` : '100%'}</p>
               </div>
-            </div>
-            <div className="flex justify-center space-x-4 mt-8">
+          </div>
+          <div className="flex justify-center space-x-4 mt-8">
               <button onClick={handleManualNewGame} className={`w-full text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ${
                 theme === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
                 theme === 'pink' ? 'bg-gradient-to-r from-pink-500 to-rose-500' :
                 'bg-gradient-to-r from-cyan-500 to-blue-500'
               }`}>
-                Devam Et
+                  Devam Et
               </button>
               <button onClick={() => navigate('/')} className="w-full text-center rounded-xl bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-slate-500 hover:to-slate-600 transition-all duration-200">
-                Ana Menü
+                  Ana Menü
               </button>
-            </div>
           </div>
         </div>
+      </div>
       </>
     );
   }
@@ -599,43 +599,43 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
                       }`}
                       style={{ width: `${unitProgress}%` }}
                     />
-                  </div>
-                </div>
-                
-                <button
-                  onClick={handleManualNewGame}
+              </div>
+            </div>
+            
+            <button
+              onClick={handleManualNewGame}
                   className={`px-3 py-1.5 rounded-lg font-medium text-white shadow hover:shadow-lg transform hover:scale-105 transition-all duration-300 text-sm ${
                     theme === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700' :
                     theme === 'pink' ? 'bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700' :
                     'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500'
                   }`}
-                  title="Sonraki Round"
-                >
-                  <ArrowRight className="w-4 h-4" />
+              title="Sonraki Round"
+            >
+                <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
-            </div>
           </div>
+        </div>
 
           <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
-            <div className="w-full md:w-1/2">
+          <div className="w-full md:w-1/2">
               <h3 className={`text-lg sm:text-xl font-bold text-center mb-2 py-1.5 rounded-lg border ${
                 theme === 'blue' ? 'text-blue-600 bg-gradient-to-r from-blue-100 to-blue-200 border-blue-300' :
                 theme === 'pink' ? 'text-pink-600 bg-gradient-to-r from-pink-100 to-pink-200 border-pink-300' :
                 'text-cyan-400'
               }`}>İNGİLİZCE</h3>
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {gameWords.filter(w => w.type === 'english').map(renderCard)}
-              </div>
+              {gameWords.filter(w => w.type === 'english').map(renderCard)}
             </div>
-            <div className="w-full md:w-1/2">
+          </div>
+          <div className="w-full md:w-1/2">
               <h3 className={`text-lg sm:text-xl font-bold text-center mb-2 py-1.5 rounded-lg border ${
                 theme === 'blue' ? 'text-indigo-600 bg-gradient-to-r from-indigo-100 to-indigo-200 border-indigo-300' :
                 theme === 'pink' ? 'text-rose-600 bg-gradient-to-r from-rose-100 to-rose-200 border-rose-300' :
                 'text-fuchsia-400'
               }`}>TÜRKÇE</h3>
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                {gameWords.filter(w => w.type === 'turkish').map(renderCard)}
+              {gameWords.filter(w => w.type === 'turkish').map(renderCard)}
               </div>
             </div>
           </div>
