@@ -188,8 +188,6 @@ class SentenceCompletionServiceClass {
     });
   }
 
-  // Eski parseResponse metodu kaldırıldı, generateDistractors metodu da kaldırıldı
-
   clearCache(): void {
     this.cache.clear();
   }

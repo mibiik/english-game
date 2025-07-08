@@ -99,12 +99,15 @@ class GeminiService {
                 }
 
             } catch (error: any) {
-                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('API key not valid')) {
-                    console.warn(`Attempt ${retries + 1} failed with an API error. Rotating key.`);
+                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('quota') || error.message?.includes('API key not valid')) {
+                    console.warn(`Attempt ${retries + 1} failed with an API error. Marking key as failed and rotating.`);
+                    // Mevcut key'i failed olarak işaretle
+                    apiKeyManager.markKeyAsFailed();
                     retries++;
                     this.updateApiKey();
                     if (retries >= maxRetries) {
-                         throw new Error(`All API keys have been rate-limited. Please try again later.`);
+                        const availableKeys = apiKeyManager.getAvailableKeysCount();
+                        throw new Error(`All API keys have been rate-limited (${availableKeys}/${12} available). Please try again later.`);
                     }
                 } else {
                     console.error("Gemini request error:", error);
@@ -148,21 +151,43 @@ class GeminiService {
 
         const prompt = `Provide a simple, one-sentence definition in English for the word: "${word}". The definition MUST NOT contain the word itself. Return ONLY the definition as a raw string.`;
 
-        try {
-            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const result = await model.generateContent(prompt);
-            const definition = result.response.text();
+        let retries = 0;
+        const maxRetries = 7; // Toplam anahtar sayısı kadar dene
 
-            if (!definition) {
-                throw new Error("No definition returned from AI.");
+        while (retries < maxRetries) {
+            try {
+                const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const result = await model.generateContent(prompt);
+                const definition = result.response.text();
+
+                if (!definition) {
+                    throw new Error("No definition returned from AI.");
+                }
+
+                setInCache(cacheKey, definition);
+                return definition;
+            } catch (error: any) {
+                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('quota') || error.message?.includes('API key not valid')) {
+                    console.warn(`Definition request attempt ${retries + 1} failed for word "${word}". Marking key as failed and rotating...`);
+                    // Mevcut key'i failed olarak işaretle
+                    apiKeyManager.markKeyAsFailed();
+                    retries++;
+                    this.updateApiKey();
+                    if (retries >= maxRetries) {
+                        const availableKeys = apiKeyManager.getAvailableKeysCount();
+                        console.error(`All API keys exhausted for word "${word}" (${availableKeys}/${12} available). Using fallback definition.`);
+                        return 'Definition temporarily unavailable due to high usage. Please try again later.';
+                    }
+                    // Kısa bir bekleme ekleyelim
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } else {
+                    console.error(`Error fetching definition for ${word}:`, error);
+                    return 'Definition could not be loaded at this time.';
+                }
             }
-
-            setInCache(cacheKey, definition);
-            return definition;
-        } catch (error) {
-            console.error(`Error fetching definition for ${word}:`, error);
-            return 'Definition could not be loaded at this time.';
         }
+        
+        return 'Definition could not be loaded after multiple attempts.';
     }
 
     public async generateText(prompt: string): Promise<string> {
@@ -177,11 +202,15 @@ class GeminiService {
                 if (!text) throw new Error('No content in response');
                 return text;
             } catch (error: any) {
-                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('API key not valid')) {
+                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('quota') || error.message?.includes('API key not valid')) {
+                    console.warn(`GenerateText attempt ${retries + 1} failed. Marking key as failed and rotating.`);
+                    // Mevcut key'i failed olarak işaretle
+                    apiKeyManager.markKeyAsFailed();
                     retries++;
                     this.updateApiKey();
                     if (retries >= maxRetries) {
-                        throw new Error(`All API keys have been rate-limited. Please try again later.`);
+                        const availableKeys = apiKeyManager.getAvailableKeysCount();
+                        throw new Error(`All API keys have been rate-limited (${availableKeys}/${12} available). Please try again later.`);
                     }
                 } else {
                     throw error;
@@ -189,6 +218,62 @@ class GeminiService {
             }
         }
         throw new Error('API request failed after multiple retries.');
+    }
+
+    // Kelime için en iyi görsel promptu oluşturma
+    public async generateBestImagePrompt(word: string, turkish: string): Promise<string> {
+        const prompt = `Create the most effective visual prompt for "${word}" (${turkish}):
+
+        Find the BEST way to show "${word}" visually:
+
+        - "afford" = person pointing at expensive car but wallet empty, disappointed expression
+        - "happy" = person dancing with arms up, big smile, very joyful celebration
+        - "tired" = person yawning with heavy eyelids, exhausted sleepy look
+        - "available" = person raising hand "I can help", welcoming open gesture
+        - "busy" = person doing 5 tasks simultaneously, papers everywhere, overwhelmed
+        - "big" = tiny person standing next to giant elephant, size comparison
+        - "study" = person focused reading books at desk, concentrated learning
+        - "angry" = person with red face, steam from ears, very mad
+        - "cold" = person shivering, breath visible, bundled in coat
+        - "hot" = person sweating heavily, wiping sweat
+        - "beautiful" = person amazed at gorgeous view, wonder expression
+        - "difficult" = person struggling with complex puzzle, frustrated
+
+        For "${word}" (${turkish}): Create a clear, beautiful scene that instantly shows the meaning.
+
+        Style: High-quality digital art, clear composition, vibrant colors, perfect lighting.
+
+        Return ONLY the image prompt, maximum 100 characters.`;
+
+        try {
+            return await this.generateText(prompt);
+        } catch (error) {
+            console.error('Error generating image prompt:', error);
+            throw error;
+        }
+    }
+
+    // Resim URL'si oluşturma (Pollinations.ai kullanarak)
+    public generateImageUrl(prompt: string): string {
+        const encodedPrompt = encodeURIComponent(prompt);
+        return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true`;
+    }
+
+    // Kelime için görsel oluşturma
+    public async generateVisualAssociation(word: string, turkish: string): Promise<{ imageUrl: string; prompt: string }> {
+        try {
+            // Sadece resim promptu oluştur
+            const imagePrompt = await this.generateBestImagePrompt(word, turkish);
+            const imageUrl = this.generateImageUrl(imagePrompt);
+
+            return {
+                imageUrl,
+                prompt: imagePrompt
+            };
+        } catch (error) {
+            console.error('Error generating visual association:', error);
+            throw error;
+        }
     }
 }
 

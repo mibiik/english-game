@@ -2,22 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { WordDetail } from '../../data/word4';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
-import { gameStateManager } from '../../lib/utils';
-import { CheckCircle, XCircle, ArrowRight, Trophy, Target, Palette } from 'lucide-react';
+import { CheckCircle, XCircle, Trophy, Target } from 'lucide-react';
 
 interface MultipleChoiceProps {
   words: WordDetail[];
-}
-
-interface GameState {
-  roundWords: WordDetail[];
-  currentWordIndex: number;
-  options: string[];
-  selectedAnswer: string | null;
-  isCorrect: boolean | null;
-  score: number;
-  streak: number;
-  showFeedback: boolean;
 }
 
 type Theme = 'blue' | 'pink' | 'classic';
@@ -77,9 +65,6 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
 
   const themeClasses = getThemeClasses(theme);
   
-  // Oyun anahtarı
-  const GAME_KEY = 'multipleChoice';
-  
   const shuffleArray = useCallback(<T,>(array: T[]): T[] => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -118,67 +103,22 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   }, [words, shuffleArray, generateOptions]);
 
   const startNewGame = useCallback(() => {
-    gameStateManager.clearGameState(GAME_KEY); // Yeni oyun başlarken eski state'i temizle
     startNewRound();
-  }, [startNewRound, GAME_KEY]);
+  }, [startNewRound]);
 
-  // İlk yükleme - localStorage'dan state'i kontrol et
+  // İlk yükleme - her zaman yeni oyun başlat
   useEffect(() => {
     if (words.length > 0) {
-      const savedState = gameStateManager.loadGameState(GAME_KEY) as GameState | null;
-      if (savedState && savedState.roundWords.length > 0 && savedState.currentWordIndex < savedState.roundWords.length) {
-        // Kaydedilmiş oyun var, yükle
-        console.log('Kaydedilmiş oyun yükleniyor:', savedState);
-        setRoundWords(savedState.roundWords);
-        setCurrentWordIndex(savedState.currentWordIndex);
-        setOptions(savedState.options);
-        setSelectedAnswer(savedState.selectedAnswer);
-        setIsCorrect(savedState.isCorrect);
-        setScore(savedState.score);
-        setStreak(savedState.streak);
-        setShowFeedback(savedState.showFeedback);
+      // Her zaman yeni oyun başlat
+      setTimeout(() => {
+        startNewRound();
         setIsLoading(false);
-      } else {
-        // Kaydedilmiş oyun yok, yeni oyun başlat
-        console.log('Yeni oyun başlatılıyor');
-        setTimeout(() => {
-      startNewRound();
-          setIsLoading(false);
-        }, 100); // Kısa bir delay ile yeni oyun başlat
-      }
+      }, 100);
     }
-  }, [words, startNewRound, GAME_KEY]);
+  }, [words, startNewRound]);
 
-  // Her state değişikliğinde localStorage'a kaydet
-  useEffect(() => {
-    if (roundWords.length > 0 && !isLoading) {
-      const gameState: GameState = {
-        roundWords,
-        currentWordIndex,
-        options,
-        selectedAnswer,
-        isCorrect,
-        score,
-        streak,
-        showFeedback
-      };
-      gameStateManager.saveGameState(GAME_KEY, gameState);
-    }
-  }, [roundWords, currentWordIndex, options, selectedAnswer, isCorrect, score, streak, showFeedback, GAME_KEY, isLoading]);
-
-  const handleNextWord = useCallback(() => {
-    const nextIndex = currentWordIndex + 1;
-    
-    if (nextIndex >= roundWords.length) {
-      return;
-    }
-
-    setCurrentWordIndex(nextIndex);
-    generateOptions(roundWords, nextIndex);
-    setSelectedAnswer(null);
-    setIsCorrect(null);
-    setShowFeedback(false);
-  }, [roundWords, currentWordIndex, generateOptions]);
+  // En başa kaydır - TÜM HOOK'LAR burada, koşullu return'lerden ÖNCE
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const handleAnswerSelect = (answer: string) => {
     if (selectedAnswer !== null) return;
@@ -206,6 +146,20 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     }, correct ? 1000 : 1500);
   };
 
+  const handleNextWord = useCallback(() => {
+    const nextIndex = currentWordIndex + 1;
+    
+    if (nextIndex >= roundWords.length) {
+      return;
+    }
+
+    setCurrentWordIndex(nextIndex);
+    generateOptions(roundWords, nextIndex);
+    setSelectedAnswer(null);
+    setIsCorrect(null);
+    setShowFeedback(false);
+  }, [roundWords, currentWordIndex, generateOptions]);
+
   const getButtonStyle = (option: string) => {
     if (selectedAnswer === null) {
       return `${themeClasses.buttonBase} transform hover:scale-[1.02] cursor-pointer shadow-sm hover:shadow-md`;
@@ -221,6 +175,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     return `${themeClasses.buttonBase} opacity-40 cursor-not-allowed`;
   };
 
+  // KOŞULLU RETURN'LER TÜM HOOK'LARDAN SONRA
   if (roundWords.length === 0) {
     if (isLoading) {
     return (
@@ -245,9 +200,6 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const isGameComplete = currentWordIndex >= roundWords.length - 1 && selectedAnswer !== null;
   const currentWord = roundWords[currentWordIndex];
   const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
-
-  // En başa kaydır
-  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>

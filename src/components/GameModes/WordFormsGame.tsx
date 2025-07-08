@@ -61,84 +61,63 @@ const getThemeClasses = (theme: Theme) => {
     }
 };
 
-const generateQuestionsFromApi = async (words: WordDetail[]): Promise<WordFormQuestion[]> => {
+const generateWordFormQuestions = async (words: WordDetail[]): Promise<WordFormQuestion[]> => {
     if (words.length === 0) return [];
 
-    const wordsWithForms = words.map((word, index) => {
-        const availableForms = Object.entries(word.forms)
-            .flatMap(([type, formList]) => formList.map(form => ({ type, form })));
-
-        // Base word'ü de available forms'a ekle
-        availableForms.push({ type: 'base', form: word.headword });
-
-        if (availableForms.length === 0) return null;
-
-        // Form türlerini grupla ve açıkla
-        const groupedForms = {
-            base: [word.headword],
-            verbs: word.forms.verb || [],
-            nouns: word.forms.noun || [], 
-            adjectives: word.forms.adjective || [],
-            adverbs: word.forms.adverb || []
-        };
-
-        const formDetails = Object.entries(groupedForms)
-            .filter(([type, forms]) => forms.length > 0)
-            .map(([type, forms]) => `${type}: [${forms.join(', ')}]`)
-            .join(', ');
-
-        const allForms = availableForms.map(f => f.form).join(', ');
+    // Her kelimeden rastgele bir form seç
+    const selectedForms = words.map(word => {
+        const allForms = [];
         
-        // Her kelime için farklı bir preference hint ekle
-        const preferences = ['verb forms', 'noun forms', 'adjective forms', 'adverb forms', 'base form'];
-        const preferredType = preferences[index % preferences.length];
-        
-        return `Word ${index + 1}: "${word.headword}" - PREFER ${preferredType} if available! 
-        Form Categories: {${formDetails}}, All Available Forms: [${allForms}]`;
-    }).filter(Boolean).join('\n');
-
-    if (!wordsWithForms) return [];
-    
-    const prompt = `
-    Kelime Formu Çeşitliliği Zorunluluğu: Her soru için farklı tip kelime formu kullan.
-
-    Mevcut kelimeler ve formları:
-    ${wordsWithForms}
-
-    ZORUNLU ÇEŞITLILIK KURALLARI:
-    1. HER kelime için "Available Forms" listesinden RASTGELE bir form seç
-    2. SADECE base word kullanma - MUTLAKA farklı formları tercih et
-    3. Verb, noun, adjective, adverb formlarını eşit oranda dağıt
-    4. Aynı form tipini üst üste kullanma
-    5. Her kelime için doğal bir cümle yaz ve seçilen formu '___' ile değiştir
-
-    FORM DAĞILIMI ZORUNU:
-    - %20 base forms (headword)
-    - %30 verb forms (if available) 
-    - %25 noun forms (if available)
-    - %15 adjective forms (if available)
-    - %10 adverb forms (if available)
-
-    ÇEŞITLILIK ÖRNEKLERİ:
-    ✅ "compete" kelimesi: "competition" (noun) seç → "The ___ was fierce."
-    ✅ "create" kelimesi: "creatively" (adverb) seç → "She works ___."
-    ✅ "beauty" kelimesi: "beautiful" (adj) seç → "The view is ___."
-    ❌ Hep base word seçme!
-
-    SADECE JSON array döndür:
-    [
-        {
-        "sentence": "The ___ lasted hours.",
-        "baseWord": "compete",
-        "correctAnswer": "competition"
-        },
-        {
-        "sentence": "He solved it ___.",
-        "baseWord": "create", 
-        "correctAnswer": "creatively"
+        // Tüm formları topla
+        if (word.forms.verb && word.forms.verb.length > 0) {
+            allForms.push(...word.forms.verb.map(form => ({ type: 'verb', form })));
         }
-    ]
-    `;
+        if (word.forms.noun && word.forms.noun.length > 0) {
+            allForms.push(...word.forms.noun.map(form => ({ type: 'noun', form })));
+        }
+        if (word.forms.adjective && word.forms.adjective.length > 0) {
+            allForms.push(...word.forms.adjective.map(form => ({ type: 'adjective', form })));
+        }
+        if (word.forms.adverb && word.forms.adverb.length > 0) {
+            allForms.push(...word.forms.adverb.map(form => ({ type: 'adverb', form })));
+        }
+        
+        // Eğer form yoksa ana kelimeyi ekle
+        if (allForms.length === 0) {
+            allForms.push({ type: 'base', form: word.headword });
+        }
+        
+        // Rastgele bir form seç
+        const randomForm = allForms[Math.floor(Math.random() * allForms.length)];
+        
+        return {
+            baseWord: word.headword,
+            selectedForm: randomForm.form,
+            type: randomForm.type
+        };
+    });
+
+    // AI'ya göndermek için format
+    const formsForAI = selectedForms.map((item, index) => 
+        `${index + 1}. Word: "${item.selectedForm}" (base: ${item.baseWord})`
+    ).join('\n');
+
+    const prompt = `Create B1-B2 level English sentences for these word forms. Replace each word with "___" in the sentence.
+
+Selected forms:
+${formsForAI}
+
+Rules:
+- Create natural B1-B2 level sentences
+- Replace the selected word form with "___" (three underscores)
+- Make sure the sentence context clearly indicates which word form fits
+- Return JSON array with sentence, baseWord, and correctAnswer
+
+Example:
+Input: "competition" (base: compete)
+Output: {"sentence": "The ___ was very intense.", "baseWord": "compete", "correctAnswer": "competition"}
+
+Return ONLY JSON array:`;
 
     try {
         const results = await geminiService.makeRequest<WordFormQuestion[]>(prompt, { generationConfig: { responseMimeType: "application/json" }});
@@ -186,20 +165,20 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
             setQuestionStates([]);
             setTotalWords(words.length);
             backgroundFetchInitiated.current = false;
-        }
-
+      }
+      
         try {
             const shuffledWords = isInitialLoad ? [...words].sort(() => Math.random() - 0.5) : words;
             const initialWords = shuffledWords.slice(0, 10);
             const remainingWords = shuffledWords.slice(10);
-            const initialQuestions = await generateQuestionsFromApi(initialWords);
+            const initialQuestions = await generateWordFormQuestions(initialWords);
 
             if (initialQuestions.length === 0 && isInitialLoad) {
                 setErrorMessage('Yapay zeka bu kelimelerle soru oluşturamadı.');
                 setGameState('error');
                 return;
-            }
-
+      }
+      
             setQuestions([...initialQuestions].sort(() => Math.random() - 0.5));
             // Initialize question states
             setQuestionStates(initialQuestions.map(() => ({
@@ -211,8 +190,8 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
 
             if (remainingWords.length > 0 && !backgroundFetchInitiated.current) {
                 backgroundFetchInitiated.current = true;
-                generateQuestionsFromApi(remainingWords)
-                    .then(remainingQuestions => {
+                generateWordFormQuestions(remainingWords)
+                    .then((remainingQuestions: WordFormQuestion[]) => {
                         setQuestions(prev => [...prev, ...remainingQuestions].sort(() => Math.random() - 0.5));
                         setQuestionStates(prev => [
                             ...prev, 
@@ -223,7 +202,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                             }))
                         ]);
                     })
-                    .catch(err => console.error("Arka plan soru yükleme hatası:", err));
+                    .catch((err: any) => console.error("Arka plan soru yükleme hatası:", err));
             }
         } catch (error) {
             console.error('Failed to load questions:', error);
@@ -372,10 +351,10 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
             if (advanceTimeoutRef.current) {
                 clearTimeout(advanceTimeoutRef.current);
                 advanceTimeoutRef.current = null;
-            }
+    }
         }
     }, [currentIndex, questions.length]);
-    
+
     const handleAnswerSubmit = (e?: React.FormEvent) => {
         e?.preventDefault();
         if (gameState !== 'playing' || !userAnswer.trim()) return;
@@ -392,7 +371,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
         advanceTimeoutRef.current = setTimeout(() => {
             handleNextQuestion();
         }, correct ? 1500 : 2500);
-    };
+  };
 
     if (gameState === 'loading') {
         return (
@@ -499,6 +478,37 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     }
 
     const sentenceParts = currentQuestion.sentence.split('___');
+   
+   // Eğer ___ ile split olmazsa, alternatif formatları dene
+   let normalizedSentence = currentQuestion.sentence;
+   if (sentenceParts.length === 1) {
+       // ___ yoksa, farklı boşluk formatlarını ___ ile değiştir
+       normalizedSentence = normalizedSentence
+           .replace(/_{1,10}/g, '___')  // _ veya __ formatlarını ___ yap
+           .replace(/\[BLANK\]/g, '___') // [BLANK] formatını ___ yap
+           .replace(/\.\.\./g, '___')    // ... formatını ___ yap
+           .replace(/__+/g, '___');      // Birden fazla _ yi ___ yap
+       
+       // Yeniden split et
+       const newParts = normalizedSentence.split('___');
+       if (newParts.length > 1) {
+           sentenceParts.length = 0;
+           sentenceParts.push(...newParts);
+       }
+   }
+   
+   // Eğer hala split olmazsa, manuel boşluk ekle
+   if (sentenceParts.length === 1) {
+       // Cümlenin ortasına boşluk ekle
+       const words = currentQuestion.sentence.split(' ');
+       const midPoint = Math.floor(words.length / 2);
+       sentenceParts.length = 0;
+       sentenceParts.push(
+           words.slice(0, midPoint).join(' '),
+           words.slice(midPoint).join(' ')
+       );
+   }
+   
     const progress = ((currentIndex + 1) / totalWords) * 100;
 
     return (
@@ -712,7 +722,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                                                 </div>
                                             )}
                                         </motion.div>
-                                    )}
+                )}
                                 </AnimatePresence>
                             </div>
                         </div>

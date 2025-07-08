@@ -23,6 +23,8 @@ type LearningMethod =
 
 type SpacedRepetitionStage = 'first' | 'second' | 'third' | 'completed';
 
+// StoryTheme artık kullanılmıyor - basit görsel sistem
+
 interface WordProgress {
   word: string;
   spacedRepetition: {
@@ -30,7 +32,8 @@ interface WordProgress {
     nextReviewTime: number;
     correctCount: number;
   };
-  visualImage?: string;
+  imageUrl?: string;
+  imagePrompt?: string;
   personalConnection?: string;
   multiSensoryData?: {
     kinesthetic?: string;
@@ -93,6 +96,8 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [progress, setProgress] = useState<Record<string, WordProgress>>({});
   const [isGeneratingVisual, setIsGeneratingVisual] = useState(false);
+  const [imageLoading, setImageLoading] = useState<Record<string, boolean>>({});
+  // Hikaye teması artık kullanılmıyor
   const [showAnswer, setShowAnswer] = useState(false);
   const [sessionStats, setSessionStats] = useState({
     totalReviews: 0,
@@ -103,7 +108,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   const themeClasses = getThemeClasses(theme);
   const currentWord = words[currentWordIndex];
 
-  // Initialize progress for each word
+  // Initialize progress for each word and load story theme
   useEffect(() => {
     const initialProgress: Record<string, WordProgress> = {};
     words.forEach(word => {
@@ -122,6 +127,8 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
       }
     });
     setProgress(initialProgress);
+
+    // Hikaye teması artık kullanılmıyor
   }, [words]);
 
   // Save progress to localStorage
@@ -146,9 +153,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   const generateVisualAssociation = async (word: WordDetail) => {
     setIsGeneratingVisual(true);
     try {
-      const prompt = `"${word.headword}" kelimesi için hafızada kalıcı, komik, abartılı ve garip bir görsel sahne tarif et. Bu sahne kelimenin anlamını (${word.turkish}) hatırlatmalı. Maksimum 100 kelime, çok detaylı ve yaratıcı olsun.`;
-      
-      const visualDescription = await geminiService.generateText(prompt);
+      const visualData = await geminiService.generateVisualAssociation(word.headword, word.turkish);
       
       const currentProgress = progress[word.headword] || {
         word: word.headword,
@@ -157,7 +162,8 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
       
       saveProgress({
         ...currentProgress,
-        visualImage: visualDescription
+        imageUrl: visualData.imageUrl,
+        imagePrompt: visualData.prompt
       });
     } catch (error) {
       console.error('Visual generation failed:', error);
@@ -369,7 +375,10 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
             Görsel İlişkilendirme
           </h3>
         </div>
+        {/* Tema değiştirme artık yok */}
       </div>
+
+      {/* Tema göstergesi artık yok - her kelime kendi optimum görselini alıyor */}
 
       <div className="text-center mb-6">
         <h2 className={`text-3xl font-bold mb-2 ${themeClasses.text}`}>
@@ -379,16 +388,64 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
           {currentWord.turkish}
         </p>
 
-        {progress[currentWord.headword]?.visualImage ? (
-          <div className={`p-4 rounded-lg bg-gradient-to-r from-purple-100 to-pink-100 mb-4`}>
-            <p className={`text-gray-800 leading-relaxed`}>
-              🎭 {progress[currentWord.headword]?.visualImage}
-            </p>
+        {progress[currentWord.headword]?.imageUrl ? (
+          <div className="mb-4 space-y-4">
+            {/* Resim Önizlemesi */}
+            <div className="relative rounded-lg overflow-hidden shadow-lg bg-gray-50">
+              {imageLoading[currentWord.headword] && (
+                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Sparkles className="w-5 h-5 animate-spin" />
+                    <span>Resim yükleniyor...</span>
+                  </div>
+                </div>
+              )}
+              <img 
+                src={progress[currentWord.headword]?.imageUrl} 
+                alt={`${currentWord.headword} görsel hafıza`}
+                className="w-full max-h-80 object-contain"
+                onLoad={() => {
+                  setImageLoading(prev => ({...prev, [currentWord.headword]: false}));
+                }}
+                onLoadStart={() => {
+                  setImageLoading(prev => ({...prev, [currentWord.headword]: true}));
+                }}
+                onError={(e) => {
+                  setImageLoading(prev => ({...prev, [currentWord.headword]: false}));
+                  // Resim yüklenemezse gizle
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                AI Generated
+              </div>
+            </div>
+
+            {/* Yeniden Oluştur Butonu */}
+            <div className="text-center">
+              <button
+                onClick={() => generateVisualAssociation(currentWord)}
+                disabled={isGeneratingVisual}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium mx-auto text-sm ${themeClasses.secondaryButton}`}
+              >
+                {isGeneratingVisual ? (
+                  <>
+                    <Sparkles className="w-4 h-4 animate-spin" />
+                    Yeniden Oluşturuluyor...
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-4 h-4" />
+                    Yeniden Oluştur
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         ) : (
           <div className="mb-4">
             <p className={`text-sm ${themeClasses.text} mb-4`}>
-              Bu kelime için komik ve unutulmaz bir görsel sahne oluşturalım!
+              Bu kelime için görsel oluşturalım!
             </p>
             <button
               onClick={() => generateVisualAssociation(currentWord)}

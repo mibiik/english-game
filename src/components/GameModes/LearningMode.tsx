@@ -5,6 +5,12 @@ import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { geminiService } from '../../services/geminiService';
 import { DifficultWordsLearning } from './DifficultWordsLearning';
+// Tüm kelimeler için import
+import { allWordsWithTranslations } from '../../data/allWords';
+import { newDetailedWords_part1 as foundationWords } from '../../data/word1';
+import { newDetailedWords_part1 as preIntermediateWords } from '../../data/word2';
+import { detailedWords_part1 as upperIntermediateWords } from '../../data/word4';
+import { newDetailedWords_part1 as intermediateWords } from '../../data/words';
 
 interface LearningModeProps {
   words: WordDetail[];
@@ -113,16 +119,26 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     }
   });
 
+  // Tüm kelimeleri birleştir
+  const allDetailedWords = useMemo(() => [
+    ...foundationWords,
+    ...preIntermediateWords,
+    ...upperIntermediateWords,
+    ...intermediateWords
+  ], []);
+
   const wordsToDisplay = useMemo(() => {
     if (showOnlyDifficult) {
-      return words.filter(word => difficultWords.includes(word.headword));
+      // Tüm zorlandığı kelimeleri göster (sadece mevcut üniteden değil)
+      return allDetailedWords.filter(word => difficultWords.includes(word.headword));
     }
     return words;
-  }, [words, difficultWords, showOnlyDifficult]);
+  }, [words, difficultWords, showOnlyDifficult, allDetailedWords]);
 
-  const currentUnitDifficultWordsCount = useMemo(() => {
-    return words.filter(word => difficultWords.includes(word.headword)).length;
-  }, [words, difficultWords]);
+  // Tüm zorlandığı kelime sayısı (tüm ünitelerden)
+  const totalDifficultWordsCount = useMemo(() => {
+    return difficultWords.length;
+  }, [difficultWords]);
 
   const popoverRef = useRef<HTMLDivElement>(null);
   const themeClasses = getThemeClasses(theme);
@@ -154,12 +170,28 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     setDifficultWords(prev => {
         const isDifficult = prev.includes(headword);
         if (isDifficult) {
-            return prev.filter(word => word !== headword);
+            const newList = prev.filter(word => word !== headword);
+            
+            // Eğer "Zorlandıklarım" kısmındaysak ve kelimeyi çıkarıyorsak
+            if (showOnlyDifficult) {
+                const newWordsToDisplay = allDetailedWords.filter(word => newList.includes(word.headword));
+                
+                // Eğer liste boşalacaksa veya mevcut indeks geçersiz olacaksa
+                if (newWordsToDisplay.length === 0) {
+                    // Hiç zorlandığı kelime kalmadığında otomatik olarak "Tüm Kelimeler"e geç
+                    setTimeout(() => setShowOnlyDifficult(false), 100);
+                } else if (currentIndex >= newWordsToDisplay.length) {
+                    // İndeks aralık dışı kalacaksa son kelimeye git
+                    setCurrentIndex(newWordsToDisplay.length - 1);
+                }
+            }
+            
+            return newList;
         } else {
             return [...prev, headword];
         }
     });
-  }, []);
+  }, [showOnlyDifficult, allDetailedWords, currentIndex]);
 
   const handleWordFormClick = useCallback(async (form: string, targetId: string) => {
     if (definitionState.targetId === targetId) {
@@ -206,6 +238,9 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     setCurrentIndex(0);
     setDefinitions({});
   }, [showOnlyDifficult, words]);
+
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
     const fetchInBatches = async (wordsToFetch: string[]) => {
@@ -269,7 +304,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     }
 
     const formsArray = Object.entries(currentWord.forms).flatMap(([type, formList]) =>
-      formList.map(form => ({ type, form }))
+      (formList as string[]).map((form: string) => ({ type, form }))
     );
 
     if (formsArray.length === 0) {
@@ -332,7 +367,8 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   }
 
   if (showAdvancedLearning) {
-    const difficultWordsData = words.filter(word => difficultWords.includes(word.headword));
+    // Tüm zorlandığı kelimeleri göster (sadece mevcut üniteden değil)
+    const difficultWordsData = allDetailedWords.filter(word => difficultWords.includes(word.headword));
     return (
       <DifficultWordsLearning 
         words={difficultWordsData} 
@@ -362,9 +398,6 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
 
   const progress = wordsToDisplay.length > 0 ? Math.round(((currentIndex + 1) / wordsToDisplay.length) * 100) : 0;
 
-  // En başa kaydır
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-
   return (
     <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`}>
       <div className="w-full max-w-2xl mx-auto">
@@ -387,16 +420,16 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
             </button>
             <button onClick={() => setShowOnlyDifficult(true)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-lg transition-colors relative ${showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
                 Zorlandıklarım
-                {currentUnitDifficultWordsCount > 0 && (
+                {totalDifficultWordsCount > 0 && (
                     <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                        {currentUnitDifficultWordsCount}
+                        {totalDifficultWordsCount}
                     </span>
                 )}
             </button>
         </div>
 
         {/* Gelişmiş Öğrenme Sistemi Butonu */}
-        {currentUnitDifficultWordsCount > 0 && (
+        {totalDifficultWordsCount > 0 && (
           <div className="mb-4">
             <button 
               onClick={() => setShowAdvancedLearning(true)}
@@ -405,7 +438,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
               <Zap className="w-5 h-5" />
               Gelişmiş Öğrenme Sistemi
               <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                {currentUnitDifficultWordsCount} kelime
+                {totalDifficultWordsCount} kelime
               </span>
             </button>
           </div>
@@ -442,8 +475,12 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                         <button onClick={() => handleSpeak(currentWord.headword)} className={`transition-colors ${themeClasses.text} hover:${themeClasses.headerText}`}>
                             <Volume2 size={30} />
                         </button>
-                        <button onClick={() => toggleDifficultWord(currentWord.headword)} title="Zor olarak işaretle">
-                             <Star className={`transition-all duration-200 ${difficultWords.includes(currentWord.headword) ? `text-yellow-400 fill-yellow-400` : `${themeClasses.text} hover:text-yellow-400`}`} size={30} />
+                        <button 
+                            onClick={() => toggleDifficultWord(currentWord.headword)} 
+                            title={difficultWords.includes(currentWord.headword) ? "Zorlandıklarımdan çıkar" : "Zorlandıklarıma ekle"}
+                            className="transition-transform duration-200 hover:scale-110 active:scale-95"
+                        >
+                             <Star className={`transition-all duration-300 ${difficultWords.includes(currentWord.headword) ? `text-yellow-400 fill-yellow-400 drop-shadow-lg` : `${themeClasses.text} hover:text-yellow-400`}`} size={30} />
                         </button>
                     </div>
                 </div>
