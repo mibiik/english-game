@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { WordDetail } from '../../data/words';
 import { definitionCacheService } from '../../services/definitionCacheService';
-import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { geminiService } from '../../services/geminiService';
+import { DifficultWordsLearning } from './DifficultWordsLearning';
 
 interface LearningModeProps {
   words: WordDetail[];
