@@ -87,6 +87,7 @@ const WordFormsDisplay: React.FC<{ forms: WordDetail['forms'] }> = ({ forms }) =
 };
 
 export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
+  // ALL HOOKS MUST BE CALLED FIRST - BEFORE ANY CONDITIONAL RETURNS
   const [currentIndex, setCurrentIndex] = useState(0);
   const [definitions, setDefinitions] = useState<Record<string, string>>({});
   const [isLoadingDefinitions, setIsLoadingDefinitions] = useState(false);
@@ -102,10 +103,11 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   });
   
   const [showOnlyDifficult, setShowOnlyDifficult] = useState(false);
+  const [showAdvancedLearning, setShowAdvancedLearning] = useState(false);
   const [difficultWords, setDifficultWords] = useState<string[]>(() => {
     try {
-    const saved = localStorage.getItem('difficultWords');
-    return saved ? JSON.parse(saved) : [];
+        const saved = localStorage.getItem('difficultWords');
+        return saved ? JSON.parse(saved) : [];
     } catch (e) {
         return [];
     }
@@ -124,8 +126,63 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
 
   const popoverRef = useRef<HTMLDivElement>(null);
   const themeClasses = getThemeClasses(theme);
-
   const currentWord = useMemo(() => wordsToDisplay[currentIndex], [wordsToDisplay, currentIndex]);
+
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % wordsToDisplay.length);
+    setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
+  }, [wordsToDisplay.length]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + wordsToDisplay.length) % wordsToDisplay.length);
+    setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
+  }, [wordsToDisplay.length]);
+
+  const handleSpeak = useCallback((text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
+  const handleClosePopover = useCallback(() => {
+    setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
+  }, []);
+
+  const toggleDifficultWord = useCallback((headword: string) => {
+    setDifficultWords(prev => {
+        const isDifficult = prev.includes(headword);
+        if (isDifficult) {
+            return prev.filter(word => word !== headword);
+        } else {
+            return [...prev, headword];
+        }
+    });
+  }, []);
+
+  const handleWordFormClick = useCallback(async (form: string, targetId: string) => {
+    if (definitionState.targetId === targetId) {
+      handleClosePopover();
+      return;
+    }
+
+    setDefinitionState({ 
+      word: form, 
+      definition: null, 
+      isLoading: true, 
+      error: null, 
+      targetId: targetId 
+    });
+
+    try {
+      const definition = await geminiService.getDefinitionForWord(form);
+      setDefinitionState(prev => ({ ...prev, definition, isLoading: false }));
+    } catch (error) {
+      console.error(error);
+      setDefinitionState(prev => ({ ...prev, error: 'Failed to fetch definition.', isLoading: false }));
+    }
+  }, [definitionState.targetId, handleClosePopover]);
 
   // Fetch definition for the main headword
   useEffect(() => {
@@ -147,12 +204,12 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   
   useEffect(() => {
     setCurrentIndex(0);
-    setDefinitions({}); // Ünite değişince definitions'ı temizle
+    setDefinitions({});
   }, [showOnlyDifficult, words]);
 
   useEffect(() => {
     const fetchInBatches = async (wordsToFetch: string[]) => {
-      const batchSize = 10; // 10 kelimelik gruplar halinde çek
+      const batchSize = 10;
       setIsLoadingDefinitions(true);
 
       for (let i = 0; i < wordsToFetch.length; i += batchSize) {
@@ -171,14 +228,10 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
           }
         }
       }
-      // Tüm batch'ler bittikten sonra loading state'ini kapat
-      // Not: her batch için ayrı loading state göstermek de bir seçenek olabilir
-      // ama şimdilik genel bir loading yeterli.
       setIsLoadingDefinitions(false);
     };
 
     if (wordsToDisplay.length > 0) {
-      // Henüz tanımı olmayan veya yüklenememiş kelimeleri bul
       const wordsWithoutDefs = wordsToDisplay
         .map(w => w.headword)
         .filter(headword => !definitions[headword]);
@@ -187,79 +240,15 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         fetchInBatches(wordsWithoutDefs);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wordsToDisplay]);
+  }, [wordsToDisplay, definitions]);
 
-  const toggleDifficultWord = (headword: string) => {
-    setDifficultWords(prev => {
-        const isDifficult = prev.includes(headword);
-        if (isDifficult) {
-            return prev.filter(word => word !== headword);
-        } else {
-            return [...prev, headword];
-        }
-    });
-  };
-  
-  if (!words || words.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-white bg-gray-900 p-8 rounded-lg">
-        <h2 className="text-2xl font-bold text-red-500">Kelime bulunamadı.</h2>
-        <p className="text-gray-400 mt-2">Lütfen bir ünite seçin.</p>
-      </div>
-    );
-  }
-
-  if (showOnlyDifficult && wordsToDisplay.length === 0) {
-     return (
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-128px)] bg-black text-white p-4">
-             <div className="w-full max-w-2xl bg-gray-900 rounded-2xl p-8 text-center">
-                <h2 className="text-2xl font-bold text-cyan-400 mb-4">Zorlandığınız Kelime Yok</h2>
-                <p className="text-gray-400 mb-6">Bir kelimeyi zor olarak işaretlemek için kelime kartındaki yıldız ikonuna tıklayın.</p>
-                <button
-                    onClick={() => setShowOnlyDifficult(false)}
-                    className="px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
-                >
-                    Tüm Kelimeleri Göster
-                </button>
-             </div>
-        </div>
-    );
-  }
-
-  const progress = wordsToDisplay.length > 0 ? Math.round(((currentIndex + 1) / wordsToDisplay.length) * 100) : 0;
-  
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % wordsToDisplay.length);
-    setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-  }, [wordsToDisplay.length]);
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + wordsToDisplay.length) % wordsToDisplay.length);
-    setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-  };
-
-  const handleSpeak = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  const handleClosePopover = useCallback(() => {
-    setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-  }, []);
-
-  // Effect to handle clicks outside the popover
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        // Also check if the click is on the button that triggered it
         const targetId = definitionState.targetId;
         const triggerButton = targetId ? document.getElementById(targetId) : null;
         if (triggerButton && triggerButton.contains(event.target as Node)) {
-          return; // Don't close if the trigger button is clicked again
+          return;
         }
         handleClosePopover();
       }
@@ -274,35 +263,11 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     };
   }, [definitionState.targetId, handleClosePopover]);
 
-  const handleWordFormClick = async (form: string, targetId: string) => {
-    if (definitionState.targetId === targetId) {
-      handleClosePopover();
-      return;
-    }
-
-    setDefinitionState({ 
-      word: form, 
-      definition: null, 
-      isLoading: true, 
-      error: null, 
-      targetId: targetId 
-    });
-
-    try {
-      const definition = await geminiService.getDefinitionForWord(form);
-      setDefinitionState(prev => ({ ...prev, definition, isLoading: false }));
-    } catch (error) {
-      console.error(error);
-      setDefinitionState(prev => ({ ...prev, error: 'Failed to fetch definition.', isLoading: false }));
-    }
-  };
-
-  const renderWordForms = () => {
+  const renderWordForms = useCallback(() => {
     if (!currentWord || !currentWord.forms || Object.keys(currentWord.forms).length === 0) {
       return null;
     }
 
-    // Convert the forms object into a flat array of { type, form }
     const formsArray = Object.entries(currentWord.forms).flatMap(([type, formList]) =>
       formList.map(form => ({ type, form }))
     );
@@ -354,7 +319,51 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         </div>
       </div>
     );
-  };
+  }, [currentWord, themeClasses, theme, currentIndex, definitionState, handleWordFormClick]);
+
+  // NOW ALL CONDITIONAL RETURNS AFTER ALL HOOKS
+  if (!words || words.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-white bg-gray-900 p-8 rounded-lg">
+        <h2 className="text-2xl font-bold text-red-500">Kelime bulunamadı.</h2>
+        <p className="text-gray-400 mt-2">Lütfen bir ünite seçin.</p>
+      </div>
+    );
+  }
+
+  if (showAdvancedLearning) {
+    const difficultWordsData = words.filter(word => difficultWords.includes(word.headword));
+    return (
+      <DifficultWordsLearning 
+        words={difficultWordsData} 
+        onBack={() => setShowAdvancedLearning(false)}
+      />
+    );
+  }
+
+  if (showOnlyDifficult && wordsToDisplay.length === 0) {
+     return (
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-128px)] bg-black text-white p-4">
+             <div className="w-full max-w-2xl bg-gray-900 rounded-2xl p-8 text-center">
+                <h2 className="text-2xl font-bold text-cyan-400 mb-4">Zorlandığınız Kelime Yok</h2>
+                <p className="text-gray-400 mb-6">Bir kelimeyi zor olarak işaretlemek için kelime kartındaki yıldız ikonuna tıklayın.</p>
+                <div className="flex gap-4 justify-center">
+                  <button
+                      onClick={() => setShowOnlyDifficult(false)}
+                      className="px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+                  >
+                      Tüm Kelimeleri Göster
+                  </button>
+                </div>
+             </div>
+        </div>
+    );
+  }
+
+  const progress = wordsToDisplay.length > 0 ? Math.round(((currentIndex + 1) / wordsToDisplay.length) * 100) : 0;
+
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`}>
@@ -373,18 +382,34 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         </div>
 
         <div className={`flex items-center justify-center gap-2 p-1.5 rounded-xl mb-4 ${theme === 'classic' ? 'bg-gray-900' : 'bg-white/50'}`}>
-            <button onClick={() => setShowOnlyDifficult(false)} className={`w-full text-center px-4 py-2 text-sm font-bold rounded-lg transition-colors ${!showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
-            Tüm Kelimeler
-          </button>
-            <button onClick={() => setShowOnlyDifficult(true)} className={`w-full text-center px-4 py-2 text-sm font-bold rounded-lg transition-colors relative ${showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
-            Zorlandıklarım
+            <button onClick={() => setShowOnlyDifficult(false)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-lg transition-colors ${!showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
+                Tüm Kelimeler
+            </button>
+            <button onClick={() => setShowOnlyDifficult(true)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-lg transition-colors relative ${showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
+                Zorlandıklarım
                 {currentUnitDifficultWordsCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                         {currentUnitDifficultWordsCount}
-                </span>
-            )}
-          </button>
-      </div>
+                    </span>
+                )}
+            </button>
+        </div>
+
+        {/* Gelişmiş Öğrenme Sistemi Butonu */}
+        {currentUnitDifficultWordsCount > 0 && (
+          <div className="mb-4">
+            <button 
+              onClick={() => setShowAdvancedLearning(true)}
+              className={`w-full p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${themeClasses.button} flex items-center justify-center gap-2 shadow-lg`}
+            >
+              <Zap className="w-5 h-5" />
+              Gelişmiş Öğrenme Sistemi
+              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                {currentUnitDifficultWordsCount} kelime
+              </span>
+            </button>
+          </div>
+        )}
 
         {currentWord ? (
           <div className={`p-6 md:p-8 rounded-2xl shadow-2xl transition-colors duration-500 ${themeClasses.cardBg}`}>
@@ -399,8 +424,8 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <h2 className={`text-4xl md:text-5xl font-extrabold ${themeClasses.text} tracking-tight`}>
-                    {currentWord.headword}
-                </h2>
+                            {currentWord.headword}
+                        </h2>
                         <motion.p 
                             key={showTurkish ? 'tr' : 'hidden'}
                             initial={{ opacity: 0, y: 10 }}
@@ -415,14 +440,14 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                     </div>
                     <div className="flex items-center gap-3">
                         <button onClick={() => handleSpeak(currentWord.headword)} className={`transition-colors ${themeClasses.text} hover:${themeClasses.headerText}`}>
-                    <Volume2 size={30} />
-                </button>
+                            <Volume2 size={30} />
+                        </button>
                         <button onClick={() => toggleDifficultWord(currentWord.headword)} title="Zor olarak işaretle">
                              <Star className={`transition-all duration-200 ${difficultWords.includes(currentWord.headword) ? `text-yellow-400 fill-yellow-400` : `${themeClasses.text} hover:text-yellow-400`}`} size={30} />
-                </button>
+                        </button>
                     </div>
-            </div>
-         
+                </div>
+                
                 {/* Definition Section */}
                 <div className="mt-4">
                      <h3 className={`text-md font-semibold ${themeClasses.headerText} mb-2`}>Definition:</h3>
@@ -436,8 +461,8 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                             {mainDefinition.text}
                         </p>
                      )}
-            </div>
-            
+                </div>
+
                 {currentWord.collocations && currentWord.collocations.length > 0 && (
                     <div className="mt-4">
                          <h3 className={`text-md font-semibold ${themeClasses.headerText} mb-2`}>Örnek Kullanımlar (Collocations):</h3>
@@ -446,7 +471,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                         </p>
                     </div>
                 )}
-
+                
                 {renderWordForms()}
               </motion.div>
             </AnimatePresence>
@@ -454,33 +479,33 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         ) : (
           <div className={`p-6 md:p-8 rounded-2xl shadow-2xl transition-colors duration-500 ${themeClasses.cardBg} text-center`}>
             <h2 className={`text-2xl font-bold ${themeClasses.text}`}>Kelime yükleniyor...</h2>
-        </div>
+          </div>
         )}
 
         <div className="flex justify-between items-center mt-6">
-          <button
+            <button
               onClick={handlePrev}
               disabled={currentIndex === 0}
               className={`w-14 h-14 flex items-center justify-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${themeClasses.secondaryButton}`}
               aria-label="Önceki Kelime"
             >
               <ChevronLeft size={24} />
-          </button>
+            </button>
 
             <div className={`text-lg font-bold ${themeClasses.text}`}>
                 {currentIndex + 1} / {wordsToDisplay.length}
             </div>
 
-          <button
+            <button
               onClick={handleNext}
               disabled={currentIndex >= wordsToDisplay.length - 1}
               className={`w-14 h-14 flex items-center justify-center rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-40 disabled:cursor-not-allowed shadow-lg ${themeClasses.button}`}
               aria-label="Sonraki Kelime"
             >
               <ChevronRight size={24} />
-          </button>
+            </button>
         </div>
-        </div>
+      </div>
     </div>
   );
 }; 

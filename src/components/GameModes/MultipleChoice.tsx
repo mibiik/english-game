@@ -246,6 +246,9 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const currentWord = roundWords[currentWordIndex];
   const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
 
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   return (
     <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>
       <div className="max-w-4xl mx-auto">

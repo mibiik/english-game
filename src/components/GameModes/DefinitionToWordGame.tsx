@@ -55,6 +55,9 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
   const previousUnit = useRef<string>('');
   const previousWordsCount = useRef<number>(0);
 
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   // Rastgele seçenekler oluştur
   const generateRandomOptions = (correctWord: string, allWords: WordDetail[]): string[] => {
     const wrongOptions = allWords
@@ -357,16 +360,6 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
               }`}
             >
               Tekrar Dene
-            </button>
-            <button 
-              onClick={() => window.history.back()}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-                !isDarkMode 
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white' 
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
-            >
-              Devam Et
             </button>
           </div>
         </motion.div>

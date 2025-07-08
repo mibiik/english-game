@@ -64,7 +64,7 @@ const getThemeClasses = (theme: Theme) => {
 const generateQuestionsFromApi = async (words: WordDetail[]): Promise<WordFormQuestion[]> => {
     if (words.length === 0) return [];
 
-    const wordsWithForms = words.map(word => {
+    const wordsWithForms = words.map((word, index) => {
         const availableForms = Object.entries(word.forms)
             .flatMap(([type, formList]) => formList.map(form => ({ type, form })));
 
@@ -88,42 +88,52 @@ const generateQuestionsFromApi = async (words: WordDetail[]): Promise<WordFormQu
             .join(', ');
 
         const allForms = availableForms.map(f => f.form).join(', ');
-        return `Base Word: "${word.headword}", Form Categories: {${formDetails}}, All Available Forms: [${allForms}]`;
+        
+        // Her kelime için farklı bir preference hint ekle
+        const preferences = ['verb forms', 'noun forms', 'adjective forms', 'adverb forms', 'base form'];
+        const preferredType = preferences[index % preferences.length];
+        
+        return `Word ${index + 1}: "${word.headword}" - PREFER ${preferredType} if available! 
+        Form Categories: {${formDetails}}, All Available Forms: [${allForms}]`;
     }).filter(Boolean).join('\n');
 
     if (!wordsWithForms) return [];
     
     const prompt = `
-    You are an expert English teacher creating a word formation quiz. You must create diverse questions using ALL DIFFERENT word forms.
+    Kelime Formu Çeşitliliği Zorunluluğu: Her soru için farklı tip kelime formu kullan.
 
-    Here are the words and their available forms:
+    Mevcut kelimeler ve formları:
     ${wordsWithForms}
 
-    CRITICAL INSTRUCTIONS:
-    1. For each "Base Word", randomly pick ONE form from its "Available Forms" list
-    2. VARY your choices - use verbs, nouns, adjectives, adverbs, and base forms equally
-    3. DO NOT only choose base words - mix all form types randomly
-    4. Write a natural sentence using the chosen form
-    5. Replace the chosen form with '___' in the sentence
-    6. The 'correctAnswer' must be exactly the form you chose
+    ZORUNLU ÇEŞITLILIK KURALLARI:
+    1. HER kelime için "Available Forms" listesinden RASTGELE bir form seç
+    2. SADECE base word kullanma - MUTLAKA farklı formları tercih et
+    3. Verb, noun, adjective, adverb formlarını eşit oranda dağıt
+    4. Aynı form tipini üst üste kullanma
+    5. Her kelime için doğal bir cümle yaz ve seçilen formu '___' ile değiştir
 
-    EXAMPLES of variety you MUST achieve:
-    - Base form: "Many people ___ in marathons" → "compete"
-    - Noun form: "The ___ was fierce" → "competition"  
-    - Adjective: "She is very ___" → "competitive"
-    - Adverb: "He played ___" → "competitively"
+    FORM DAĞILIMI ZORUNU:
+    - %20 base forms (headword)
+    - %30 verb forms (if available) 
+    - %25 noun forms (if available)
+    - %15 adjective forms (if available)
+    - %10 adverb forms (if available)
 
-    ENSURE DIVERSITY: Do not favor any particular form type. Randomly select from verbs, nouns, adjectives, adverbs, and base forms.
+    ÇEŞITLILIK ÖRNEKLERİ:
+    ✅ "compete" kelimesi: "competition" (noun) seç → "The ___ was fierce."
+    ✅ "create" kelimesi: "creatively" (adverb) seç → "She works ___."
+    ✅ "beauty" kelimesi: "beautiful" (adj) seç → "The view is ___."
+    ❌ Hep base word seçme!
 
-    Your response must be ONLY a valid JSON array:
+    SADECE JSON array döndür:
     [
         {
-        "sentence": "The ___ was intense.",
+        "sentence": "The ___ lasted hours.",
         "baseWord": "compete",
         "correctAnswer": "competition"
         },
         {
-        "sentence": "She thinks ___.",
+        "sentence": "He solved it ___.",
         "baseWord": "create", 
         "correctAnswer": "creatively"
         }
@@ -155,6 +165,9 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     const backgroundFetchInitiated = useRef(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const themeClasses = getThemeClasses(theme);
+
+    // En başa kaydır
+    useEffect(() => { window.scrollTo(0, 0); }, []);
 
     const loadQuestions = useCallback(async (isInitialLoad = true) => {
       if (words.length === 0) {
@@ -704,7 +717,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                             </div>
                         </div>
                     </div>
-                </div>
+            </div>
         </div>
     </div>
   );

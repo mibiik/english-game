@@ -164,6 +164,32 @@ class GeminiService {
             return 'Definition could not be loaded at this time.';
         }
     }
+
+    public async generateText(prompt: string): Promise<string> {
+        let retries = 0;
+        const maxRetries = 7;
+        while (retries < maxRetries) {
+            try {
+                const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const result = await model.generateContent(prompt);
+                const response = result.response;
+                const text = response.text();
+                if (!text) throw new Error('No content in response');
+                return text;
+            } catch (error: any) {
+                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('API key not valid')) {
+                    retries++;
+                    this.updateApiKey();
+                    if (retries >= maxRetries) {
+                        throw new Error(`All API keys have been rate-limited. Please try again later.`);
+                    }
+                } else {
+                    throw error;
+                }
+            }
+        }
+        throw new Error('API request failed after multiple retries.');
+    }
 }
 
 export const geminiService = GeminiService.getInstance();

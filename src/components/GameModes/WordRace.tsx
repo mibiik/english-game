@@ -212,6 +212,9 @@ export function WordRace({ words }: WordRaceProps) {
     );
   }
 
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4 font-sans">
       <div className="w-full max-w-lg">

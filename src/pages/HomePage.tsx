@@ -206,35 +206,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               </Link>
           ))}
         </motion.div>
-
-        {/* Devam eden oyunları temizle butonu */}
-        <motion.div 
-          className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5 }}
-        >
-          <button
-            onClick={handleClearGameStates}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 text-red-300 hover:text-red-200 rounded-lg transition-all duration-300"
-          >
-            <Trash2 className="w-4 h-4" />
-            Devam Eden Oyunları Temizle
-          </button>
-          
-          <AnimatePresence>
-            {showClearConfirm && (
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-2 text-green-400 text-sm"
-              >
-                ✓ Devam eden oyunlar temizlendi
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </motion.div>
       </main>
       <div className="w-full text-center mt-8 mb-4">
         <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>

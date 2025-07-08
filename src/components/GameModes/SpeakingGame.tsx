@@ -26,7 +26,7 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
 
   const startNewRound = useCallback(() => {
     const shuffled = [...words].sort(() => 0.5 - Math.random());
-    setRoundWords(shuffled.slice(0, 15));
+    setRoundWords(shuffled);
     setCurrentWordIndex(0);
     setFeedback('');
     setShowResult(false);

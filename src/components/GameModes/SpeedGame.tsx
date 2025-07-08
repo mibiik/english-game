@@ -353,6 +353,9 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
 
   const isFireMode = combo >= COMBO_FOR_FIRE_MODE;
 
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   if (!isGameActive && !gameOver) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] bg-gray-900 text-white p-4">

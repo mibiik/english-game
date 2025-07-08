@@ -103,6 +103,10 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
         const initialWords = shuffledWords.slice(0, 10);
         const remainingWords = shuffledWords.slice(10);
 
+        // Tüm kelimeleri service'e gönder (şık oluşturma için)
+        const allWordHeadwords = words.map(w => w.headword);
+        SentenceCompletionService.setWordPool(allWordHeadwords);
+
         const initialQuestions = await SentenceCompletionService.generateSentenceCompletions(initialWords.map(w => w.headword));
 
         if (initialQuestions.length === 0 && isInitialLoad) {
@@ -140,6 +144,9 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
         }
     };
   }, [loadQuestions]);
+
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const handleNextQuestion = useCallback(() => {
     if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);

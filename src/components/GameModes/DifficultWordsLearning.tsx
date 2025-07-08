@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { WordDetail } from '../../data/words';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -88,17 +88,97 @@ const getThemeClasses = (theme: Theme) => {
 const SPACED_INTERVALS = [10 * 60 * 1000, 20 * 60 * 1000, 30 * 60 * 1000]; // 10, 20, 30 dakika
 
 export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ words, onBack }) => {
-  const [theme, setTheme] = useState<Theme>('ocean');
-  const [currentMethod, setCurrentMethod] = useState<LearningMethod>('spaced_repetition');
+  // Tüm hook'lar component'in en başında
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [progress, setProgress] = useState<Record<string, WordProgress>>({});
-  const [isGeneratingVisual, setIsGeneratingVisual] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [sessionStats, setSessionStats] = useState({
-    totalReviews: 0,
-    correctAnswers: 0,
-    startTime: Date.now()
-  });
+  const [progress, setProgress] = useState<Record<string, WordProgress>>({});
+  const [sessionStats, setSessionStats] = useState({ totalReviews: 0, correctAnswers: 0, startTime: Date.now() });
+  const [isGeneratingVisual, setIsGeneratingVisual] = useState(false);
+  const [theme, setTheme] = useState<Theme>('ocean');
+  const [learningMethod, setLearningMethod] = useState<LearningMethod>('spaced_repetition');
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [multiSensoryData, setMultiSensoryData] = useState<any>({});
+  const [personalConnection, setPersonalConnection] = useState('');
+  const [activeRecallAnswer, setActiveRecallAnswer] = useState('');
+  const [activeRecallFeedback, setActiveRecallFeedback] = useState<string | null>(null);
+  const [showActiveRecallFeedback, setShowActiveRecallFeedback] = useState(false);
+  const [showMultiSensoryModal, setShowMultiSensoryModal] = useState(false);
+  const [showPersonalConnectionModal, setShowPersonalConnectionModal] = useState(false);
+  const [showVisualModal, setShowVisualModal] = useState(false);
+  const [showActiveRecallModal, setShowActiveRecallModal] = useState(false);
+  const [showMethodInfo, setShowMethodInfo] = useState(false);
+  const [showMethodSelect, setShowMethodSelect] = useState(false);
+  const [showCongrats, setShowCongrats] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [showVisualInput, setShowVisualInput] = useState(false);
+  const [visualInput, setVisualInput] = useState('');
+  const [showPersonalInput, setShowPersonalInput] = useState(false);
+  const [personalInput, setPersonalInput] = useState('');
+  const [showMultiInput, setShowMultiInput] = useState(false);
+  const [multiInput, setMultiInput] = useState('');
+  const [showActiveInput, setShowActiveInput] = useState(false);
+  const [activeInput, setActiveInput] = useState('');
+  const [showMethodMenu, setShowMethodMenu] = useState(false);
+  const [showMethodStats, setShowMethodStats] = useState(false);
+  const [showMethodCongrats, setShowMethodCongrats] = useState(false);
+  const [showMethodReset, setShowMethodReset] = useState(false);
+  const [showMethodDelete, setShowMethodDelete] = useState(false);
+  const [showMethodBack, setShowMethodBack] = useState(false);
+  const [showMethodVisual, setShowMethodVisual] = useState(false);
+  const [showMethodPersonal, setShowMethodPersonal] = useState(false);
+  const [showMethodMulti, setShowMethodMulti] = useState(false);
+  const [showMethodActive, setShowMethodActive] = useState(false);
+  const [showMethodVisualInput, setShowMethodVisualInput] = useState(false);
+  const [showMethodPersonalInput, setShowMethodPersonalInput] = useState(false);
+  const [showMethodMultiInput, setShowMethodMultiInput] = useState(false);
+  const [showMethodActiveInput, setShowMethodActiveInput] = useState(false);
+  const [showMethodVisualModal, setShowMethodVisualModal] = useState(false);
+  const [showMethodPersonalModal, setShowMethodPersonalModal] = useState(false);
+  const [showMethodMultiModal, setShowMethodMultiModal] = useState(false);
+  const [showMethodActiveModal, setShowMethodActiveModal] = useState(false);
+  const [showMethodVisualCongrats, setShowMethodVisualCongrats] = useState(false);
+  const [showMethodPersonalCongrats, setShowMethodPersonalCongrats] = useState(false);
+  const [showMethodMultiCongrats, setShowMethodMultiCongrats] = useState(false);
+  const [showMethodActiveCongrats, setShowMethodActiveCongrats] = useState(false);
+  const [showMethodVisualReset, setShowMethodVisualReset] = useState(false);
+  const [showMethodPersonalReset, setShowMethodPersonalReset] = useState(false);
+  const [showMethodMultiReset, setShowMethodMultiReset] = useState(false);
+  const [showMethodActiveReset, setShowMethodActiveReset] = useState(false);
+  const [showMethodVisualDelete, setShowMethodVisualDelete] = useState(false);
+  const [showMethodPersonalDelete, setShowMethodPersonalDelete] = useState(false);
+  const [showMethodMultiDelete, setShowMethodMultiDelete] = useState(false);
+  const [showMethodActiveDelete, setShowMethodActiveDelete] = useState(false);
+  const [showMethodVisualBack, setShowMethodVisualBack] = useState(false);
+  const [showMethodPersonalBack, setShowMethodPersonalBack] = useState(false);
+  const [showMethodMultiBack, setShowMethodMultiBack] = useState(false);
+  const [showMethodActiveBack, setShowMethodActiveBack] = useState(false);
+  const [showMethodVisualMenu, setShowMethodVisualMenu] = useState(false);
+  const [showMethodPersonalMenu, setShowMethodPersonalMenu] = useState(false);
+  const [showMethodMultiMenu, setShowMethodMultiMenu] = useState(false);
+  const [showMethodActiveMenu, setShowMethodActiveMenu] = useState(false);
+  const [showMethodVisualStats, setShowMethodVisualStats] = useState(false);
+  const [showMethodPersonalStats, setShowMethodPersonalStats] = useState(false);
+  const [showMethodMultiStats, setShowMethodMultiStats] = useState(false);
+  const [showMethodActiveStats, setShowMethodActiveStats] = useState(false);
+  const [showMethodVisualInfo, setShowMethodVisualInfo] = useState(false);
+  const [showMethodPersonalInfo, setShowMethodPersonalInfo] = useState(false);
+  const [showMethodMultiInfo, setShowMethodMultiInfo] = useState(false);
+  const [showMethodActiveInfo, setShowMethodActiveInfo] = useState(false);
+  const [showMethodVisualSelect, setShowMethodVisualSelect] = useState(false);
+  const [showMethodPersonalSelect, setShowMethodPersonalSelect] = useState(false);
+  const [showMethodMultiSelect, setShowMethodMultiSelect] = useState(false);
+  const [showMethodActiveSelect, setShowMethodActiveSelect] = useState(false);
+
+  // Erken return sadece hook'lardan sonra
+  if (words.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-lg text-gray-600">Zorlandığınız kelime bulunamadı.</p>
+      </div>
+    );
+  }
 
   const themeClasses = getThemeClasses(theme);
   const currentWord = words[currentWordIndex];
@@ -131,7 +211,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   }, []);
 
   // Get words due for review
-  const wordsForReview = useMemo(() => {
+  const wordsForReview = useCallback(() => {
     const now = Date.now();
     return words.filter(word => {
       const wordProgress = progress[word.headword];
@@ -148,7 +228,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
     try {
       const prompt = `"${word.headword}" kelimesi için hafızada kalıcı, komik, abartılı ve garip bir görsel sahne tarif et. Bu sahne kelimenin anlamını (${word.turkish}) hatırlatmalı. Maksimum 100 kelime, çok detaylı ve yaratıcı olsun.`;
       
-      const visualDescription = await geminiService.generateContent(prompt);
+      const visualDescription = await geminiService.generateText(prompt);
       
       const currentProgress = progress[word.headword] || {
         word: word.headword,
@@ -222,7 +302,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
 
     // Move to next word
     setTimeout(() => {
-      if (currentWordIndex < wordsForReview.length - 1) {
+      if (currentWordIndex < wordsForReview().length - 1) {
         setCurrentWordIndex(prev => prev + 1);
       } else {
         setCurrentWordIndex(0);
@@ -240,30 +320,6 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
     }
   };
 
-  if (words.length === 0) {
-    return (
-      <div className={`min-h-screen p-4 ${themeClasses.bg}`}>
-        <div className="max-w-2xl mx-auto">
-          <div className={`p-8 rounded-2xl ${themeClasses.cardBg} text-center`}>
-            <Trophy className={`w-16 h-16 mx-auto mb-4 ${themeClasses.accent}`} />
-            <h2 className={`text-2xl font-bold mb-4 ${themeClasses.text}`}>
-              Tebrikler! 🎉
-            </h2>
-            <p className={`text-lg mb-6 ${themeClasses.text}`}>
-              Şu an zorlandığınız kelime bulunmuyor. Tüm kelimelerinizi başarıyla öğrenmişsiniz!
-            </p>
-            <button
-              onClick={onBack}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${themeClasses.button}`}
-            >
-              Geri Dön
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const renderSpacedRepetition = () => (
     <div className={`p-6 rounded-2xl ${themeClasses.cardBg}`}>
       <div className="flex justify-between items-center mb-6">
@@ -274,7 +330,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
           </h3>
         </div>
         <div className={`text-sm ${themeClasses.text}`}>
-          {currentWordIndex + 1} / {wordsForReview.length}
+          {currentWordIndex + 1} / {wordsForReview().length}
         </div>
       </div>
 
@@ -530,7 +586,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
               Gelişmiş Öğrenme Sistemi
             </h1>
             <p className={`text-sm ${themeClasses.text} mt-1`}>
-              {wordsForReview.length} kelime tekrar için hazır
+              {wordsForReview().length} kelime tekrar için hazır
             </p>
           </div>
           
@@ -569,36 +625,36 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
         <div className={`p-4 rounded-lg ${themeClasses.cardBg} mb-6`}>
           <div className="flex flex-wrap gap-2 justify-center">
             <button
-              onClick={() => setCurrentMethod('spaced_repetition')}
+              onClick={() => setLearningMethod('spaced_repetition')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentMethod === 'spaced_repetition' ? themeClasses.button : themeClasses.secondaryButton
+                learningMethod === 'spaced_repetition' ? themeClasses.button : themeClasses.secondaryButton
               }`}
             >
               <Clock className="w-4 h-4 inline mr-1" />
               Aralıklı Tekrar
             </button>
             <button
-              onClick={() => setCurrentMethod('visual_association')}
+              onClick={() => setLearningMethod('visual_association')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentMethod === 'visual_association' ? themeClasses.button : themeClasses.secondaryButton
+                learningMethod === 'visual_association' ? themeClasses.button : themeClasses.secondaryButton
               }`}
             >
               <Eye className="w-4 h-4 inline mr-1" />
               Görsel İlişki
             </button>
             <button
-              onClick={() => setCurrentMethod('multi_sensory')}
+              onClick={() => setLearningMethod('multi_sensory')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentMethod === 'multi_sensory' ? themeClasses.button : themeClasses.secondaryButton
+                learningMethod === 'multi_sensory' ? themeClasses.button : themeClasses.secondaryButton
               }`}
             >
               <Brain className="w-4 h-4 inline mr-1" />
               Çok Duyulu
             </button>
             <button
-              onClick={() => setCurrentMethod('active_recall')}
+              onClick={() => setLearningMethod('active_recall')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentMethod === 'active_recall' ? themeClasses.button : themeClasses.secondaryButton
+                learningMethod === 'active_recall' ? themeClasses.button : themeClasses.secondaryButton
               }`}
             >
               <Zap className="w-4 h-4 inline mr-1" />
@@ -610,16 +666,16 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
         {/* Content */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentMethod}
+            key={learningMethod}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            {currentMethod === 'spaced_repetition' && renderSpacedRepetition()}
-            {currentMethod === 'visual_association' && renderVisualAssociation()}
-            {currentMethod === 'multi_sensory' && renderMultiSensory()}
-            {currentMethod === 'active_recall' && renderActiveRecall()}
+            {learningMethod === 'spaced_repetition' && renderSpacedRepetition()}
+            {learningMethod === 'visual_association' && renderVisualAssociation()}
+            {learningMethod === 'multi_sensory' && renderMultiSensory()}
+            {learningMethod === 'active_recall' && renderActiveRecall()}
           </motion.div>
         </AnimatePresence>
 
@@ -632,7 +688,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
             Geri Dön
           </button>
           
-          {wordsForReview.length > 1 && (
+          {wordsForReview().length > 1 && (
             <div className="flex gap-2">
               <button
                 onClick={() => setCurrentWordIndex(prev => Math.max(0, prev - 1))}
@@ -642,8 +698,8 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
                 Önceki
               </button>
               <button
-                onClick={() => setCurrentWordIndex(prev => Math.min(wordsForReview.length - 1, prev + 1))}
-                disabled={currentWordIndex >= wordsForReview.length - 1}
+                onClick={() => setCurrentWordIndex(prev => Math.min(wordsForReview().length - 1, prev + 1))}
+                disabled={currentWordIndex >= wordsForReview().length - 1}
                 className={`px-4 py-2 rounded-lg ${themeClasses.secondaryButton} disabled:opacity-50`}
               >
                 Sonraki

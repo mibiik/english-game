@@ -162,6 +162,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     }
   }, [words, gameWords.length, showResult, startNewGame]);
 
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const handleCardClick = (card: GameWord) => {
     if (isChecking || matchedPairs.includes(card.headword)) {
       return;
@@ -486,13 +489,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
               </div>
           </div>
           <div className="flex justify-center space-x-4 mt-8">
-              <button onClick={handleManualNewGame} className={`w-full text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ${
-                theme === 'blue' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
-                theme === 'pink' ? 'bg-gradient-to-r from-pink-500 to-rose-500' :
-                'bg-gradient-to-r from-cyan-500 to-blue-500'
-              }`}>
-                  Devam Et
-              </button>
               <button onClick={() => navigate('/')} className="w-full text-center rounded-xl bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-slate-500 hover:to-slate-600 transition-all duration-200">
                   Ana Menü
               </button>

@@ -19,6 +19,7 @@ interface GameState {
 }
 
 export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
+  // Tüm hook'lar component'in en başında
   const [roundWords, setRoundWords] = useState<WordDetail[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -63,10 +64,13 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
     }
   }, [currentIndex, showTranslation, knownWords, unknownWords, reviewMode, words.length, GAME_KEY]);
 
+  // En başa kaydır
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   const startNewRound = useCallback((customList?: WordDetail[]) => {
     const base = customList && customList.length > 0 ? customList : words;
     const shuffled = [...base].sort(() => 0.5 - Math.random());
-    setRoundWords(shuffled.slice(0, 15));
+    setRoundWords(shuffled);
     setCurrentWordIndex(0);
     setIsFlipped(false);
     setScore(0);
@@ -117,12 +121,13 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
           // Tekrar listesi boşsa yeni rastgele tur başlat
           setRepeatList([]);
           setIsRepeatMode(false);
-        startNewRound();
+          startNewRound();
         }
       }
     }, 200);
   };
 
+  // Erken return sadece hook'lardan sonra
   if (roundWords.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
