@@ -46,6 +46,13 @@ export function WordRace({ words }: WordRaceProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    if (words.length > 0) {
+      const shuffled = [...words].sort(() => 0.5 - Math.random());
+      setRaceWords(shuffled.slice(0, WORDS_IN_RACE));
+    }
+  }, [words]);
+
   const startGame = useCallback(() => {
     gameStateManager.clearGameState(GAME_KEY); // Yeni oyun başlarken state'i temizle
     setCurrentWordIndex(0);
@@ -163,6 +170,13 @@ export function WordRace({ words }: WordRaceProps) {
   };
   
   const timePercentage = (timeLeft / RACE_DURATION) * 100;
+  
+  // Güvenli erişim
+  if (raceWords.length === 0) {
+    // Kelimeler henüz yüklenmediyse bir yükleme durumu gösterilebilir
+    return <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4">Yarış için kelimeler hazırlanıyor...</div>;
+  }
+
   const currentWord = raceWords[currentWordIndex];
 
   // Ana Ekran ve Oyun Bitiş Ekranı

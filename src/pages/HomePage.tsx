@@ -172,21 +172,29 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           <motion.img
             src={logo}
             alt="KoçWordPlay Logo"
-            className="absolute top-0 right-0 w-auto h-4 opacity-5 -mt-2 -mr-2 hidden lg:block"
-            animate={{ y: ["-1px", "1px"] }}
+            className="absolute -top-10 right-0 w-80 lg:w-[500px] h-auto -mr-16 hidden md:block pointer-events-none"
+            animate={{ y: ["-4px", "4px"], rotate: [-2, 2] }}
             transition={{
               repeat: Infinity,
               repeatType: "reverse",
-              duration: 3,
+              duration: 8,
               ease: "easeInOut",
             }}
           />
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
+          variants={cardContainerVariant}
+          initial="hidden"
+          animate="visible"
+        >
           {gameModes.map((mode) => (
             <Link to={mode.link} key={mode.id} className="block group">
-              <div className={`group bg-white/5 backdrop-blur-md p-5 rounded-2xl h-full border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 shadow-lg ${mode.shadow}`}>
+              <motion.div 
+                className={`group bg-white/5 backdrop-blur-md p-5 rounded-2xl h-full border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 shadow-lg ${mode.shadow}`}
+                variants={cardItemVariant}
+              >
                 <div className={`w-12 h-12 flex items-center justify-center rounded-md mb-4 bg-gradient-to-br ${mode.color}`}>
                   {React.cloneElement(mode.icon, { className: 'w-7 h-7 text-white' })}
                   </div>
@@ -194,10 +202,10 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                   <h3 className="text-xl font-bold text-white transition-colors">{mode.title}</h3>
                 </div>
                 <p className="text-gray-400 text-sm mt-2">{gameModeDescriptions[mode.id] || 'Bu mod için açıklama yakında eklenecek.'}</p>
-                </div>
+                </motion.div>
               </Link>
           ))}
-        </div>
+        </motion.div>
 
         {/* Devam eden oyunları temizle butonu */}
         <motion.div 

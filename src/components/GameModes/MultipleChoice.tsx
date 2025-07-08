@@ -3,7 +3,7 @@ import { WordDetail } from '../../data/word4';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
 import { gameStateManager } from '../../lib/utils';
-import { CheckCircle, XCircle, ArrowRight, Trophy, Target } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, Trophy, Target, Palette } from 'lucide-react';
 
 interface MultipleChoiceProps {
   words: WordDetail[];
@@ -20,6 +20,49 @@ interface GameState {
   showFeedback: boolean;
 }
 
+type Theme = 'blue' | 'pink' | 'classic';
+
+const getThemeClasses = (theme: Theme) => {
+    switch (theme) {
+        case 'blue':
+            return {
+                bg: 'bg-gradient-to-br from-sky-100 to-blue-200',
+                cardBg: 'bg-white/60 backdrop-blur-lg',
+                text: 'text-slate-800',
+                headerText: 'text-blue-700',
+                buttonBase: 'bg-white/80 hover:bg-white border border-blue-200 text-slate-700',
+                buttonCorrect: 'bg-green-500 text-white border-green-500',
+                buttonWrong: 'bg-red-500 text-white border-red-500',
+                progressFill: 'bg-blue-500',
+                statBg: 'bg-white/50 backdrop-blur-sm',
+            };
+        case 'pink':
+            return {
+                bg: 'bg-gradient-to-br from-rose-100 to-pink-200',
+                cardBg: 'bg-white/60 backdrop-blur-lg',
+                text: 'text-slate-800',
+                headerText: 'text-pink-700',
+                buttonBase: 'bg-white/80 hover:bg-white border border-pink-200 text-slate-700',
+                buttonCorrect: 'bg-green-500 text-white border-green-500',
+                buttonWrong: 'bg-red-500 text-white border-red-500',
+                progressFill: 'bg-pink-500',
+                statBg: 'bg-white/50 backdrop-blur-sm',
+            };
+        default: // classic
+            return {
+                bg: 'bg-gradient-to-br from-gray-900 to-black',
+                cardBg: 'bg-gray-800/50 backdrop-blur-lg border border-gray-700',
+                text: 'text-gray-200',
+                headerText: 'text-cyan-400',
+                buttonBase: 'bg-gray-700/80 hover:bg-gray-700 border border-gray-600 text-gray-200',
+                buttonCorrect: 'bg-green-500/80 text-white border-green-500',
+                buttonWrong: 'bg-red-500/80 text-white border-red-500',
+                progressFill: 'bg-cyan-500',
+                statBg: 'bg-gray-800/40 backdrop-blur-sm',
+            };
+    }
+};
+
 export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const [roundWords, setRoundWords] = useState<WordDetail[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -30,6 +73,9 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const [streak, setStreak] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [theme, setTheme] = useState<Theme>('blue');
+
+  const themeClasses = getThemeClasses(theme);
   
   // Oyun anahtarı
   const GAME_KEY = 'multipleChoice';
@@ -162,17 +208,17 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
 
   const getButtonStyle = (option: string) => {
     if (selectedAnswer === null) {
-      return 'bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 border-2 border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-700 transform hover:scale-[1.02] cursor-pointer shadow-sm hover:shadow-md';
+      return `${themeClasses.buttonBase} transform hover:scale-[1.02] cursor-pointer shadow-sm hover:shadow-md`;
     }
 
     const currentWord = roundWords[currentWordIndex];
     if (option === currentWord.turkish) {
-      return 'bg-gradient-to-r from-green-500 to-emerald-600 text-white border-2 border-green-400 shadow-lg shadow-green-200/50 scale-[1.02] ring-2 ring-green-300';
+      return `${themeClasses.buttonCorrect} shadow-lg scale-[1.02] ring-2`;
     }
     if (option === selectedAnswer) {
-      return 'bg-gradient-to-r from-red-500 to-rose-600 text-white border-2 border-red-400 shadow-lg shadow-red-200/50 scale-[1.02] ring-2 ring-red-300';
+      return `${themeClasses.buttonWrong} shadow-lg scale-[1.02] ring-2`;
     }
-    return 'bg-slate-50 border-2 border-slate-200 text-slate-400 opacity-50';
+    return `${themeClasses.buttonBase} opacity-40 cursor-not-allowed`;
   };
 
   if (roundWords.length === 0) {
@@ -201,17 +247,18 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4">
+    <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>
       <div className="max-w-4xl mx-auto">
         {!isGameComplete ? (
           <>
-            {/* Header Stats */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              {/* Stats */}
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-md ${themeClasses.statBg}`}>
                   <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span className="font-bold text-slate-700">{score}</span>
-                  <span className="text-slate-500">/{currentWordIndex + 1}</span>
+                  <span className={`font-bold ${themeClasses.text}`}>{score}</span>
+                  <span className={`opacity-70 ${themeClasses.text}`}>/{currentWordIndex + 1}</span>
                 </div>
                 {streak > 0 && (
                   <div className="flex items-center gap-2 bg-orange-100 rounded-full px-4 py-2 shadow-md">
@@ -220,16 +267,19 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
                   </div>
                 )}
               </div>
-              <div className="text-slate-600 font-medium">
-                {currentWordIndex + 1} / {roundWords.length}
+               {/* Theme Changer */}
+              <div className="flex items-center gap-2 p-2 rounded-full shadow-md">
+                <button onClick={() => setTheme('blue')} className={`w-7 h-7 rounded-full bg-blue-500 transition-all duration-300 ${theme === 'blue' ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`} aria-label="Mavi Tema"></button>
+                <button onClick={() => setTheme('pink')} className={`w-7 h-7 rounded-full bg-pink-500 transition-all duration-300 ${theme === 'pink' ? 'ring-2 ring-offset-2 ring-pink-500' : ''}`} aria-label="Pembe Tema"></button>
+                <button onClick={() => setTheme('classic')} className={`w-7 h-7 rounded-full bg-gray-800 border border-gray-600 transition-all duration-300 ${theme === 'classic' ? 'ring-2 ring-offset-2 ring-gray-500' : ''}`} aria-label="Karanlık Tema"></button>
               </div>
             </div>
 
             {/* Progress Bar */}
             <div className="mb-6">
-              <div className="w-full bg-slate-200 rounded-full h-2 shadow-inner">
+              <div className="w-full bg-slate-200/50 rounded-full h-2.5 shadow-inner">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out shadow-md"
+                  className={`h-2.5 rounded-full transition-all duration-500 ease-out shadow-md ${themeClasses.progressFill}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -237,45 +287,42 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
 
             {/* Question Section */}
             <div className="text-center mb-6">
-              <div className="bg-white rounded-2xl shadow-xl p-6 mb-4 transform transition-all duration-300">
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+              <div className={`rounded-2xl shadow-xl p-6 mb-4 transform transition-all duration-300 ${themeClasses.cardBg}`}>
+                <h2 className={`text-3xl md:text-4xl font-bold mb-2 ${themeClasses.headerText}`}>
                   {currentWord.headword}
                 </h2>
-                <p className="text-slate-600">Doğru Türkçe karşılığını seçin</p>
+                <p className={`${themeClasses.text}`}>Doğru Türkçe karşılığını seçin</p>
               </div>
 
               {/* Feedback - Sabit yükseklik */}
               <div className="mb-4 h-12 flex items-center justify-center">
                 {showFeedback && (
                   <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 shadow-md ${
-                    isCorrect 
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
-                      : 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                    isCorrect ? 'bg-green-100/80' : 'bg-red-100/80'
                   }`}>
                     {isCorrect ? (
-                      <>
-                        <CheckCircle className="w-5 h-5" />
-                        <span className="font-medium">Doğru! +1 puan</span>
-                      </>
+                      <CheckCircle className="w-6 h-6 text-green-600" />
                     ) : (
-                      <>
-                        <XCircle className="w-5 h-5" />
-                        <span className="font-medium">Doğrusu: {currentWord.turkish}</span>
-                      </>
+                      <XCircle className="w-6 h-6 text-red-600" />
                     )}
+                    <span className={`font-semibold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                      {isCorrect ? "Doğru!" : "Yanlış"}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Options Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 gap-4">
               {options.map((option, index) => (
                 <button
-                  key={`${currentWordIndex}-${index}-${option}`}
+                  key={index}
                   onClick={() => handleAnswerSelect(option)}
-                  className={`p-4 text-base font-medium rounded-lg transition-all duration-300 ${getButtonStyle(option)}`}
                   disabled={selectedAnswer !== null}
+                  className={`p-5 rounded-2xl text-lg font-bold transition-all duration-300 ease-in-out text-center ${getButtonStyle(
+                    option
+                  )}`}
                 >
                   {option}
                 </button>
@@ -283,40 +330,18 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
             </div>
           </>
         ) : (
-          /* Game Complete Screen */
-          <div className="text-center max-w-2xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-2xl p-8">
-              <div className="mb-6">
-                <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
-                <h3 className="text-3xl font-bold text-slate-800 mb-2">Tebrikler!</h3>
-                <p className="text-slate-600">Turu başarıyla tamamladınız</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
-                  <h4 className="text-lg font-semibold text-blue-800 mb-2">Toplam Skor</h4>
-                  <p className="text-3xl font-bold text-blue-600">{score}</p>
-                </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
-                  <h4 className="text-lg font-semibold text-green-800 mb-2">Doğruluk</h4>
-                  <p className="text-3xl font-bold text-green-600">
-                    {Math.round((score / (currentWordIndex + 1)) * 100)}%
-                  </p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
-                  <h4 className="text-lg font-semibold text-purple-800 mb-2">Kelime</h4>
-                  <p className="text-3xl font-bold text-purple-600">{currentWordIndex + 1}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={startNewGame}
-                className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl text-xl font-bold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center gap-3"
-              >
-                <ArrowRight className="w-6 h-6" />
-                Yeni Tur Başlat
-              </button>
-            </div>
+          <div className="text-center flex flex-col items-center justify-center min-h-[70vh]">
+            <Trophy className="w-24 h-24 text-yellow-400 mb-6" />
+            <h2 className={`text-4xl font-bold mb-4 ${themeClasses.headerText}`}>Oyun Bitti!</h2>
+            <p className={`text-xl mb-6 ${themeClasses.text}`}>
+              Skorunuz: <span className="font-extrabold">{score} / {roundWords.length}</span>
+            </p>
+            <button
+              onClick={startNewGame}
+              className={`px-8 py-3 rounded-lg font-semibold text-white transition-transform transform hover:scale-105 shadow-lg ${themeClasses.progressFill}`}
+            >
+              Yeniden Oyna
+            </button>
           </div>
         )}
       </div>

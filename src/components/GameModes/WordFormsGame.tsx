@@ -1,178 +1,710 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Loader2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { generateWordFormsExercise } from '../../services/geminiService';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, RefreshCw, CheckCircle, XCircle, Trophy, Play, ArrowRight, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { geminiService } from '../../services/geminiService';
 import { WordDetail } from '../../data/words';
-import { WordFormsQuestion } from '../../types';
 
 interface WordFormsGameProps {
   words: WordDetail[];
 }
 
-const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<WordFormsQuestion[]>([]);
-  const [userAnswers, setUserAnswers] = useState<string[]>([]);
-  const [isChecked, setIsChecked] = useState(false);
-  const gameInitialized = useRef(false);
+interface WordFormQuestion {
+  sentence: string;
+  baseWord: string;
+  correctAnswer: string;
+}
 
-  const fetchGameData = async () => {
-    setIsLoading(true);
-    setError(null);
-    setIsChecked(false);
-    setQuestions([]);
+interface QuestionState {
+  userAnswer: string;
+  isCorrect: boolean | null;
+  isAnswered: boolean;
+}
+
+type GameState = 'loading' | 'playing' | 'answered' | 'completed' | 'error';
+type Theme = 'ocean' | 'pink' | 'dark';
+
+const getThemeClasses = (theme: Theme) => {
+    switch (theme) {
+        case 'ocean':
+            return {
+                bg: 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50',
+                cardBg: 'bg-white/80 backdrop-blur-xl border border-blue-100 shadow-2xl',
+                text: 'text-slate-800',
+                accent: 'text-blue-600',
+                button: 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl',
+                progress: 'bg-blue-500',
+                input: 'text-blue-700',
+                theme: 'bg-blue-500'
+            };
+        case 'pink':
+            return {
+                bg: 'bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50',
+                cardBg: 'bg-white/80 backdrop-blur-xl border border-pink-100 shadow-2xl',
+                text: 'text-slate-800',
+                accent: 'text-pink-600',
+                button: 'bg-pink-500 hover:bg-pink-600 text-white shadow-lg hover:shadow-xl',
+                progress: 'bg-pink-500',
+                input: 'text-pink-700',
+                theme: 'bg-pink-500'
+            };
+        default: // dark
+            return {
+                bg: 'bg-gradient-to-br from-gray-900 via-slate-900 to-black',
+                cardBg: 'bg-gray-800/80 backdrop-blur-xl border border-gray-700 shadow-2xl',
+                text: 'text-gray-100',
+                accent: 'text-gray-300',
+                button: 'bg-gray-700 hover:bg-gray-600 text-white shadow-lg hover:shadow-xl',
+                progress: 'bg-gray-600',
+                input: 'text-gray-200',
+                theme: 'bg-gray-800'
+            };
+    }
+};
+
+const generateQuestionsFromApi = async (words: WordDetail[]): Promise<WordFormQuestion[]> => {
+    if (words.length === 0) return [];
+
+    const wordsWithForms = words.map(word => {
+        const availableForms = Object.entries(word.forms)
+            .flatMap(([type, formList]) => formList.map(form => ({ type, form })));
+
+        // Base word'ü de available forms'a ekle
+        availableForms.push({ type: 'base', form: word.headword });
+
+        if (availableForms.length === 0) return null;
+
+        // Form türlerini grupla ve açıkla
+        const groupedForms = {
+            base: [word.headword],
+            verbs: word.forms.verb || [],
+            nouns: word.forms.noun || [], 
+            adjectives: word.forms.adjective || [],
+            adverbs: word.forms.adverb || []
+        };
+
+        const formDetails = Object.entries(groupedForms)
+            .filter(([type, forms]) => forms.length > 0)
+            .map(([type, forms]) => `${type}: [${forms.join(', ')}]`)
+            .join(', ');
+
+        const allForms = availableForms.map(f => f.form).join(', ');
+        return `Base Word: "${word.headword}", Form Categories: {${formDetails}}, All Available Forms: [${allForms}]`;
+    }).filter(Boolean).join('\n');
+
+    if (!wordsWithForms) return [];
+    
+    const prompt = `
+    You are an expert English teacher creating a word formation quiz. You must create diverse questions using ALL DIFFERENT word forms.
+
+    Here are the words and their available forms:
+    ${wordsWithForms}
+
+    CRITICAL INSTRUCTIONS:
+    1. For each "Base Word", randomly pick ONE form from its "Available Forms" list
+    2. VARY your choices - use verbs, nouns, adjectives, adverbs, and base forms equally
+    3. DO NOT only choose base words - mix all form types randomly
+    4. Write a natural sentence using the chosen form
+    5. Replace the chosen form with '___' in the sentence
+    6. The 'correctAnswer' must be exactly the form you chose
+
+    EXAMPLES of variety you MUST achieve:
+    - Base form: "Many people ___ in marathons" → "compete"
+    - Noun form: "The ___ was fierce" → "competition"  
+    - Adjective: "She is very ___" → "competitive"
+    - Adverb: "He played ___" → "competitively"
+
+    ENSURE DIVERSITY: Do not favor any particular form type. Randomly select from verbs, nouns, adjectives, adverbs, and base forms.
+
+    Your response must be ONLY a valid JSON array:
+    [
+        {
+        "sentence": "The ___ was intense.",
+        "baseWord": "compete",
+        "correctAnswer": "competition"
+        },
+        {
+        "sentence": "She thinks ___.",
+        "baseWord": "create", 
+        "correctAnswer": "creatively"
+        }
+    ]
+    `;
 
     try {
-      if (words.length < 10) {
-        throw new Error(`This unit requires at least 10 words for this game.`);
-      }
-      
-      const selectedWords = [...words].sort(() => 0.5 - Math.random()).slice(0, 10);
-      const headwords = selectedWords.map(w => w.headword);
-      
-      const newQuestions = await generateWordFormsExercise(headwords);
-
-      if (!newQuestions || newQuestions.length === 0) {
-        throw new Error('Failed to generate a valid exercise from the AI service. Please try again.');
-      }
-      
-      setQuestions(newQuestions);
-      setUserAnswers(new Array(newQuestions.length).fill(''));
-
-    } catch (e: any) {
-      setError(e.message || 'An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+        const results = await geminiService.makeRequest<WordFormQuestion[]>(prompt, { generationConfig: { responseMimeType: "application/json" }});
+        return Array.isArray(results) ? results.filter(q => q.sentence && q.baseWord && q.correctAnswer) : [];
+    } catch (error) {
+        console.error('Word forms generation error:', error);
+        return [];
     }
-  };
-  
-  useEffect(() => {
-    if (gameInitialized.current === false && words.length > 0) {
-    fetchGameData();
-        gameInitialized.current = true;
+};
+
+const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
+    const [questions, setQuestions] = useState<WordFormQuestion[]>([]);
+    const [gameState, setGameState] = useState<GameState>('loading');
+  const [currentIndex, setCurrentIndex] = useState(0);
+    const [score, setScore] = useState(0);
+    const [userAnswer, setUserAnswer] = useState('');
+    const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [theme, setTheme] = useState<Theme>('ocean');
+    const [totalWords, setTotalWords] = useState(0);
+    const [questionStates, setQuestionStates] = useState<QuestionState[]>([]);
+    
+    const advanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const backgroundFetchInitiated = useRef(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const themeClasses = getThemeClasses(theme);
+
+    const loadQuestions = useCallback(async (isInitialLoad = true) => {
+      if (words.length === 0) {
+            setErrorMessage('Bu ünite için soru oluşturulacak kelime bulunamadı.');
+            setGameState('error');
+            return;
+        }
+        
+        if (isInitialLoad) {
+            setGameState('loading');
+            setCurrentIndex(0);
+            setScore(0);
+            setUserAnswer('');
+            setIsCorrect(null);
+            setQuestions([]);
+            setQuestionStates([]);
+            setTotalWords(words.length);
+            backgroundFetchInitiated.current = false;
+        }
+
+        try {
+            const shuffledWords = isInitialLoad ? [...words].sort(() => Math.random() - 0.5) : words;
+            const initialWords = shuffledWords.slice(0, 10);
+            const remainingWords = shuffledWords.slice(10);
+            const initialQuestions = await generateQuestionsFromApi(initialWords);
+
+            if (initialQuestions.length === 0 && isInitialLoad) {
+                setErrorMessage('Yapay zeka bu kelimelerle soru oluşturamadı.');
+                setGameState('error');
+                return;
+            }
+
+            setQuestions([...initialQuestions].sort(() => Math.random() - 0.5));
+            // Initialize question states
+            setQuestionStates(initialQuestions.map(() => ({
+                userAnswer: '',
+                isCorrect: null,
+                isAnswered: false
+            })));
+            setGameState('playing');
+
+            if (remainingWords.length > 0 && !backgroundFetchInitiated.current) {
+                backgroundFetchInitiated.current = true;
+                generateQuestionsFromApi(remainingWords)
+                    .then(remainingQuestions => {
+                        setQuestions(prev => [...prev, ...remainingQuestions].sort(() => Math.random() - 0.5));
+                        setQuestionStates(prev => [
+                            ...prev, 
+                            ...remainingQuestions.map(() => ({
+                                userAnswer: '',
+                                isCorrect: null,
+                                isAnswered: false
+                            }))
+                        ]);
+                    })
+                    .catch(err => console.error("Arka plan soru yükleme hatası:", err));
+            }
+        } catch (error) {
+            console.error('Failed to load questions:', error);
+            setErrorMessage('Sorular yüklenirken bir hata oluştu.');
+            setGameState('error');
     }
   }, [words]);
 
-  const handleInputChange = (index: number, value: string) => {
-    const newAnswers = [...userAnswers];
-    newAnswers[index] = value;
-    setUserAnswers(newAnswers);
-  };
+    useEffect(() => {
+        loadQuestions(true);
+        return () => {
+            if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
+        };
+    }, [loadQuestions]);
 
-  const checkAnswers = () => {
-    setIsChecked(true);
-  };
+    useEffect(() => {
+        if (gameState === 'playing' && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [currentIndex, gameState]);
 
-  if (isLoading) {
+    const handleNextQuestion = useCallback(() => {
+        if (advanceTimeoutRef.current) {
+            clearTimeout(advanceTimeoutRef.current);
+            advanceTimeoutRef.current = null;
+        }
+
+        if (currentIndex + 1 < questions.length) {
+            setCurrentIndex(prev => prev + 1);
+            setUserAnswer('');
+            setIsCorrect(null);
+            setGameState('playing');
+        } else {
+            setGameState('completed');
+        }
+    }, [currentIndex, questions.length]);
+
+    const handlePreviousQuestion = useCallback(() => {
+        if (currentIndex > 0) {
+            // Mevcut sorunun durumunu kaydet
+            if (questionStates[currentIndex]) {
+                setQuestionStates(prev => {
+                    const newStates = [...prev];
+                    newStates[currentIndex] = {
+                        userAnswer,
+                        isCorrect,
+                        isAnswered: gameState === 'answered'
+                    };
+                    return newStates;
+                });
+            }
+
+            const newIndex = currentIndex - 1;
+            setCurrentIndex(newIndex);
+            
+            // Önceki sorunun durumunu yükle
+            const prevState = questionStates[newIndex];
+            if (prevState && prevState.isAnswered) {
+                setUserAnswer(prevState.userAnswer);
+                setIsCorrect(prevState.isCorrect);
+                setGameState('answered');
+            } else {
+                setUserAnswer('');
+                setIsCorrect(null);
+                setGameState('playing');
+            }
+            
+            if (advanceTimeoutRef.current) {
+                clearTimeout(advanceTimeoutRef.current);
+                advanceTimeoutRef.current = null;
+            }
+        }
+    }, [currentIndex, questionStates, userAnswer, isCorrect, gameState]);
+
+    const handleCheckAnswer = useCallback(() => {
+        if (gameState === 'playing') {
+            if (userAnswer.trim() === '') {
+                // Eğer cevap verilmemişse, doğru cevabı göster
+                const currentQuestion = questions[currentIndex];
+                if (currentQuestion) {
+                    setUserAnswer(currentQuestion.correctAnswer);
+                    setIsCorrect(false);
+                    setGameState('answered');
+                    
+                    advanceTimeoutRef.current = setTimeout(() => {
+                        if (currentIndex + 1 < questions.length) {
+                            setCurrentIndex(prev => prev + 1);
+                            setUserAnswer('');
+                            setIsCorrect(null);
+                            setGameState('playing');
+                        } else {
+                            setGameState('completed');
+                        }
+                    }, 2000);
+                }
+            } else {
+                // Cevabı kontrol et
+                handleAnswerSubmit();
+            }
+        } else if (gameState === 'answered') {
+            // Mevcut sorunun durumunu kaydet
+            setQuestionStates(prev => {
+                const newStates = [...prev];
+                newStates[currentIndex] = {
+                    userAnswer,
+                    isCorrect,
+                    isAnswered: true
+                };
+                return newStates;
+            });
+
+            // Cevap verildikten sonra sonraki soruya geç
+            if (currentIndex + 1 < questions.length) {
+                const newIndex = currentIndex + 1;
+                setCurrentIndex(newIndex);
+                
+                // Sonraki sorunun durumunu yükle
+                const nextState = questionStates[newIndex];
+                if (nextState && nextState.isAnswered) {
+                    setUserAnswer(nextState.userAnswer);
+                    setIsCorrect(nextState.isCorrect);
+                    setGameState('answered');
+                } else {
+                    setUserAnswer('');
+                    setIsCorrect(null);
+                    setGameState('playing');
+                }
+                
+                if (advanceTimeoutRef.current) {
+                    clearTimeout(advanceTimeoutRef.current);
+                    advanceTimeoutRef.current = null;
+                }
+            } else {
+                setGameState('completed');
+            }
+        }
+    }, [gameState, userAnswer, questions, currentIndex]);
+
+    const handleManualNext = useCallback(() => {
+        // Sadece sonraki soruya geçiş için
+        if (currentIndex + 1 < questions.length) {
+      setCurrentIndex(prev => prev + 1);
+            setUserAnswer('');
+            setIsCorrect(null);
+            setGameState('playing');
+            if (advanceTimeoutRef.current) {
+                clearTimeout(advanceTimeoutRef.current);
+                advanceTimeoutRef.current = null;
+            }
+        }
+    }, [currentIndex, questions.length]);
+    
+    const handleAnswerSubmit = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (gameState !== 'playing' || !userAnswer.trim()) return;
+
+        const currentQuestion = questions[currentIndex];
+        if (!currentQuestion) return;
+
+        const correct = userAnswer.trim().toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
+        setIsCorrect(correct);
+        setGameState('answered');
+
+        if (correct) setScore(prev => prev + 1);
+
+        advanceTimeoutRef.current = setTimeout(() => {
+            handleNextQuestion();
+        }, correct ? 1500 : 2500);
+    };
+
+    if (gameState === 'loading') {
+        return (
+            <div className={`min-h-screen flex flex-col items-center justify-center ${themeClasses.bg}`}>
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center"
+                >
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="mb-6"
+                    >
+                        <Loader2 className={`w-20 h-20 mx-auto ${themeClasses.accent}`} />
+                    </motion.div>
+                    <h1 className={`text-3xl font-bold ${themeClasses.text} mb-4`}>Sorularınız Hazırlanıyor</h1>
+                    <div className="flex justify-center">
+                        <div className="flex space-x-2">
+                            <motion.div 
+                                className={`w-2 h-2 rounded-full ${themeClasses.progress}`}
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 0.8, delay: 0 }}
+                            />
+                            <motion.div 
+                                className={`w-2 h-2 rounded-full ${themeClasses.progress}`}
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }}
+                            />
+                            <motion.div 
+                                className={`w-2 h-2 rounded-full ${themeClasses.progress}`}
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }}
+                            />
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    if (gameState === 'error') {
     return (
-        <div className="flex flex-col justify-center items-center h-screen bg-gray-50 text-gray-800">
-            <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-            <p className="mt-4 text-lg">Generating your personalized exercise...</p>
+            <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg}`}>
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`p-12 rounded-3xl ${themeClasses.cardBg} text-center max-w-md`}
+                >
+                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+                    <h2 className={`text-2xl font-bold ${themeClasses.text} mb-4`}>Bir Hata Oluştu</h2>
+                    <p className="text-red-500 mb-6">{errorMessage}</p>
+                    <button 
+                        onClick={() => loadQuestions(true)} 
+                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 mx-auto"
+                    >
+                        <RefreshCw className="w-4 h-4" /> Tekrar Dene
+                    </button>
+                </motion.div>
         </div>
     );
   }
 
-  if (error) {
-    return <div className="flex flex-col justify-center items-center h-screen bg-red-50 text-red-700 p-4 text-center">
-      <p className="text-xl">{error}</p>
-      <button onClick={fetchGameData} className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors">
-        <RefreshCw className="w-5 h-5" /> Try Again
+    if (gameState === 'completed') {
+        const percentage = Math.round((score / totalWords) * 100);
+        return (
+            <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg}`}>
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`p-12 rounded-3xl ${themeClasses.cardBg} text-center max-w-lg`}
+                >
+                    <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
+                    <h2 className={`text-4xl font-bold ${themeClasses.accent} mb-4`}>Tebrikler!</h2>
+                    <div className={`text-6xl font-bold ${themeClasses.text} mb-2`}>{percentage}%</div>
+                    <p className={`text-xl ${themeClasses.text} mb-6`}>
+                        {score} / {totalWords} doğru cevap
+                    </p>
+                    <button 
+                        onClick={() => loadQuestions(true)} 
+                        className={`${themeClasses.button} px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 mx-auto`}
+                    >
+                        <Play className="w-5 h-5" /> Yeniden Başla
       </button>
-    </div>;
+                </motion.div>
+            </div>
+        );
   }
+    
+    const currentQuestion = questions[currentIndex];
+    if (!currentQuestion) {
+        return (
+            <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg}`}>
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`p-12 rounded-3xl ${themeClasses.cardBg} text-center max-w-md`}
+                >
+                    <Loader2 className={`w-16 h-16 animate-spin mx-auto ${themeClasses.accent} mb-6`} />
+                    <h2 className={`text-xl font-semibold ${themeClasses.text}`}>Soru yükleniyor...</h2>
+                </motion.div>
+            </div>
+        );
+    }
+
+    const sentenceParts = currentQuestion.sentence.split('___');
+    const progress = ((currentIndex + 1) / totalWords) * 100;
 
     return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex items-center justify-center text-gray-800">
-        <div className="w-full max-w-3xl">
-        <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-10"
-      >
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Word Forms Challenge</h1>
-                <p className="text-md sm:text-lg text-gray-600 mt-2">Complete each sentence with the correct form of the given word.</p>
-            </motion.div>
-
-            <div className="space-y-4">
-                {questions.map((q, index) => {
-                    const isCorrect = userAnswers[index].trim().toLowerCase() === q.solution.toLowerCase();
-                    const sentenceParts = q.sentence.split('[BLANK]');
-                    return (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="bg-white p-6 rounded-xl shadow-md border border-gray-200"
-                        >
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                               <div className="flex-1">
-                                    <p className="text-gray-700 text-xl leading-relaxed">
-                                       <span className="text-indigo-600 font-bold mr-3">{index + 1}.</span>
-                                        {sentenceParts[0]}
-                                        <span className="inline-block w-48 mx-1">
-                                            <input
-                                                type="text"
-                                                value={userAnswers[index]}
-                                                onChange={(e) => handleInputChange(index, e.target.value)}
-                                                disabled={isChecked}
-                                                className={`w-full bg-gray-100 border-b-2 text-gray-800 text-center text-lg p-1 focus:outline-none transition-all duration-300 rounded-t-md ${
-                                                    isChecked 
-                                                    ? (isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50')
-                                                    : 'border-gray-300 focus:border-indigo-500 focus:bg-white'
-                                                }`}
-                                            />
-                                        </span>
-                                        {sentenceParts[1]}
-                                    </p>
-                                    <div className="pl-8 sm:pl-9 mt-1">
-                                        <span className="text-gray-500 text-sm">
-                                            (Use a form of: <strong className="font-semibold text-gray-700">{q.headword}</strong>)
-                                        </span>
-                                    </div>
-                               </div>
-
-                                <div className={`transition-all duration-300 ${isChecked ? 'w-32 opacity-100' : 'w-0 opacity-0'}`}>
-                                    {isChecked && (
-                                        <div className={`flex items-center text-md font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                                            {isCorrect ? <CheckCircle className="w-6 h-6 mr-2" /> : <XCircle className="w-6 h-6 mr-2" />}
-                                            <span>{isCorrect ? 'Correct' : 'Incorrect'}</span>
-                                        </div>
-                                    )}
-                                </div>
+        <div className={`h-screen overflow-hidden ${themeClasses.bg} transition-all duration-500`}>
+            {/* Header */}
+            <div className="p-4 sm:p-6">
+                <div className="max-w-4xl mx-auto">
+                    {/* Mobile Layout */}
+                    <div className="block sm:hidden mb-4">
+                        <div className="flex justify-between items-center mb-3">
+                            <h1 className={`text-xl font-bold ${themeClasses.accent}`}>Kelime Formları</h1>
+                            <div className={`text-sm font-bold ${themeClasses.text}`}>
+                                {currentIndex + 1} / {totalWords}
                             </div>
-                             {isChecked && !isCorrect && (
-                                <motion.div 
-                                    initial={{opacity: 0, y: -10}}
-                                    animate={{opacity: 1, y: 0}}
-                                    className="pl-8 sm:pl-9 mt-3 text-green-600 text-md"
-                                >
-                                    Correct answer: <strong className="font-bold">{q.solution}</strong>
-                                </motion.div>
-                            )}
-                        </motion.div>
-                    )
-                })}
-          </div>
+                        </div>
+                        <div className="flex justify-center gap-3">
+                            <button 
+                                onClick={() => setTheme('ocean')} 
+                                className={`w-6 h-6 rounded-full bg-blue-500 transition-all ${theme === 'ocean' ? 'ring-2 ring-blue-200 scale-110' : ''}`} 
+                            />
+                            <button 
+                                onClick={() => setTheme('pink')} 
+                                className={`w-6 h-6 rounded-full bg-pink-500 transition-all ${theme === 'pink' ? 'ring-2 ring-pink-200 scale-110' : ''}`} 
+                            />
+                            <button 
+                                onClick={() => setTheme('dark')} 
+                                className={`w-6 h-6 rounded-full bg-gray-800 transition-all ${theme === 'dark' ? 'ring-2 ring-gray-400 scale-110' : ''}`} 
+                            />
+                        </div>
+                    </div>
 
-            <div className="mt-12 flex justify-center gap-4">
-          <motion.button
-            onClick={checkAnswers}
-            disabled={isChecked}
-                    whileHover={{ scale: 1.05 }}
-                    className="px-10 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all text-lg"
-          >
-            Check Answers
-          </motion.button>
-          <motion.button
-            onClick={fetchGameData}
-                    whileHover={{ scale: 1.05 }}
-                    className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
-          >
-            <RefreshCw className="w-5 h-5" />
-            </motion.button>
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex justify-between items-center">
+                        <h1 className={`text-3xl font-bold ${themeClasses.accent}`}>Kelime Formları</h1>
+                        <div className="flex items-center gap-4">
+                            <div className={`text-lg font-bold ${themeClasses.text}`}>
+                                {currentIndex + 1} / {totalWords}
+                            </div>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setTheme('ocean')} 
+                                    className={`w-8 h-8 rounded-full bg-blue-500 transition-all ${theme === 'ocean' ? 'ring-4 ring-blue-200 scale-110' : ''}`} 
+                                />
+                                <button 
+                                    onClick={() => setTheme('pink')} 
+                                    className={`w-8 h-8 rounded-full bg-pink-500 transition-all ${theme === 'pink' ? 'ring-4 ring-pink-200 scale-110' : ''}`} 
+                                />
+                                <button 
+                                    onClick={() => setTheme('dark')} 
+                                    className={`w-8 h-8 rounded-full bg-gray-800 transition-all ${theme === 'dark' ? 'ring-4 ring-gray-400 scale-110' : ''}`} 
+                                />
+                            </div>
+                        </div>
+                    </div>
+                
+                    {/* Progress Bar */}
+                    <div className="mt-4 sm:mt-6">
+                        <div className="w-full bg-white/50 rounded-full h-2 sm:h-3 overflow-hidden">
+                            <motion.div
+                                className={`h-full ${themeClasses.progress} rounded-full`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.5 }}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Main Game Area */}
+            <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+                <div className="max-w-4xl w-full">
+                    <div className={`${themeClasses.cardBg} rounded-2xl sm:rounded-3xl p-4 sm:p-12 text-center flex flex-col justify-between h-full`}>
+                        <div className="flex-1 flex flex-col justify-center">
+                            {/* Sentence with smooth animation */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={currentIndex}
+                                    initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                >
+                                    <form onSubmit={handleAnswerSubmit} className="mb-3 sm:mb-6">
+                                        <div className="text-2xl sm:text-4xl md:text-5xl leading-relaxed font-semibold px-2">
+                                            <span className={themeClasses.text}>
+                                                {sentenceParts[0]?.trim() || ''}
+                                                {sentenceParts[0] && ' '}
+                                            </span>
+                                    <input
+                                                ref={inputRef}
+                                        type="text"
+                                                value={userAnswer}
+                                                onChange={(e) => setUserAnswer(e.target.value)}
+                                                disabled={gameState === 'answered'}
+                                                placeholder="•••••••"
+                                                style={{ width: `${Math.max(userAnswer.length + 2, 6)}ch` }}
+                                                className={`
+                                                    text-2xl sm:text-4xl md:text-5xl font-semibold text-center bg-transparent outline-none 
+                                                    transition-all duration-300 inline-block border-b-2 border-dashed
+                                                    ${gameState === 'answered' 
+                                                        ? isCorrect 
+                                                            ? 'border-green-500 text-green-600' 
+                                                            : 'border-red-500 text-red-600'
+                                                        : `${themeClasses.input} border-gray-300 focus:border-current`
+                                                    }
+                                                `}
+                                            />
+                                            <span className={themeClasses.text}>
+                                                {sentenceParts[1] && ' '}
+                                                {sentenceParts[1]?.trim() || ''}
+                                </span>
+                            </div>
+                                    </form>
+
+                                    {/* Base Word */}
+                                    <div className={`text-sm sm:text-lg ${themeClasses.text} opacity-60 mb-3 sm:mb-6`}>
+                                        ({currentQuestion.baseWord})
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
+                        </div>
+
+                        <div>
+                            {/* Navigation Buttons */}
+                            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-8 mb-3 sm:mb-6">
+                                <div className="flex gap-3 sm:gap-8 w-full sm:w-auto">
+                                    <button
+                                        onClick={handlePreviousQuestion}
+                                        disabled={currentIndex === 0}
+                                        className={`
+                                            flex items-center justify-center gap-2 px-4 sm:px-8 py-2 sm:py-4 rounded-2xl 
+                                            text-sm sm:text-base font-medium transition-all duration-500 flex-1 sm:flex-none
+                                            backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl
+                                            ${currentIndex === 0 
+                                                ? 'bg-gray-200/50 text-gray-400 cursor-not-allowed border-gray-200/30' 
+                                                : `bg-white/20 ${themeClasses.text} hover:bg-white/30 hover:scale-105 active:scale-95`
+                                            }
+                                        `}
+                                    >
+                                        <ChevronLeft className="w-3 h-3 sm:w-5 sm:h-5" /> 
+                                        <span className="hidden sm:inline">Önceki</span>
+                                        <span className="sm:hidden">Geri</span>
+                                    </button>
+
+                                    <button
+                                        onClick={handleCheckAnswer}
+                                        disabled={gameState === 'answered' && currentIndex + 1 >= questions.length}
+                                        className={`
+                                            flex items-center justify-center gap-2 px-4 sm:px-8 py-2 sm:py-4 rounded-2xl 
+                                            text-sm sm:text-base font-medium transition-all duration-500 flex-1 sm:flex-none
+                                            backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl
+                                            ${gameState === 'answered' && currentIndex + 1 >= questions.length
+                                                ? 'bg-gray-200/50 text-gray-400 cursor-not-allowed border-gray-200/30'
+                                                : `${themeClasses.button} hover:scale-105 active:scale-95`
+                                            }
+                                        `}
+                                    >
+                                        {gameState === 'playing' ? (
+                                            <>
+                                                <Check className="w-3 h-3 sm:w-5 sm:h-5" />
+                                                <span className="hidden sm:inline">Kontrol Et</span>
+                                                <span className="sm:hidden">Kontrol</span>
+                    </>
+                ) : (
+                                            <>
+                                                <ChevronRight className="w-3 h-3 sm:w-5 sm:h-5" />
+                                                <span className="hidden sm:inline">Sonraki</span>
+                                                <span className="sm:hidden">İleri</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {gameState === 'playing' && (
+                                    <p className={`text-xs sm:text-base ${themeClasses.text} opacity-60 flex items-center gap-1 sm:gap-2 mt-1 sm:mt-0 font-light`}>
+                                        <span className="hidden sm:inline">Kelimeyi yazın, Enter'a basın veya Kontrol Et'e tıklayın</span>
+                                        <span className="sm:hidden">Yazın ve Kontrol Et'e tıklayın</span>
+                                        <ArrowRight className="w-3 h-3 sm:w-5 sm:h-5" />
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Feedback */}
+                            <div className="min-h-[60px] sm:min-h-[80px] flex items-center justify-center">
+                                <AnimatePresence>
+                                    {gameState === 'answered' && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="text-center px-2"
+                                        >
+                                            {isCorrect ? (
+                                                <div className="space-y-1 sm:space-y-3">
+                                                    <div className="flex items-center justify-center gap-2 sm:gap-3 text-green-600">
+                                                        <CheckCircle className="w-6 h-6 sm:w-12 sm:h-12" />
+                                                        <span className="text-lg sm:text-3xl font-bold">Mükemmel!</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1 sm:space-y-3">
+                                                    <div className="flex items-center justify-center gap-2 sm:gap-3 text-red-600">
+                                                        <XCircle className="w-6 h-6 sm:w-12 sm:h-12" />
+                                                        <span className="text-lg sm:text-3xl font-bold">Yanlış</span>
+                                                    </div>
+                                                    <p className={`text-xs sm:text-xl ${themeClasses.text}`}>
+                                                        Doğru cevap: <span className={`font-bold ${themeClasses.accent}`}>{currentQuestion.correctAnswer}</span>
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         </div>
     </div>
   );

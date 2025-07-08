@@ -55,14 +55,52 @@ class GeminiService {
                 
                 if (!text) throw new Error('No content in response');
                 
-                const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-                if (!jsonMatch) throw new Error("No valid JSON object or array found in the AI response.");
-                
-                return JSON.parse(jsonMatch[0]) as T;
+                const firstBracket = text.indexOf('[');
+                const firstBrace = text.indexOf('{');
+                let startIndex = -1;
+
+                if (firstBracket === -1) {
+                    startIndex = firstBrace;
+                } else if (firstBrace === -1) {
+                    startIndex = firstBracket;
+                } else {
+                    startIndex = Math.min(firstBracket, firstBrace);
+                }
+
+                if (startIndex === -1) {
+                    throw new Error("No JSON object or array found in the AI response.");
+                }
+
+                const lastBracket = text.lastIndexOf(']');
+                const lastBrace = text.lastIndexOf('}');
+                let endIndex = -1;
+
+                if (lastBracket === -1) {
+                    endIndex = lastBrace;
+                } else if (lastBrace === -1) {
+                    endIndex = lastBracket;
+                } else {
+                    endIndex = Math.max(lastBracket, lastBrace);
+                }
+
+                if (endIndex === -1) {
+                    throw new Error("Could not find the end of the JSON object or array.");
+                }
+
+                const jsonString = text.substring(startIndex, endIndex + 1);
+
+                try {
+                    return JSON.parse(jsonString) as T;
+                } catch (parseError: any) {
+                    console.error("Failed to parse cleaned JSON string:", parseError);
+                    console.error("Original text from AI:", text);
+                    console.error("Cleaned JSON string attempt:", jsonString);
+                    throw new Error(`AI response could not be parsed as JSON. Error: ${parseError.message}`);
+                }
 
             } catch (error: any) {
-                if (error.message?.includes('429') || error.message?.includes('rate limit')) {
-                    console.warn(`Attempt ${retries + 1} failed with a rate limit error. Rotating key.`);
+                if (error.message?.includes('429') || error.message?.includes('rate limit') || error.message?.includes('API key not valid')) {
+                    console.warn(`Attempt ${retries + 1} failed with an API error. Rotating key.`);
                     retries++;
                     this.updateApiKey();
                     if (retries >= maxRetries) {
@@ -102,6 +140,30 @@ class GeminiService {
             return { correct: false, feedback: 'Değerlendirme sırasında bir API hatası oluştu.', suggestion: 'Lütfen tekrar deneyin.', similarity: '0' };
         }
     }
+
+    public async getDefinitionForWord(word: string): Promise<string> {
+        const cacheKey = `definition_${word.toLowerCase()}`;
+        const cached = getFromCache<string>(cacheKey);
+        if (cached) return cached;
+
+        const prompt = `Provide a simple, one-sentence definition in English for the word: "${word}". The definition MUST NOT contain the word itself. Return ONLY the definition as a raw string.`;
+
+        try {
+            const model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            const definition = result.response.text();
+
+            if (!definition) {
+                throw new Error("No definition returned from AI.");
+            }
+
+            setInCache(cacheKey, definition);
+            return definition;
+        } catch (error) {
+            console.error(`Error fetching definition for ${word}:`, error);
+            return 'Definition could not be loaded at this time.';
+        }
+    }
 }
 
 export const geminiService = GeminiService.getInstance();
@@ -130,7 +192,7 @@ export const getDefinitionsForWords = async (words: string[]): Promise<Record<st
 export const generateWordFormsExercise = async (words: string[]): Promise<WordFormsQuestion[]> => {
     if (words.length === 0) return [];
     
-    const prompt = `Generate 10 distinct B1-level English sentences, each using a different form of one of these headwords: ${words.join(', ')}. Replace the used form with "[BLANK]". Return ONLY a valid JSON object like this: { "questions": [{ "sentence": "...", "headword": "...", "solution": "..." }] }`;
+    const prompt = `Generate ${words.length} distinct B1-level English sentences, each using a different form of one of these headwords: ${words.join(', ')}. Replace the used form with "[BLANK]". Return ONLY a valid JSON object like this: { "questions": [{ "sentence": "...", "headword": "...", "solution": "..." }] }`;
     
     try {
         const result = await geminiService.makeRequest<{ questions: WordFormsQuestion[] }>(prompt, { generationConfig: { responseMimeType: "application/json" } });
