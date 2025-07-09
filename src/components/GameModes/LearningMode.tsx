@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { WordDetail } from '../../data/words';
 import { definitionCacheService } from '../../services/definitionCacheService';
-import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles, Zap, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { geminiService } from '../../services/geminiService';
 import { DifficultWordsLearning } from './DifficultWordsLearning';
@@ -110,6 +110,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   
   const [showOnlyDifficult, setShowOnlyDifficult] = useState(false);
   const [showAdvancedLearning, setShowAdvancedLearning] = useState(false);
+  const [removedMessage, setRemovedMessage] = useState<string | null>(null);
   const [difficultWords, setDifficultWords] = useState<string[]>(() => {
     try {
         const saved = localStorage.getItem('difficultWords');
@@ -171,6 +172,10 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         const isDifficult = prev.includes(headword);
         if (isDifficult) {
             const newList = prev.filter(word => word !== headword);
+            
+            // Geri bildirim mesajını ayarla
+            setRemovedMessage(`${headword} zor kelimelerden kaldırıldı`);
+            setTimeout(() => setRemovedMessage(null), 2000); // 2 saniye sonra mesajı kaldır
             
             // Eğer "Zorlandıklarım" kısmındaysak ve kelimeyi çıkarıyorsak
             if (showOnlyDifficult) {
@@ -443,6 +448,23 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
             </button>
           </div>
         )}
+
+        {/* Kelime kaldırma bildirimi */}
+        <AnimatePresence>
+            {removedMessage && (
+                <motion.div
+                    initial={{ opacity: 0, y: 50, scale: 0.3 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.5 }}
+                    className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50"
+                >
+                    <div className="flex items-center gap-2">
+                        <CheckCircle className="text-green-500" />
+                        <span>{removedMessage}</span>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
         {currentWord ? (
           <div className={`p-6 md:p-8 rounded-2xl shadow-2xl transition-colors duration-500 ${themeClasses.cardBg}`}>
