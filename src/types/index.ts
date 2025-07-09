@@ -40,6 +40,13 @@ export interface WordDetail {
   collocations: string[];
 }
 
+export interface WordForms {
+  noun: string;
+  verb: string;
+  adjective:string;
+  adverb: string;
+}
+
 export interface WordFormsQuestion {
   sentence: string;
   headword: string;

@@ -3,7 +3,7 @@ import { WordDetail } from '../../data/words';
 import { wordTracker } from '../../data/wordTracker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Flame, Award, BarChart2, CheckCircle, XCircle, Clock, Brain } from 'lucide-react';
-import { geminiService } from '../../services/geminiService';
+import { aiService } from '../../services/aiService';
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { gameStateManager } from '../../lib/utils';
 import { learningStatsTracker } from '../../data/learningStats';
@@ -149,7 +149,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       
       console.log('🤖 AI prompt gönderiliyor...');
       
-      const result = await geminiService.makeRequest<string>(prompt);
+      const result = await aiService.generateText(prompt);
       const response = (typeof result === 'string' ? result : JSON.stringify(result)).toLowerCase().trim();
       
       console.log('🤖 AI yanıtı:', response);

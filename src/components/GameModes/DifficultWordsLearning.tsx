@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { WordDetail } from '../../data/words';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -7,7 +7,7 @@ import {
   Camera, Sparkles, Timer, Trophy, Target,
   Volume2, Image as ImageIcon, Zap, BookOpen
 } from 'lucide-react';
-import { geminiService } from '../../services/geminiService';
+import { aiService } from '../../services/aiService';
 
 interface DifficultWordsLearningProps {
   words: WordDetail[];
@@ -153,7 +153,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   const generateVisualAssociation = async (word: WordDetail) => {
     setIsGeneratingVisual(true);
     try {
-      const visualData = await geminiService.generateVisualAssociation(word.headword, word.turkish);
+      const visualData = await aiService.generateVisualAssociation(word.headword, word.turkish);
       
       const currentProgress = progress[word.headword] || {
         word: word.headword,

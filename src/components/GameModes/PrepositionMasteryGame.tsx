@@ -1,225 +1,214 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Sparkles, CheckCircle, XCircle, RefreshCw, Trophy, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { generatePrepositionExercise } from '../../services/geminiService';
-import { Preposition, prepositionsByLevel } from '../../data/prepositions';
+import { Loader2, Check, X, Trophy, ArrowLeft, Swords, Sparkles, Star, BrainCircuit } from 'lucide-react';
 import { PrepositionExercise } from '../../types';
+import { aiService } from '../../services/aiService';
+import { prepositionsByLevel, Preposition } from '../../data/prepositions';
 
+type GameState = 'menu' | 'loading' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
 
 const BATCH_SIZE = 5;
 
-const PrepositionMasteryGame: React.FC = () => {
-  const navigate = useNavigate();
+const generateQuestionsForDifficulty = async (difficulty: Difficulty): Promise<PrepositionExercise[]> => {
+    const prepsToFetch: { prep: string; difficulty: 'easy' | 'medium' | 'hard' }[] = [];
+    
+    for (let i = 0; i < BATCH_SIZE; i++) {
+        let actualDifficulty: 'easy' | 'medium' | 'hard';
+        if (difficulty === 'mixed') {
+            const allLevels = Object.keys(prepositionsByLevel) as Array<'easy' | 'medium' | 'hard'>;
+            actualDifficulty = allLevels[Math.floor(Math.random() * allLevels.length)];
+        } else {
+            actualDifficulty = difficulty;
+        }
+        const prepList = prepositionsByLevel[actualDifficulty];
+        const randomPrep = prepList[Math.floor(Math.random() * prepList.length)];
+        prepsToFetch.push({ prep: randomPrep.prep, difficulty: actualDifficulty });
+    }
+
+    const prompt = `Create ${BATCH_SIZE} English sentences for a preposition exercise based on these words and difficulties: ${prepsToFetch.map(p => `${p.prep} (${p.difficulty})`).join(', ')}.
+    RULES:
+    - Each sentence must have one preposition missing, replaced with '___'.
+    - Provide the correct preposition and three plausible distractor prepositions.
+    - Return as a JSON array of objects. Each object must have: "sentence" (string), "options" (array of 4 strings), and "correctAnswer" (the correct preposition string).
+    - Ensure the options are shuffled and the correct answer isn't always in the same position.
+    - The sentence must be natural and appropriate for a B1-B2 English learner.`;
+
+    try {
+        const response = await aiService.generateText(prompt);
+        // A more robust cleaning and parsing logic might be needed here.
+        // For now, assuming aiService has cleanJson method or similar.
+        const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanedResponse);
+    } catch (error) {
+        console.error('Failed to generate preposition questions:', error);
+        return [];
+    }
+};
+
+
+export const PrepositionMasteryGame: React.FC = () => {
+  const [gameState, setGameState] = useState<GameState>('menu');
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [exercises, setExercises] = useState<PrepositionExercise[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isEvaluated, setIsEvaluated] = useState(false);
   const [score, setScore] = useState(0);
-  const [questionsAttempted, setQuestionsAttempted] = useState(0);
 
-  const fetchExercisesBatch = useCallback(async (selectedDifficulty: Difficulty) => {
-    setIsLoading(true);
+  const startGame = useCallback(async (selectedDifficulty: Difficulty) => {
+    setDifficulty(selectedDifficulty);
+    setGameState('loading');
     try {
-      const prepsToFetch: { prep: string; difficulty: 'easy' | 'medium' | 'hard' }[] = [];
-      for (let i = 0; i < BATCH_SIZE; i++) {
-        let prepList: Preposition[] = [];
-        let actualDifficulty: 'easy' | 'medium' | 'hard';
-
-        if (selectedDifficulty === 'mixed') {
-          const allLevels = Object.keys(prepositionsByLevel) as Array<'easy' | 'medium' | 'hard'>;
-          actualDifficulty = allLevels[Math.floor(Math.random() * allLevels.length)];
-          prepList = prepositionsByLevel[actualDifficulty];
-        } else {
-          actualDifficulty = selectedDifficulty;
-          prepList = prepositionsByLevel[actualDifficulty];
-        }
-        const randomPrep = prepList[Math.floor(Math.random() * prepList.length)];
-        prepsToFetch.push({ prep: randomPrep.prep, difficulty: actualDifficulty });
-      }
-
-      const newExercises = await generatePrepositionExercise(prepsToFetch);
+      const newExercises = await generateQuestionsForDifficulty(selectedDifficulty);
+      if (newExercises.length === 0) throw new Error("No questions generated.");
       setExercises(newExercises);
       setCurrentQuestionIndex(0);
-      setIsEvaluated(false);
+      setScore(0);
       setSelectedAnswer(null);
+      setGameState('playing');
     } catch (error) {
-      console.error('Error fetching preposition exercises:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error starting game:', error);
+      setGameState('menu'); 
     }
   }, []);
 
-  const startGame = (selectedDifficulty: Difficulty) => {
-    setDifficulty(selectedDifficulty);
-    setScore(0);
-    setQuestionsAttempted(0);
-    fetchExercisesBatch(selectedDifficulty);
-  };
-
   const handleAnswerSelect = (option: string) => {
-    if (isEvaluated) return;
+    if (selectedAnswer) return;
     setSelectedAnswer(option);
-    setIsEvaluated(true);
     if (option === exercises[currentQuestionIndex]?.correctAnswer) {
       setScore(prev => prev + 1);
     }
-    setQuestionsAttempted(prev => prev + 1);
   };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < exercises.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
-      setIsEvaluated(false);
       setSelectedAnswer(null);
     } else {
-        setExercises([]); 
+      setGameState('finished');
     }
   };
-  
-  const currentExercise = exercises[currentQuestionIndex];
 
-  if (!difficulty) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <div className="text-center mb-10">
-          <Sparkles className="w-16 h-16 text-indigo-600 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Preposition Mastery</h1>
-          <p className="text-lg text-gray-600">Choose a difficulty level to start.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full">
-          {(['easy', 'medium', 'hard', 'mixed'] as Difficulty[]).map(level => (
+  const resetGame = () => {
+    setGameState('menu');
+    setDifficulty(null);
+    setExercises([]);
+  };
+
+  const renderMenu = () => (
+    <div className="text-center">
+      <BrainCircuit className="w-16 h-16 mx-auto text-indigo-500 mb-4" />
+      <h1 className="text-4xl font-bold text-gray-800 mb-2">Preposition Mastery</h1>
+      <p className="text-lg text-gray-600 mb-8">Choose a difficulty to begin your training.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {(['easy', 'medium', 'hard', 'mixed'] as Difficulty[]).map(level => (
             <motion.button
               key={level}
+              whileHover={{ scale: 1.05 }}
               onClick={() => startGame(level)}
-              className="p-8 rounded-xl text-left bg-white border border-gray-200 shadow-md hover:shadow-lg hover:border-indigo-500 transition-all"
-              whileHover={{ scale: 1.03 }}
+              className="p-6 rounded-xl text-left bg-gray-50 border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition-all"
             >
-              <h2 className="text-2xl font-bold capitalize mb-2 text-indigo-700">{level}</h2>
-              <p className="text-gray-600">
-                {level === 'easy' && 'Basic prepositions of time and place.'}
-                {level === 'medium' && 'More complex prepositions and phrasal verbs.'}
-                {level === 'hard' && 'Advanced, idiomatic, and dependent prepositions.'}
-                {level === 'mixed' && 'Random prepositions from all levels.'}
-              </p>
+              <h2 className="text-xl font-bold capitalize text-indigo-700">{level}</h2>
             </motion.button>
-          ))}
-        </div>
+        ))}
       </div>
-    );
-  }
+    </div>
+  );
+
+  const renderLoading = () => (
+    <div className="text-center">
+        <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto" />
+        <p className="mt-4 text-lg text-gray-700">Crafting your custom exercises...</p>
+    </div>
+  );
   
-  if (isLoading) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-gray-800">
-            <RefreshCw className="w-12 h-12 animate-spin text-indigo-600" />
-            <p className="mt-4 text-lg">Preparing your exercises...</p>
-        </div>
-      );
-  }
+  const renderFinished = () => (
+    <div className="text-center">
+      <Trophy className="w-20 h-20 mx-auto text-green-500 mb-6" />
+      <h2 className="text-3xl font-bold mb-4">Round Complete!</h2>
+      <p className="text-xl text-gray-600 mb-8">
+        Your score: <strong className="text-indigo-600">{score}</strong> / {exercises.length}
+      </p>
+      <div className="flex justify-center gap-4">
+        <motion.button whileHover={{ scale: 1.05 }} onClick={() => startGame(difficulty!)} className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Play Again</motion.button>
+        <motion.button whileHover={{ scale: 1.05 }} onClick={resetGame} className="px-8 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300">Back to Menu</motion.button>
+      </div>
+    </div>
+  );
 
-  if (exercises.length === 0) {
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-            <div className="text-center">
-                <Trophy className="w-20 h-20 text-green-500 mx-auto mb-6" />
-                <h2 className="text-3xl font-bold mb-4">Round Complete!</h2>
-                <p className="text-lg text-gray-600 mb-6">Your score for this round: {score} / {questionsAttempted}</p>
-                <button
-                    onClick={() => fetchExercisesBatch(difficulty)}
-                    className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors text-lg"
-                >
-                    Start Next Round
-                </button>
-                 <button
-                    onClick={() => setDifficulty(null)}
-                    className="mt-4 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-800 transition-colors mx-auto"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Levels
-                </button>
-            </div>
-        </div>
-      );
-  }
+  const renderPlaying = () => {
+    if (!exercises[currentQuestionIndex]) return null;
+    const { sentence, options, correctAnswer } = exercises[currentQuestionIndex];
+    const isAnswered = selectedAnswer !== null;
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
-      <div className="w-full max-w-3xl">
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => setDifficulty(null)}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Levels
-          </button>
-          <div className="flex items-center gap-4">
-            <span className="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-sm font-semibold capitalize">{difficulty}</span>
-            <div className="text-gray-900 text-lg font-bold">
-              Score: {score}
-            </div>
+    return (
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-4">
+          <button onClick={resetGame} className="flex items-center gap-2 text-gray-500 hover:text-gray-800"><ArrowLeft className="w-5 h-5" /> Menu</button>
+          <div className="text-right">
+            <p className="font-bold text-lg text-indigo-600">Score: {score}</p>
+            <p className="text-sm text-gray-500">{currentQuestionIndex + 1} / {exercises.length}</p>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-          <AnimatePresence mode="wait">
-              <motion.div key={currentQuestionIndex} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}>
-                <div className="text-center mb-8">
-                  <p className="text-gray-600 text-lg mb-3">Complete the sentence with the correct preposition.</p>
-                  <p className="text-gray-900 text-3xl font-serif font-medium tracking-wide min-h-[8rem]">
-                    {currentExercise.sentence.split('[BLANK]')[0]}
-                    <span className="inline-block bg-gray-200 rounded-md w-32 h-10 mx-2"></span>
-                    {currentExercise.sentence.split('[BLANK]')[1]}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  {currentExercise.options.map(option => (
-                    <motion.button
-                      key={option}
-                      onClick={() => handleAnswerSelect(option)}
-                      className={`p-4 rounded-lg text-lg font-semibold border-2 transition-all duration-200
-                        ${isEvaluated 
-                          ? (option === currentExercise.correctAnswer ? 'bg-green-100 border-green-500 text-green-800' 
-                            : (option === selectedAnswer ? 'bg-red-100 border-red-500 text-red-800' : 'bg-gray-100 border-gray-300 text-gray-500'))
-                          : 'bg-white border-gray-300 hover:border-indigo-500 hover:bg-indigo-50'
-                        }`
-                      }
-                      disabled={isEvaluated}
-                      whileHover={{ scale: isEvaluated ? 1 : 1.05 }}
-                    >
-                      {option}
-                    </motion.button>
-                  ))}
-                </div>
-
-                {isEvaluated && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-                      {selectedAnswer === currentExercise.correctAnswer ? (
-                        <div className="flex items-center justify-center gap-2 text-green-600 font-semibold text-xl mb-4">
-                          <CheckCircle /> Correct!
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2 text-red-600 font-semibold text-xl mb-4">
-                          <XCircle /> Incorrect. The right answer is: <strong className="ml-1">{currentExercise.correctAnswer}</strong>
-                        </div>
-                      )}
-                    <button
-                      onClick={handleNextQuestion}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-8 rounded-lg font-semibold transition-colors text-lg"
-                    >
-                      {currentQuestionIndex === exercises.length - 1 ? 'Finish Round' : 'Next Question'}
-                      <ChevronRight className="w-5 h-5 inline-block" />
-                    </button>
-                  </motion.div>
-                )}
-              </motion.div>
-          </AnimatePresence>
+        <div className="w-full h-2 bg-gray-200 rounded-full mb-8">
+            <motion.div className="h-2 bg-indigo-500 rounded-full" style={{ width: `${((currentQuestionIndex + 1) / exercises.length) * 100}%` }} transition={{ duration: 0.5 }} />
         </div>
+        <AnimatePresence mode="wait">
+          <motion.div key={currentQuestionIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+            <p className="text-center text-3xl font-serif text-gray-800 p-4 rounded-lg bg-gray-100 min-h-[6rem] flex items-center justify-center">
+              {sentence.replace('___', '______')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-8">
+              {options.map(option => {
+                const isCorrect = option === correctAnswer;
+                const isSelected = option === selectedAnswer;
+                let buttonClass = 'bg-white border-gray-300 hover:border-indigo-500';
+                if(isAnswered) {
+                    if(isCorrect) buttonClass = 'bg-green-100 border-green-500 text-green-800';
+                    else if (isSelected) buttonClass = 'bg-red-100 border-red-500 text-red-800';
+                    else buttonClass = 'bg-gray-100 border-gray-300 text-gray-500 opacity-60';
+                }
+                return (
+                    <motion.button key={option} onClick={() => handleAnswerSelect(option)}
+                        className={`flex items-center justify-between p-4 rounded-lg text-lg font-semibold border-2 transition-all w-full text-left ${buttonClass}`}
+                        disabled={isAnswered} whileHover={{ scale: isAnswered ? 1 : 1.05 }}>
+                        <span>{option}</span>
+                        {isAnswered && isCorrect && <Check className="w-6 h-6 text-green-600" />}
+                        {isAnswered && isSelected && !isCorrect && <X className="w-6 h-6 text-red-600" />}
+                    </motion.button>
+                )
+              })}
+            </div>
+            {isAnswered && (
+                <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={handleNextQuestion}
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold">
+                    {currentQuestionIndex === exercises.length - 1 ? 'Finish Game' : 'Next Question'}
+                </motion.button>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    );
+  };
+  
+  const renderContent = () => {
+    switch (gameState) {
+      case 'menu': return renderMenu();
+      case 'loading': return renderLoading();
+      case 'playing': return renderPlaying();
+      case 'finished': return renderFinished();
+      default: return renderMenu();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 flex flex-col items-center justify-center font-sans">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+        <AnimatePresence mode="wait">
+          <motion.div key={gameState} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

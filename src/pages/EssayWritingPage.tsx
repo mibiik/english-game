@@ -1,62 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft, PenTool, CheckCircle, Loader2, FileText } from 'lucide-react';
+import { aiService } from '../services/aiService';
 
 const MIN_WORD_COUNT = parseInt(import.meta.env.VITE_ESSAY_MIN_WORD_COUNT || '200', 10);
 
 const promptInstruction = `Generate ONE single, short essay question in ENGLISH for a B1-level university student on any topic. CRITICAL: Your entire response must be ONLY the English question itself. Do NOT add any extra text, explanations, or quotation marks.`;
-
-const API_KEYS = [
-  'AIzaSyDiVeORIE-f1NIasO4FZFb2OqOMQaAr7MY',  // 1. API Key
-  'AIzaSyDjMxAzVQ3slraF0cmvHA-v_Rw80r3mZ70',  // 2. API Key
-  'AIzaSyCXpPzPMMfUj60yMZyPvL3_rsoOftP7e58',  // 3. API Key
-  'AIzaSyACHekasMC_i6B3iWqSsR_0r3dUKGtrf_4',  // 4. API Key
-  'AIzaSyCd0iVc-UaD5tq8CUE-EPzJqUxzpscyWj0', // 5. API Key
-  'AIzaSyD90i-sOZcmqPRr0Yz1sr4HjAwHDixq_SQ', // 6. API Key
-  'AIzaSyBehNtVq1zERg1Rs9yLaDAAiHEFOHBmBrc'  // 7. API Key
-];
-
-let currentKeyIndex = 0;
-
-const getNextAPIKey = () => {
-  const key = API_KEYS[currentKeyIndex];
-  currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-  return key;
-};
-
-const makeAPIRequest = async (prompt: string, retryCount = 0): Promise<any> => {
-  if (retryCount >= API_KEYS.length) {
-    throw new Error('All API keys failed');
-  }
-
-  const apiKey = getNextAPIKey();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    if (!data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      throw new Error('Invalid response format');
-    }
-
-    return data;
-  } catch (error) {
-    console.warn(`API Key ${retryCount + 1} failed:`, error);
-    return makeAPIRequest(prompt, retryCount + 1);
-  }
-};
 
 const EssayWritingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -64,34 +14,24 @@ const EssayWritingPage: React.FC = () => {
   const [loadingPrompt, setLoadingPrompt] = useState(false);
   const [essay, setEssay] = useState('');
   const [evaluating, setEvaluating] = useState(false);
-  const [feedback, setFeedback] = useState<any>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<'prompt' | 'writing' | 'feedback'>('prompt');
   const [feedbackLanguage, setFeedbackLanguage] = useState<'english' | 'turkish'>('english');
 
-  // Prompt oluştur
   const generatePrompt = async () => {
     setLoadingPrompt(true);
     setError(null);
     try {
-      const data = await makeAPIRequest(promptInstruction);
-      const text = data.candidates[0].content.parts[0].text.trim();
-      
+      const text = await aiService.generateText(promptInstruction);
       if (text && text.includes('?')) {
-        // AI'dan gelen cevabın doğrudan prompt olduğunu varsayıyoruz.
-        // Başındaki ve sonundaki fazlalıkları temizliyoruz.
         let cleanPrompt = text.replace(/^["'*\s]+|["'*\s]+$/g, '');
-
-        // Soru işareti ile bittiğinden emin ol
         if (!cleanPrompt.endsWith('?')) {
             cleanPrompt += '?';
         }
-        
-        // Çok kısa veya anlamsızsa hata ver
         if (cleanPrompt.length < 20 || !cleanPrompt.includes(' ')) {
            throw new Error('Generated prompt is not a valid question.');
         }
-
         setPrompt(cleanPrompt);
         setPhase('writing');
       } else {
@@ -100,13 +40,12 @@ const EssayWritingPage: React.FC = () => {
     } catch (e: any) {
       console.error(e);
       setError(`Prompt oluşturulamadı: ${e.message || 'Bilinmeyen bir hata oluştu.'} Lütfen tekrar deneyin.`);
-      setPhase('prompt'); // Prompt sayfasında kal
+      setPhase('prompt');
     } finally {
       setLoadingPrompt(false);
     }
   };
 
-  // Essay değerlendirme
   const evaluateEssay = async () => {
     setEvaluating(true);
     setError(null);
@@ -206,23 +145,21 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
 [NEUTRAL] [Detailed guidance on next steps for continued improvement with specific practice suggestions]
 [POSITIVE] [Final encouraging message about their academic writing journey and potential for excellence]`;
       
-      const data = await makeAPIRequest(evaluationPrompt);
-      const text = data.candidates[0].content.parts[0].text.trim();
+      const resultText = await aiService.generateText(evaluationPrompt);
       
-      if (text) {
-        setFeedback(text);
+      if (resultText) {
+        setFeedback(resultText);
         setPhase('feedback');
       } else {
         setError('Could not evaluate essay. Please try again.');
       }
-    } catch (e) {
-      setError('Error during evaluation. All API keys failed.');
+    } catch (e: any) {
+      setError('Error during evaluation. Please try again.');
     } finally {
       setEvaluating(false);
     }
   };
-
-  // Prompt aşaması
+    
   if (phase === 'prompt') {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-6">
@@ -262,7 +199,7 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
             </div>
           )}
 
-                      <button 
+          <button 
             onClick={() => navigate('/')} 
             className="mt-6 flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors mx-auto"
           >
@@ -274,11 +211,10 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
     );
   }
 
-  // Yazma aşaması
   if (phase === 'writing') {
     const wordCount = essay.trim().split(/\s+/).filter(word => word.length > 0).length;
     return (
-      <div className="min-h-screen bg-white p-6">
+        <div className="min-h-screen bg-white p-6">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <button 
@@ -331,7 +267,7 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
               </div>
               <textarea
                 value={essay}
-                onChange={e => setEssay(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEssay(e.target.value)}
                 className="w-full h-80 p-4 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-transparent resize-none"
                 placeholder="Structure your essay: 
 1. Introduction: Hook + Background + Thesis statement
@@ -370,8 +306,7 @@ Start writing here..."
       </div>
     );
   }
-
-  // Geri bildirim aşaması
+    
   if (phase === 'feedback') {
     return (
       <div className="min-h-screen bg-white p-6">
@@ -394,7 +329,6 @@ Start writing here..."
                   value={feedbackLanguage}
                   onChange={(e) => {
                     setFeedbackLanguage(e.target.value as 'english' | 'turkish');
-                    // Re-evaluate with new language
                     evaluateEssay();
                   }}
                   className="border border-slate-300 rounded px-3 py-1 text-slate-700 bg-white"
@@ -414,10 +348,8 @@ Start writing here..."
                 {feedback?.split('\n').map((line: string, index: number) => {
                   if (!line.trim()) return <div key={index} className="h-2" />;
                   
-                  // Clean line from markdown formatting
                   let cleanLine = line.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
                   
-                  // Determine background color based on prefix
                   let bgColor = '';
                   let textColor = 'text-slate-900';
                   

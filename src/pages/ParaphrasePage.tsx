@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Target, CheckCircle, XCircle, Lightbulb, RefreshCw, Trophy, Sparkles, MessageCircle } from 'lucide-react';
-import { geminiService } from '../services/geminiService';
+import { Loader2, RefreshCw, ChevronLeft, ChevronRight, Lightbulb, Send, ArrowLeft, Target, CheckCircle, XCircle, Trophy, Sparkles, MessageCircle } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { aiService } from '../services/aiService';
 
 interface ParaphraseAttempt {
   type: 'parenthetical' | 'reporting' | 'according';
@@ -54,7 +55,7 @@ const ParaphrasePage: React.FC = () => {
     if (isLoadingSentence) return;
     setIsLoadingSentence(true);
     try {
-      const sentence = await geminiService.generateAcademicSentence();
+      const sentence = await aiService.generateAcademicSentence();
       setOriginalSentence(sentence);
     } catch (error) {
       console.error('Sentence generation error:', error);
@@ -77,7 +78,7 @@ const ParaphrasePage: React.FC = () => {
     
     setIsEvaluating(true);
     try {
-      const feedback = await geminiService.evaluateParaphrase(
+      const feedback = await aiService.evaluateParaphrase(
         originalSentence,
         paraphraseAttempts[currentStep].answer,
         paraphraseAttempts[currentStep].type

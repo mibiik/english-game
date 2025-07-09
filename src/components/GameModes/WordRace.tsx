@@ -122,7 +122,10 @@ export function WordRace({ words }: WordRaceProps) {
   }, [currentWordIndex, userInput, score, correctCount, incorrectCount, timeLeft, isGameActive, gameCompleted, feedback, usedWords, words.length, GAME_KEY]);
 
   useEffect(() => {
-    if(isGameActive) inputRef.current?.focus();
+    if(isGameActive) {
+      inputRef.current?.focus();
+      window.scrollTo(0, 0);
+    }
   }, [isGameActive]);
 
   const endGame = useCallback(() => {
@@ -211,9 +214,6 @@ export function WordRace({ words }: WordRaceProps) {
       </div>
     );
   }
-
-  // En başa kaydır
-  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4 font-sans">

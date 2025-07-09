@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, RefreshCw, CheckCircle, XCircle, Trophy, Play, ArrowRight, ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { geminiService } from '../../services/geminiService';
+import { aiService } from '../../services/aiService';
 import { WordDetail } from '../../data/words';
 
 interface WordFormsGameProps {
@@ -120,7 +120,7 @@ Output: {"sentence": "The ___ was very intense.", "baseWord": "compete", "correc
 Return ONLY JSON array:`;
 
     try {
-        const results = await geminiService.makeRequest<WordFormQuestion[]>(prompt, { generationConfig: { responseMimeType: "application/json" }});
+        const results = await aiService.generateWordFormsQuestion(prompt);
         return Array.isArray(results) ? results.filter(q => q.sentence && q.baseWord && q.correctAnswer) : [];
     } catch (error) {
         console.error('Word forms generation error:', error);
@@ -145,18 +145,23 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const themeClasses = getThemeClasses(theme);
 
+    // Cümleyi temizle
+    const getSentenceParts = (sentence: string) => {
+        return sentence.replace('___', '[MASK]').split('[MASK]');
+    };
+
     // En başa kaydır
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
     const loadQuestions = useCallback(async (isInitialLoad = true) => {
-      if (words.length === 0) {
+        if (words.length === 0) {
             setErrorMessage('Bu ünite için soru oluşturulacak kelime bulunamadı.');
             setGameState('error');
             return;
         }
         
+        setGameState('loading');
         if (isInitialLoad) {
-            setGameState('loading');
             setCurrentIndex(0);
             setScore(0);
             setUserAnswer('');
@@ -165,7 +170,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
             setQuestionStates([]);
             setTotalWords(words.length);
             backgroundFetchInitiated.current = false;
-      }
+        }
       
         try {
             const shuffledWords = isInitialLoad ? [...words].sort(() => Math.random() - 0.5) : words;
@@ -377,40 +382,12 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
 
     if (gameState === 'loading') {
         return (
-            <div className={`min-h-screen flex flex-col items-center justify-center ${themeClasses.bg}`}>
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center"
-                >
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="mb-6"
-                    >
-                        <Loader2 className={`w-20 h-20 mx-auto ${themeClasses.accent}`} />
-                    </motion.div>
-                    <h1 className={`text-3xl font-bold ${themeClasses.text} mb-4`}>Sorularınız Hazırlanıyor</h1>
-                    <div className="flex justify-center">
-                        <div className="flex space-x-2">
-                            <motion.div 
-                                className={`w-2 h-2 rounded-full ${themeClasses.progress}`}
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ repeat: Infinity, duration: 0.8, delay: 0 }}
-                            />
-                            <motion.div 
-                                className={`w-2 h-2 rounded-full ${themeClasses.progress}`}
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }}
-                            />
-                            <motion.div 
-                                className={`w-2 h-2 rounded-full ${themeClasses.progress}`}
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }}
-                            />
-                        </div>
-                    </div>
-                </motion.div>
+            <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500 ${themeClasses.bg}`}>
+                <div className="text-center">
+                    <Loader2 className={`w-12 h-12 animate-spin mx-auto mb-6 ${themeClasses.accent}`} />
+                    <h2 className={`text-2xl font-bold ${themeClasses.text}`}>Sorular Hazırlanıyor...</h2>
+                    <p className={`mt-2 text-lg ${themeClasses.accent}`}>Lütfen bekleyin, kelimeleriniz için en iyi alıştırmaları oluşturuyoruz.</p>
+                </div>
             </div>
         );
     }
@@ -589,46 +566,68 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentIndex}
-                                    initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                >
-                                    <form onSubmit={handleAnswerSubmit} className="mb-3 sm:mb-6">
-                                        <div className="text-2xl sm:text-4xl md:text-5xl leading-relaxed font-semibold px-2">
-                                            <span className={themeClasses.text}>
-                                                {sentenceParts[0]?.trim() || ''}
-                                                {sentenceParts[0] && ' '}
-                                            </span>
-                                    <input
-                                                ref={inputRef}
-                                        type="text"
-                                                value={userAnswer}
-                                                onChange={(e) => setUserAnswer(e.target.value)}
-                                                disabled={gameState === 'answered'}
-                                                placeholder="•••••••"
-                                                style={{ width: `${Math.max(userAnswer.length + 2, 6)}ch` }}
-                                                className={`
-                                                    text-2xl sm:text-4xl md:text-5xl font-semibold text-center bg-transparent outline-none 
-                                                    transition-all duration-300 inline-block border-b-2 border-dashed
-                                                    ${gameState === 'answered' 
-                                                        ? isCorrect 
-                                                            ? 'border-green-500 text-green-600' 
-                                                            : 'border-red-500 text-red-600'
-                                                        : `${themeClasses.input} border-gray-300 focus:border-current`
-                                                    }
-                                                `}
-                                            />
-                                            <span className={themeClasses.text}>
-                                                {sentenceParts[1] && ' '}
-                                                {sentenceParts[1]?.trim() || ''}
-                                </span>
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -30 }}
+                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                        className="relative"
+                    >
+                        <p className={`text-center text-xl mb-4 ${themeClasses.accent}`}>Complete the sentence with the correct form of <strong className={themeClasses.text}>{currentQuestion.baseWord}</strong>.</p>
+                        
+                        <div className={`text-center text-3xl font-serif p-8 rounded-2xl min-h-[10rem] flex items-center justify-center flex-wrap ${themeClasses.text}`}>
+                            {getSentenceParts(currentQuestion.sentence)[0]}
+                            <div className="inline-block w-48 mx-2 align-middle">
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={userAnswer}
+                                    onChange={(e) => setUserAnswer(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAnswerSubmit()}
+                                    className={`w-full bg-transparent border-b-2 p-2 text-center text-3xl font-serif focus:outline-none transition-colors duration-300
+                                        ${isCorrect === true ? 'border-green-400' : isCorrect === false ? 'border-red-400' : `border-gray-400/50 focus:border-blue-400`}
+                                        ${themeClasses.input}`}
+                                    placeholder="..."
+                                    disabled={gameState === 'answered'}
+                                />
                             </div>
-                                    </form>
+                            {getSentenceParts(currentQuestion.sentence)[1]}
+                        </div>
 
-                                    {/* Base Word */}
-                                    <div className={`text-sm sm:text-lg ${themeClasses.text} opacity-60 mb-3 sm:mb-6`}>
-                                        ({currentQuestion.baseWord})
+                        <div className="text-center mt-4">
+                            <p className={`text-lg ${themeClasses.text}`}>
+                                (Use the correct form of: <strong className={themeClasses.accent}>{currentQuestion.baseWord}</strong>
+                                {gameState === 'answered' && !isCorrect && 
+                                    <span className="text-red-600">, correct answer: <strong>{currentQuestion.correctAnswer}</strong></span>
+                                }
+                                )
+                            </p>
+                        </div>
+
+                        <div className="mt-8 flex flex-col items-center">
+                            {gameState !== 'answered' && (
+                                 <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleAnswerSubmit()}
+                                    className={`py-3 px-12 rounded-lg font-semibold transition-colors duration-300 w-full sm:w-auto ${themeClasses.button}`}
+                                    disabled={!userAnswer.trim()}
+                                >
+                                    Check Answer
+                                </motion.button>
+                            )}
+                           
+                            <AnimatePresence>
+                                {gameState === 'answered' && (
+                                    <motion.button
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        onClick={handleNextQuestion}
+                                        className={`py-3 px-12 rounded-lg font-semibold transition-colors duration-300 w-full sm:w-auto ${themeClasses.button}`}
+                                    >
+                                        {currentIndex + 1 < questions.length ? 'Next Question' : 'Finish Game'}
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </motion.div>
                 </AnimatePresence>

@@ -3,7 +3,6 @@ import { WordDetail } from '../../data/words';
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles, Zap, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { geminiService } from '../../services/geminiService';
 import { DifficultWordsLearning } from './DifficultWordsLearning';
 // Tüm kelimeler için import
 import { allWordsWithTranslations } from '../../data/allWords';
@@ -213,7 +212,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     });
 
     try {
-      const definition = await geminiService.getDefinitionForWord(form);
+      const definition = await definitionCacheService.getDefinition(form, 'en');
       setDefinitionState(prev => ({ ...prev, definition, isLoading: false }));
     } catch (error) {
       console.error(error);
@@ -221,19 +220,18 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     }
   }, [definitionState.targetId, handleClosePopover]);
 
-  // Fetch definition for the main headword
+  // Fetch definition for the main headword by deriving from the main definitions state
   useEffect(() => {
     if (currentWord) {
-      setMainDefinition({ text: null, isLoading: true });
-      geminiService.getDefinitionForWord(currentWord.headword)
-        .then(def => {
-          setMainDefinition({ text: def, isLoading: false });
-        })
-        .catch(() => {
-          setMainDefinition({ text: 'Could not load definition.', isLoading: false });
-        });
+      const definitionText = definitions[currentWord.headword];
+      if (definitionText) {
+        setMainDefinition({ text: definitionText, isLoading: false });
+      } else {
+        // The other useEffect is responsible for fetching, so just show loading
+        setMainDefinition({ text: null, isLoading: true });
+      }
     }
-  }, [currentWord]);
+  }, [currentWord, definitions]);
 
   useEffect(() => {
     localStorage.setItem('difficultWords', JSON.stringify(difficultWords));

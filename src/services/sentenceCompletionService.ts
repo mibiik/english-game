@@ -1,4 +1,4 @@
-import { geminiService } from './geminiService';
+import { aiService } from './aiService';
 
 export interface SentenceQuestion {
   sentence: string;
@@ -40,30 +40,34 @@ class SentenceCompletionServiceClass {
     if (uncachedWords.length > 0) {
       try {
         const prompt = `
-        Bu kelimeler için cümle tamamlama soruları oluştur: ${uncachedWords.join(', ')}
+        You are an API that generates sentence completion questions.
+        For each word in this list: [${uncachedWords.join(', ')}], create one B1-B2 level English sentence.
+        The sentence must use the word, but replace the word with '_____'.
 
-        ÖNEMLİ KURALLAR:
-        1. Her kelime için doğal bir İngilizce cümle oluştur ve kelimenin yerini _____ ile boş bırak
-        2. Sadece cümleyi oluştur, şıkları OLUŞTURMA (şıkları sistem otomatik ekleyecek)
-        3. Cümleler B1-B2 seviyesinde olsun
-        4. Cümle kelimeyi tam olarak temsil etmeli
+        RULES:
+        - The sentence must be a clear and natural example of the word's usage.
+        - DO NOT provide multiple choices.
+        - DO NOT add any extra text, explanations, or markdown.
+        - ONLY return a valid JSON array of objects.
 
-        ÖRNEK:
-        Kelime: "expensive" 
-        Cümle: "This restaurant is very _____ compared to others."
-
-        JSON formatında yanıt ver:
+        JSON structure:
         [
           {
-            "sentence": "cümle _____ ile",
-            "targetWord": "hedef_kelime"
+            "sentence": "The sentence with the word replaced by _____.",
+            "targetWord": "the_original_word"
           }
         ]
-        
-        Sadece JSON array döndür, başka açıklama ekleme.
+
+        EXAMPLE for ["expensive"]:
+        [
+          {
+            "sentence": "This restaurant is very _____ compared to others.",
+            "targetWord": "expensive"
+          }
+        ]
         `;
 
-        const response = await geminiService.makeRequest<any[]>(prompt);
+        const response = await aiService.generateSentenceCompletion(prompt);
         const aiQuestions = Array.isArray(response) ? response : this.parseAIResponse(JSON.stringify(response), uncachedWords);
 
         // AI'dan gelen cümlelere sistem şıklarını ekle
@@ -123,8 +127,9 @@ class SentenceCompletionServiceClass {
 
     } catch (error) {
       console.error('Error parsing AI response:', error);
+      // Hata durumunda daha genel bir yedek soru üret
       return words.map(word => ({
-        sentence: `The context in this example clearly requires the word _____ to complete the meaning.`,
+        sentence: `Learning new vocabulary is an _____ step to mastering a language.`,
         targetWord: word
       }));
     }
@@ -179,8 +184,9 @@ class SentenceCompletionServiceClass {
       const allOptions = [word, ...wrongOptions];
       const shuffledOptions = this.shuffleArray(allOptions);
       
+      // Daha genel bir yedek soru kullan
       return {
-        sentence: `The context in this example clearly requires the word _____ to complete the meaning.`,
+        sentence: `It is _____ to study regularly to improve your skills.`,
         options: shuffledOptions,
         correctAnswer: word,
         targetWord: word

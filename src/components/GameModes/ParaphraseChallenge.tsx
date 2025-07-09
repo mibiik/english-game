@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
+import { aiService } from '../../services/aiService';
+import { definitionCacheService } from '../../services/definitionCacheService';
 import { WordDetail } from '../../data/words';
-import { learningStatsTracker } from '../../data/learningStats';
-import { geminiService } from '../../services/geminiService';
 import { RefreshCw, CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 
 interface ParaphraseChallengeProps {
@@ -38,11 +39,9 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
   const [isLoadingMeaning, setIsLoadingMeaning] = useState(false);
   const [showExample, setShowExample] = useState(false);
 
-  // geminiService import edildi
-
   const generateRandomSentence = async () => {
     try {
-      const sentence = await geminiService.generateAcademicSentence();
+      const sentence = await aiService.generateAcademicSentence();
       setCurrentSentence(sentence);
       setCurrentType('parenthetical');
       setParaphraseState({
@@ -50,7 +49,8 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
         isCorrect: false,
         feedback: '',
         suggestion: '',
-        isChecking: false
+        isChecking: false,
+        similarity: '0'
       });
     } catch (error) {
       console.error('API error:', error);
@@ -101,7 +101,7 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
     setParaphraseState(prev => ({ ...prev, isChecking: true, feedback: '', suggestion: '' }));
 
     try {
-      const result = await geminiService.evaluateParaphrase(currentSentence, paraphraseState.input);
+      const result = await aiService.evaluateParaphrase(currentSentence, paraphraseState.input, currentType);
       
       if (!result) {
         throw new Error('Invalid response from API');
@@ -141,7 +141,8 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
       isCorrect: false,
       feedback: '',
       suggestion: '',
-      isChecking: false
+      isChecking: false,
+      similarity: '0'
     });
   };
 

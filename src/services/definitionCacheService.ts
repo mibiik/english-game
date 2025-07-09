@@ -1,7 +1,6 @@
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, collection, writeBatch } from 'firebase/firestore';
-import { geminiService } from './geminiService';
-import { apiKeyManager } from './apiKeyManager';
+import { aiService } from './aiService';
 
 export interface WordDefinition {
   word: string;
@@ -24,19 +23,21 @@ class DefinitionCacheService {
     try {
       // 1. Firebase'den kontrol et
       const cached = await this.getFromFirebase(word, language);
-      if (cached) {
+      if (cached && cached.definition) {
         console.log('✅ Definition Firebase\'den geldi:', cached.definition);
         return cached.definition;
       }
 
-      // 2. Firebase'de yok, AI'dan üret
+      // 2. Firebase'de yok veya tanım boş, AI'dan üret
       console.log('🤖 AI\'dan definition üretiliyor...');
-      const aiDefinition = await this.generateWithAI(word, language);
+      const aiDefinition = await aiService.generateDefinition(word, language);
       
-      // 3. AI'dan gelen definition'ı Firebase'e kaydet
-      await this.saveToFirebase(word, aiDefinition, language, 'ai');
+      // 3. AI'dan gelen definition'ı Firebase'e kaydet (sadece doluysa)
+      if (aiDefinition) {
+        await this.saveToFirebase(word, aiDefinition, language, 'ai');
+        console.log('💾 Definition Firebase\'e kaydedildi');
+      }
       
-      console.log('💾 Definition Firebase\'e kaydedildi');
       return aiDefinition;
 
     } catch (error) {
@@ -67,7 +68,7 @@ class DefinitionCacheService {
     const firebaseResults = await Promise.all(firebasePromises);
     
     firebaseResults.forEach(({ word, cached }) => {
-      if (cached) {
+      if (cached && cached.definition) {
         result[word] = cached.definition;
         console.log(`✅ ${word}: Firebase'den geldi`);
       } else {
@@ -76,37 +77,30 @@ class DefinitionCacheService {
       }
     });
 
-    // 2. Eksik kelimeler için AI'dan toplu üret - Batch'lere bölerek
+    // 2. Eksik kelimeler için AI'dan toplu üret
     if (missingWords.length > 0) {
       console.log('🤖 AI\'dan toplu definition üretiliyor:', missingWords);
       
-      const BATCH_SIZE = 10; // Her batch'te max 10 kelime
-      const batches = [];
-      
-      for (let i = 0; i < missingWords.length; i += BATCH_SIZE) {
-        batches.push(missingWords.slice(i, i + BATCH_SIZE));
-      }
-      
       try {
-        // Paralel batch işleme
-        const batchPromises = batches.map(batch => 
-          this.generateBatchWithAI(batch, language)
-        );
+        // Eksik tüm kelimeleri tek seferde AI'a gönder
+        const aiDefinitions = await aiService.generateBatchDefinitions(missingWords, language);
         
-        const batchResults = await Promise.all(batchPromises);
-        
-        // Tüm batch sonuçlarını birleştir
-        const aiDefinitions = batchResults.reduce((acc, batchResult) => ({
-          ...acc,
-          ...batchResult
-        }), {});
-        
-        // 3. AI sonuçlarını Firebase'e toplu kaydet
-        await this.saveBatchToFirebase(aiDefinitions, language, 'ai');
+        // 3. AI sonuçlarını Firebase'e toplu kaydet (sadece geçerli olanları)
+        const validAiDefinitions = Object.entries(aiDefinitions).reduce((acc, [word, definition]) => {
+            if (definition && definition.trim() !== '') {
+                acc[word] = definition;
+            }
+            return acc;
+        }, {} as Record<string, string>);
+
+        if (Object.keys(validAiDefinitions).length > 0) {
+            await this.saveBatchToFirebase(validAiDefinitions, language, 'ai');
+            console.log('💾 Toplu definition Firebase\'e kaydedildi');
+        }
         
         // 4. Sonuçları birleştir
         Object.assign(result, aiDefinitions);
-        console.log('💾 Toplu definition Firebase\'e kaydedildi');
+        
       } catch (error) {
         console.error('❌ AI toplu definition hatası:', error);
         // Hata durumunda fallback definitions
@@ -240,63 +234,6 @@ class DefinitionCacheService {
       console.log('✅ Tüm batch\'ler Firebase\'e kaydedildi');
     } catch (error) {
       console.error('❌ Firebase toplu kaydetme hatası:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * AI'dan tek definition üret
-   */
-  private async generateWithAI(word: string, language: 'en' | 'tr'): Promise<string> {
-    const prompt = language === 'en' 
-      ? `Define the English word "${word}" in one clear sentence. The definition MUST NOT contain the word itself. Return only the definition as plain text, no JSON.`
-      : `İngilizce "${word}" kelimesinin Türkçe anlamını tek cümle halinde ver. Tanım kelimenin kendisini içermemeli. Sadece tanımı ver, JSON formatında değil.`;
-
-    console.log('🤖 AI prompt hazırlandı:', prompt);
-    
-    try {
-      // Gemini servisini text modu için kullan - JSON olmadan
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKeyManager.getKey()}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        })
-      });
-      
-      const data = await response.json();
-      const definition = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      
-      console.log('🤖 AI definition alındı:', definition.substring(0, 100) + '...');
-      return definition.trim();
-    } catch (error) {
-      console.error('❌ AI definition üretme hatası:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * AI'dan toplu definition üret
-   */
-  private async generateBatchWithAI(words: string[], language: 'en' | 'tr'): Promise<Record<string, string>> {
-    const prompt = language === 'en'
-      ? `For each English word in this list, provide a simple one-sentence definition. Definitions MUST NOT contain the word being defined. Return as JSON object with words as keys and definitions as values. Words: ${words.join(', ')}`
-      : `Bu İngilizce kelimeler için Türkçe tanımlar ver. Her tanım tek cümle olsun ve tanımlanan kelimeyi içermesin. JSON formatında döndür. Kelimeler: ${words.join(', ')}`;
-
-    try {
-      const definitions = await geminiService.makeRequest<Record<string, string>>(
-        prompt, 
-        { generationConfig: { responseMimeType: "application/json" } }
-      );
-      return definitions;
-    } catch (error) {
-      console.error('AI toplu definition üretme hatası:', error);
       throw error;
     }
   }
