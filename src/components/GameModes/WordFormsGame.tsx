@@ -192,7 +192,9 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                 backgroundFetchInitiated.current = true;
                 generateWordFormQuestions(remainingWords)
                     .then((remainingQuestions: WordFormQuestion[]) => {
-                        setQuestions(prev => [...prev, ...remainingQuestions].sort(() => Math.random() - 0.5));
+                        // Yeni gelen soruları kendi içinde karıştır ve mevcut listenin sonuna ekle
+                        const shuffledRemaining = [...remainingQuestions].sort(() => Math.random() - 0.5);
+                        setQuestions(prev => [...prev, ...shuffledRemaining]);
                         setQuestionStates(prev => [
                             ...prev, 
                             ...remainingQuestions.map(() => ({
