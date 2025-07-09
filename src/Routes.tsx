@@ -21,6 +21,8 @@ import { GameWrapper } from './components/GameWrapper';
 import PrepositionMasteryGame from './components/GameModes/PrepositionMasteryGame';
 import { DefinitionToWordGame } from './components/GameModes/DefinitionToWordGame';
 import { LearningMode } from './components/GameModes/LearningMode';
+import AboutPage from './pages/AboutPage';
+import TeamPage from './pages/TeamPage';
 
 
 interface AppRoutesProps {
@@ -64,6 +66,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/essay-writing" element={<EssayWritingPage />} />
           <Route path="/definition-to-word" element={<GameWrapperWithParams component={DefinitionToWordGame} />} />
           <Route path="/learning-mode" element={<GameWrapperWithParams component={LearningMode} />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/team" element={<TeamPage />} />
         </Routes>
       </div>
     </>
