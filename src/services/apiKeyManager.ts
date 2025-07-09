@@ -1,17 +1,4 @@
-const API_KEYS = [
-    'AIzaSyDiVeORIE-f1NIasO4FZFb2OqOMQaAr7MY',  // 1. API Key
-    'AIzaSyDjMxAzVQ3slraF0cmvHA-v_Rw80r3mZ70',  // 2. API Key
-    'AIzaSyCXpPzPMMfUj60yMZyPvL3_rsoOftP7e58',  // 3. API Key
-    'AIzaSyACHekasMC_i6B3iWqSsR_0r3dUKGtrf_4',  // 4. API Key
-    'AIzaSyCd0iVc-UaD5tq8CUE-EPzJqUxzpscyWj0', // 5. API Key
-    'AIzaSyD90i-sOZcmqPRr0Yz1sr4HjAwHDixq_SQ', // 6. API Key
-    'AIzaSyBehNtVq1zERg1Rs9yLaDAAiHEFOHBmBrc',  // 7. API Key
-    'AIzaSyAqnYBsqN0FbVwWBpSml_Wf6mCsaPT5nY0',  // 8. API Key
-    'AIzaSyBp7cX2tNq4lbJUTw51J7gsJ_iwhEjEih4',   // 9. API Key
-    'AIzaSyAU5UMyrKcoj5iPU2MYfblFBRcVWi_DI_E',   // 10. API Key
-    'AIzaSyDi7o3ymQ_dQCLs73JMSsYXbL26V2KznnI',   // 11. API Key
-    'AIzaSyCJewvuw_ejR5UUTCEA9IwnlnBTydMviFE'    // 12. API Key
-];
+const API_KEYS = (import.meta.env.VITE_GEMINI_API_KEYS || '').split(',').filter(Boolean);
 
 const STORAGE_KEY = 'gemini_api_key_index';
 const FAILED_KEYS_STORAGE = 'gemini_failed_keys';
@@ -52,7 +39,7 @@ class ApiKeyManager {
         const todayStart = utcToday.getTime();
         
         // Eğer son resetin üzerinden 24 saat geçtiyse failed key'leri temizle
-        if (this.lastResetCheck < todayStart) {
+        if (now - this.lastResetCheck > 24 * 60 * 60 * 1000) {
             console.log('Günlük limit reset zamanı! Tüm API key\'leri tekrar kullanılabilir.');
             this.failedKeys.clear();
             this.lastResetCheck = now;
@@ -62,6 +49,10 @@ class ApiKeyManager {
     }
 
     public getKey(): string {
+        if (API_KEYS.length === 0) {
+            console.error('No API keys found. Please set VITE_GEMINI_API_KEYS environment variable.');
+            return '';
+        }
         return API_KEYS[this.currentIndex];
     }
 
@@ -69,29 +60,35 @@ class ApiKeyManager {
         const indexToMark = keyIndex !== undefined ? keyIndex : this.currentIndex;
         this.failedKeys.add(indexToMark);
         localStorage.setItem(FAILED_KEYS_STORAGE, JSON.stringify([...this.failedKeys]));
-        console.warn(`API key ${indexToMark} marked as failed/rate-limited`);
+        console.warn(`API key ${indexToMark} marked as failed/rate-limited.`);
+
+        if (this.failedKeys.size >= API_KEYS.length) {
+            console.error("All available API keys have been marked as failed.");
+        }
     }
 
     public rotateKey(): string {
         this.checkAndResetFailedKeys();
-        
+
+        if (API_KEYS.length === 0) {
+            return '';
+        }
+
+        const initialIndex = this.currentIndex;
         let attempts = 0;
-        const maxAttempts = API_KEYS.length;
         
-        // Failed olmayan bir key bul
-        while (attempts < maxAttempts) {
+        do {
             this.currentIndex = (this.currentIndex + 1) % API_KEYS.length;
-            
+            attempts++;
             if (!this.failedKeys.has(this.currentIndex)) {
                 localStorage.setItem(STORAGE_KEY, this.currentIndex.toString());
                 console.warn(`Rotated to API key index: ${this.currentIndex}`);
                 return this.getKey();
             }
-            attempts++;
-        }
+        } while (this.currentIndex !== initialIndex && attempts < API_KEYS.length);
         
-        // Tüm key'ler failed ise en eski key'e dön
-        console.error('All API keys are rate-limited. Using first key as fallback.');
+        console.error('All API keys are rate-limited. Retrying from the first key.');
+        // Fallback to the first key if all are marked as failed
         this.currentIndex = 0;
         localStorage.setItem(STORAGE_KEY, this.currentIndex.toString());
         return this.getKey();
@@ -99,11 +96,13 @@ class ApiKeyManager {
 
     public hasMoreKeys(): boolean {
         this.checkAndResetFailedKeys();
+        if (API_KEYS.length === 0) return false;
         return this.failedKeys.size < API_KEYS.length;
     }
 
     public getAvailableKeysCount(): number {
         this.checkAndResetFailedKeys();
+        if (API_KEYS.length === 0) return 0;
         return API_KEYS.length - this.failedKeys.size;
     }
 }
