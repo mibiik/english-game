@@ -282,12 +282,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div className="hidden md:flex items-center space-x-5">
-              <Link to="/about" className="text-gray-400 hover:text-white transition-colors font-medium">
-                Biz Kimiz
-              </Link>
-              <Link to="/team" className="text-gray-400 hover:text-white transition-colors font-medium">
-                Ekip
-              </Link>
               <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                 <User className="w-6 h-6" />
               </motion.button>
