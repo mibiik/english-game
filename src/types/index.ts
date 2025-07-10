@@ -41,10 +41,22 @@ export interface WordDetail {
 }
 
 export interface WordForms {
-  noun: string;
-  verb: string;
-  adjective:string;
-  adverb: string;
+  noun: {
+    word: string;
+    definition: string;
+  };
+  verb: {
+    word: string;
+    definition: string;
+  };
+  adjective: {
+    word: string;
+    definition: string;
+  };
+  adverb: {
+    word: string;
+    definition: string;
+  };
 }
 
 export interface WordFormsQuestion {

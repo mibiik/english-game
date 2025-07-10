@@ -19,6 +19,46 @@ class AiService {
     }
   }
 
+  public async generateDefinition(word: string, language: 'en' | 'tr' = 'en'): Promise<string> {
+    const prompt = `Provide a short, clear definition for the English word "${word}". Keep it under 15 words. Give only the definition, no additional explanation.`;
+    
+    try {
+      const response = await this.generateText(prompt);
+      return response.trim();
+    } catch (error) {
+      console.error('Definition generation failed:', error);
+      throw new Error(`Failed to generate definition for "${word}".`);
+    }
+  }
+
+  public async generateBatchDefinitions(words: string[], language: 'en' | 'tr' = 'en'): Promise<Record<string, string>> {
+    const prompt = `Provide short, clear definitions for these English words. Keep each definition under 15 words. Return in JSON format:
+
+Words: ${words.join(', ')}
+
+JSON format:
+{
+  "${words[0]}": "short definition",
+  "${words[1]}": "short definition"
+}
+
+Only return the JSON object, no additional text.`;
+
+    try {
+      const response = await this.generateText(prompt);
+      const cleanedJson = this.cleanJson(response);
+      return JSON.parse(cleanedJson);
+    } catch (error) {
+      console.error('Batch definitions generation failed:', error);
+      // Fallback: return empty definitions for each word
+      const fallback: Record<string, string> = {};
+      words.forEach(word => {
+        fallback[word] = `Definition for "${word}" could not be loaded.`;
+      });
+      return fallback;
+    }
+  }
+
   private cleanJson(text: string): string {
     const match = text.match(/```json\s*([\s\S]*?)\s*```/);
     if (match && match[1]) {
@@ -61,7 +101,31 @@ class AiService {
   }
 
   public async generateWordForms(word: string): Promise<WordForms> {
-    const prompt = `Provide different forms (noun, verb, adjective, adverb) for the English word "${word}"...`; // prompt
+    const prompt = `Provide different forms (noun, verb, adjective, adverb) for the English word "${word}" with their specific definitions. When a word can be both verb and adjective (like "clean"), provide distinct definitions for each usage. Return in this exact JSON format:
+
+{
+  "noun": {
+    "word": "the noun form of ${word}",
+    "definition": "definition when used as noun"
+  },
+  "verb": {
+    "word": "the verb form of ${word}", 
+    "definition": "definition when used as verb"
+  },
+  "adjective": {
+    "word": "the adjective form of ${word}",
+    "definition": "definition when used as adjective"
+  },
+  "adverb": {
+    "word": "the adverb form of ${word}",
+    "definition": "definition when used as adverb"
+  }
+}
+
+If a form doesn't exist, use "N/A" for the word and "This form is not applicable" for the definition.
+Keep definitions under 12 words each.
+Only return the JSON object, no additional text.`;
+
     try {
       const response = await this.generateText(prompt);
       const cleanedJson = this.cleanJson(response);

@@ -11,6 +11,10 @@ import { WordRace } from './components/GameModes/WordRace';
 import { MemoryGame } from './components/GameModes/MemoryGame';
 import WordFormsGame from './components/GameModes/WordFormsGame';
 import EssayWritingPage from './pages/EssayWritingPage';
+import LiveQuizTeacher from './pages/LiveQuizTeacher';
+import LiveQuizStudent from './pages/LiveQuizStudent';
+import LiveQuizTeacherPlay from './pages/LiveQuizTeacherPlay';
+import LiveQuizStudentPlay from './pages/LiveQuizStudentPlay';
 import { Navbar } from './components/Navbar';
 import { WordDetail, newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
@@ -64,6 +68,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/essay-writing" element={<EssayWritingPage />} />
           <Route path="/definition-to-word" element={<GameWrapperWithParams component={DefinitionToWordGame} />} />
           <Route path="/learning-mode" element={<GameWrapperWithParams component={LearningMode} />} />
+          <Route path="/live-quiz-teacher" element={<LiveQuizTeacher />} />
+          <Route path="/live-quiz-student" element={<LiveQuizStudent />} />
+                      <Route path="/live-quiz/teacher/:roomId/play" element={<LiveQuizTeacherPlay />} />
+            <Route path="/live-quiz/student/:roomId/play" element={<LiveQuizStudentPlay />} />
         </Routes>
       </div>
     </>
