@@ -228,7 +228,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         setMainDefinition({ text: definitionText, isLoading: false });
       } else {
         // The other useEffect is responsible for fetching, so just show loading
-        setMainDefinition({ text: null, isLoading: true });
+      setMainDefinition({ text: null, isLoading: true });
       }
     }
   }, [currentWord, definitions]);

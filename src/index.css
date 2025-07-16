@@ -135,3 +135,131 @@
     background-color: #030712; /* Ekranın tamamının koyu tema olmasını sağla */
   }
 }
+
+/* Power Card Effects */
+.power-card-glow {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+  transform: scale(1.05);
+}
+
+.power-card-disabled {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+/* Quick Mode Enhancements */
+.quick-mode-button {
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.quick-mode-button:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.quick-mode-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Leaderboard Animations */
+.leaderboard-item {
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+  transform: translateX(5px);
+}
+
+.leaderboard-gold {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+}
+
+.leaderboard-silver {
+  background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
+}
+
+.leaderboard-bronze {
+  background: linear-gradient(135deg, #cd7f32, #f97316);
+}
+
+/* Room Code Display */
+.room-code-display {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  letter-spacing: 0.2em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Progress Bar Enhancements */
+.progress-bar-animated {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  background-size: 200% 100%;
+  animation: gradient-flow 2s ease infinite;
+}
+
+@keyframes gradient-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Mobile Responsive Enhancements */
+@media (max-width: 768px) {
+  .quick-mode-button {
+    padding: 1.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .room-code-display {
+    font-size: 1.5rem;
+    letter-spacing: 0.15em;
+  }
+}
+
+/* Print Styles for Results */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-friendly {
+    color: black !important;
+    background: white !important;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-support {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+}
+
+/* Accessibility Enhancements */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.reduced-motion {
+  transition: none !important;
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    border: 2px solid;
+    background: white;
+    color: black;
+  }
+}

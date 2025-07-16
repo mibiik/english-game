@@ -11,10 +11,6 @@ import { WordRace } from './components/GameModes/WordRace';
 import { MemoryGame } from './components/GameModes/MemoryGame';
 import WordFormsGame from './components/GameModes/WordFormsGame';
 import EssayWritingPage from './pages/EssayWritingPage';
-import LiveQuizTeacher from './pages/LiveQuizTeacher';
-import LiveQuizStudent from './pages/LiveQuizStudent';
-import LiveQuizTeacherPlay from './pages/LiveQuizTeacherPlay';
-import LiveQuizStudentPlay from './pages/LiveQuizStudentPlay';
 import { Navbar } from './components/Navbar';
 import { WordDetail, newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
@@ -25,6 +21,11 @@ import { GameWrapper } from './components/GameWrapper';
 import PrepositionMasteryGame from './components/GameModes/PrepositionMasteryGame';
 import { DefinitionToWordGame } from './components/GameModes/DefinitionToWordGame';
 import { LearningMode } from './components/GameModes/LearningMode';
+import CreateLiveQuiz from './pages/CreateLiveQuiz';
+import QuizLobby from './pages/QuizLobby';
+import QuizHostPlay from './pages/QuizHostPlay';
+import JoinQuiz from './pages/JoinQuiz';
+import PlayerQuizFlow from './pages/PlayerQuizFlow';
 
 
 interface AppRoutesProps {
@@ -68,10 +69,14 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="/essay-writing" element={<EssayWritingPage />} />
           <Route path="/definition-to-word" element={<GameWrapperWithParams component={DefinitionToWordGame} />} />
           <Route path="/learning-mode" element={<GameWrapperWithParams component={LearningMode} />} />
-          <Route path="/live-quiz-teacher" element={<LiveQuizTeacher />} />
-          <Route path="/live-quiz-student" element={<LiveQuizStudent />} />
-                      <Route path="/live-quiz/teacher/:roomId/play" element={<LiveQuizTeacherPlay />} />
-            <Route path="/live-quiz/student/:roomId/play" element={<LiveQuizStudentPlay />} />
+          
+          {/* Canlı Quiz Rotaları */}
+          <Route path="/live-quiz/create" element={<CreateLiveQuiz />} />
+          <Route path="/live-quiz/join" element={<JoinQuiz />} />
+          <Route path="/live-quiz/lobby/:roomCode" element={<QuizLobby />} />
+          <Route path="/live-quiz/play/host/:roomCode" element={<QuizHostPlay />} />
+          <Route path="/live-quiz/player-lobby/:roomCode" element={<PlayerQuizFlow />} />
+
         </Routes>
       </div>
     </>

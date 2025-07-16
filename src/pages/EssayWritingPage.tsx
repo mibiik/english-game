@@ -159,7 +159,7 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
       setEvaluating(false);
     }
   };
-    
+
   if (phase === 'prompt') {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-6">
@@ -199,7 +199,7 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
             </div>
           )}
 
-          <button 
+                      <button 
             onClick={() => navigate('/')} 
             className="mt-6 flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors mx-auto"
           >
@@ -214,7 +214,7 @@ DETAILED ENCOURAGEMENT & NEXT STEPS:
   if (phase === 'writing') {
     const wordCount = essay.trim().split(/\s+/).filter(word => word.length > 0).length;
     return (
-        <div className="min-h-screen bg-white p-6">
+      <div className="min-h-screen bg-white p-6">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <button 
@@ -306,7 +306,7 @@ Start writing here..."
       </div>
     );
   }
-    
+
   if (phase === 'feedback') {
     return (
       <div className="min-h-screen bg-white p-6">

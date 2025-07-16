@@ -34,7 +34,7 @@ class DefinitionCacheService {
       
       // 3. AI'dan gelen definition'ı Firebase'e kaydet (sadece doluysa)
       if (aiDefinition) {
-        await this.saveToFirebase(word, aiDefinition, language, 'ai');
+      await this.saveToFirebase(word, aiDefinition, language, 'ai');
         console.log('💾 Definition Firebase\'e kaydedildi');
       }
       

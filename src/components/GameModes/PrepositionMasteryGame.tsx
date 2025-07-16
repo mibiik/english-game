@@ -11,20 +11,20 @@ type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
 const BATCH_SIZE = 5;
 
 const generateQuestionsForDifficulty = async (difficulty: Difficulty): Promise<PrepositionExercise[]> => {
-    const prepsToFetch: { prep: string; difficulty: 'easy' | 'medium' | 'hard' }[] = [];
+      const prepsToFetch: { prep: string; difficulty: 'easy' | 'medium' | 'hard' }[] = [];
     
-    for (let i = 0; i < BATCH_SIZE; i++) {
+      for (let i = 0; i < BATCH_SIZE; i++) {
         let actualDifficulty: 'easy' | 'medium' | 'hard';
         if (difficulty === 'mixed') {
-            const allLevels = Object.keys(prepositionsByLevel) as Array<'easy' | 'medium' | 'hard'>;
-            actualDifficulty = allLevels[Math.floor(Math.random() * allLevels.length)];
+          const allLevels = Object.keys(prepositionsByLevel) as Array<'easy' | 'medium' | 'hard'>;
+          actualDifficulty = allLevels[Math.floor(Math.random() * allLevels.length)];
         } else {
             actualDifficulty = difficulty;
         }
         const prepList = prepositionsByLevel[actualDifficulty];
         const randomPrep = prepList[Math.floor(Math.random() * prepList.length)];
         prepsToFetch.push({ prep: randomPrep.prep, difficulty: actualDifficulty });
-    }
+      }
 
     const prompt = `Create ${BATCH_SIZE} English sentences for a preposition exercise based on these words and difficulties: ${prepsToFetch.map(p => `${p.prep} (${p.difficulty})`).join(', ')}.
     RULES:
@@ -88,7 +88,7 @@ export const PrepositionMasteryGame: React.FC = () => {
       setGameState('finished');
     }
   };
-
+  
   const resetGame = () => {
     setGameState('menu');
     setDifficulty(null);
@@ -101,7 +101,7 @@ export const PrepositionMasteryGame: React.FC = () => {
       <h1 className="text-4xl font-bold text-gray-800 mb-2">Preposition Mastery</h1>
       <p className="text-lg text-gray-600 mb-8">Choose a difficulty to begin your training.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {(['easy', 'medium', 'hard', 'mixed'] as Difficulty[]).map(level => (
+          {(['easy', 'medium', 'hard', 'mixed'] as Difficulty[]).map(level => (
             <motion.button
               key={level}
               whileHover={{ scale: 1.05 }}
@@ -110,38 +110,38 @@ export const PrepositionMasteryGame: React.FC = () => {
             >
               <h2 className="text-xl font-bold capitalize text-indigo-700">{level}</h2>
             </motion.button>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
 
   const renderLoading = () => (
     <div className="text-center">
         <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto" />
         <p className="mt-4 text-lg text-gray-700">Crafting your custom exercises...</p>
-    </div>
-  );
-  
+        </div>
+      );
+
   const renderFinished = () => (
-    <div className="text-center">
+            <div className="text-center">
       <Trophy className="w-20 h-20 mx-auto text-green-500 mb-6" />
-      <h2 className="text-3xl font-bold mb-4">Round Complete!</h2>
+                <h2 className="text-3xl font-bold mb-4">Round Complete!</h2>
       <p className="text-xl text-gray-600 mb-8">
         Your score: <strong className="text-indigo-600">{score}</strong> / {exercises.length}
       </p>
       <div className="flex justify-center gap-4">
         <motion.button whileHover={{ scale: 1.05 }} onClick={() => startGame(difficulty!)} className="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700">Play Again</motion.button>
         <motion.button whileHover={{ scale: 1.05 }} onClick={resetGame} className="px-8 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300">Back to Menu</motion.button>
-      </div>
-    </div>
-  );
+            </div>
+        </div>
+      );
 
   const renderPlaying = () => {
     if (!exercises[currentQuestionIndex]) return null;
     const { sentence, options, correctAnswer } = exercises[currentQuestionIndex];
     const isAnswered = selectedAnswer !== null;
 
-    return (
+  return (
       <div className="w-full">
         <div className="flex justify-between items-center mb-4">
           <button onClick={resetGame} className="flex items-center gap-2 text-gray-500 hover:text-gray-800"><ArrowLeft className="w-5 h-5" /> Menu</button>
@@ -153,11 +153,11 @@ export const PrepositionMasteryGame: React.FC = () => {
         <div className="w-full h-2 bg-gray-200 rounded-full mb-8">
             <motion.div className="h-2 bg-indigo-500 rounded-full" style={{ width: `${((currentQuestionIndex + 1) / exercises.length) * 100}%` }} transition={{ duration: 0.5 }} />
         </div>
-        <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait">
           <motion.div key={currentQuestionIndex} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
             <p className="text-center text-3xl font-serif text-gray-800 p-4 rounded-lg bg-gray-100 min-h-[6rem] flex items-center justify-center">
               {sentence.replace('___', '______')}
-            </p>
+                  </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-8">
               {options.map(option => {
                 const isCorrect = option === correctAnswer;
@@ -178,16 +178,16 @@ export const PrepositionMasteryGame: React.FC = () => {
                     </motion.button>
                 )
               })}
-            </div>
+                </div>
             {isAnswered && (
                 <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={handleNextQuestion}
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold">
                     {currentQuestionIndex === exercises.length - 1 ? 'Finish Game' : 'Next Question'}
                 </motion.button>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+                )}
+              </motion.div>
+          </AnimatePresence>
+        </div>
     );
   };
   
