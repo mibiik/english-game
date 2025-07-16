@@ -1,45 +1,77 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
-import { Loader2, AlertTriangle, Trophy, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Trophy, RefreshCw } from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface SentenceCompletionProps {
   words: { headword: string }[];
 }
 
+const INITIAL_LOAD_COUNT = 5;
+
 type GameStatus = 'loading' | 'playing' | 'answered' | 'completed' | 'error';
 
 export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words }) => {
+  // State for game logic
   const [status, setStatus] = useState<GameStatus>('loading');
   const [questions, setQuestions] = useState<SentenceQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  
+  // State for background loading
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  const loadNewQuestions = useCallback(async () => {
+  // --- DATA LOADING AND GAME SETUP ---
+  const loadGame = useCallback(async () => {
     setStatus('loading');
-    setSelectedAnswer(null);
+    setQuestions([]);
     setCurrentIndex(0);
     setScore(0);
+    setSelectedAnswer(null);
+    setIsLoadingMore(false);
 
-    const wordList = words.map(w => w.headword);
-    SentenceCompletionService.setWordPool(wordList); // Kelime havuzunu ayarla
+    const shuffleArray = (array: any[]) => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
 
-    const generatedQuestions = await SentenceCompletionService.generateSentenceCompletions(wordList);
+    const wordList = shuffleArray(words).map(w => w.headword);
+    SentenceCompletionService.setWordPool(wordList);
 
-    if (generatedQuestions.length > 0) {
-      setQuestions(generatedQuestions);
+    const initialWords = wordList.slice(0, INITIAL_LOAD_COUNT);
+    const remainingWords = wordList.slice(INITIAL_LOAD_COUNT);
+
+    try {
+      const initialQuestions = await SentenceCompletionService.generateSentenceCompletions(initialWords);
+      if (initialQuestions.length === 0) throw new Error("AI failed to generate initial questions.");
+
+      setQuestions(initialQuestions);
       setStatus('playing');
-    } else {
+
+      if (remainingWords.length > 0) {
+        setIsLoadingMore(true);
+        SentenceCompletionService.generateSentenceCompletions(remainingWords).then(additionalQuestions => {
+          setQuestions(prev => [...prev, ...additionalQuestions]);
+          setIsLoadingMore(false);
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load game:", error);
       setStatus('error');
     }
   }, [words]);
 
   useEffect(() => {
-    loadNewQuestions();
-  }, [loadNewQuestions]);
+    loadGame();
+  }, [loadGame]);
 
+  // --- GAME ACTION HANDLERS ---
   const handleAnswerSelect = (option: string) => {
     if (status !== 'playing') return;
 
@@ -51,104 +83,135 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     }
 
     setTimeout(() => {
-      if (currentIndex < questions.length - 1) {
+      const isLastQuestion = currentIndex === words.length - 1;
+      if (isLastQuestion) {
+        setStatus('completed');
+      } else {
         setCurrentIndex(prev => prev + 1);
         setStatus('playing');
         setSelectedAnswer(null);
-      } else {
-        setStatus('completed');
       }
     }, 1500);
   };
 
+  // --- UI RENDER FUNCTIONS ---
   const getButtonClass = (option: string) => {
-    if (status !== 'answered') {
-      return 'bg-white hover:bg-blue-50 border-gray-300';
-    }
-    if (option === questions[currentIndex].correctAnswer) {
-      return 'bg-green-500 text-white border-green-500 transform scale-105';
-    }
-    if (option === selectedAnswer) {
-      return 'bg-red-500 text-white border-red-500';
-    }
-    return 'bg-white opacity-60 border-gray-300';
+    if (status !== 'answered') return 'bg-white hover:bg-blue-50';
+    if (option === questions[currentIndex].correctAnswer) return 'bg-green-100 border-green-500 text-green-800';
+    if (option === selectedAnswer) return 'bg-red-100 border-red-500 text-red-800';
+    return 'bg-white opacity-60';
   };
 
-  // --- RENDER FUNCTIONS ---
+  const renderContent = () => {
+    switch (status) {
+      case 'loading':
+        return <GameSkeleton />;
+      case 'error':
+        return <ErrorDisplay onRetry={loadGame} />;
+      case 'completed':
+        return <CompletedDisplay score={score} total={words.length} onPlayAgain={loadGame} />;
+      case 'playing':
+      case 'answered':
+        const question = questions[currentIndex];
+        if (!question && isLoadingMore) return <GameSkeleton />;
+        if (!question) return <ErrorDisplay onRetry={loadGame} message="Question not found. Try again?" />;
+        
+        return (
+          <motion.div 
+            key={currentIndex} 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full"
+          >
+            <p className="text-2xl md:text-3xl text-center font-serif bg-gray-100 p-6 rounded-lg shadow-inner min-h-[100px] mb-8">
+              {question.sentence}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {question.options.map((option, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handleAnswerSelect(option)}
+                  disabled={status === 'answered'}
+                  className={`w-full text-left justify-start p-4 h-auto text-base border-2 transition-all duration-200 ${getButtonClass(option)}`}
+                >
+                  <span className="font-bold mr-3">{String.fromCharCode(65 + index)}</span>
+                  {option}
+                </Button>
+              ))}
+            </div>
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
 
-  const renderLoading = () => (
-    <div className="flex flex-col items-center justify-center p-8 text-center h-80">
-      <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-      <h2 className="text-xl font-semibold text-gray-700">AI is preparing your questions...</h2>
-      <p className="text-gray-500">This may take a moment.</p>
-    </div>
-  );
-
-  const renderError = () => (
-    <div className="flex flex-col items-center justify-center p-8 text-center h-80 bg-red-50 rounded-lg">
-      <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-      <h2 className="text-xl font-bold text-red-800">Failed to Load Questions</h2>
-      <p className="text-red-600 mb-6">The AI service might be unavailable. Please try again.</p>
-      <Button onClick={loadNewQuestions} className="bg-red-500 hover:bg-red-600">
-        <RefreshCw className="mr-2 h-4 w-4" /> Retry
-      </Button>
-    </div>
-  );
-
-  const renderCompleted = () => (
-    <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-8 text-center h-80">
-      <Trophy className="w-16 h-16 text-yellow-500 mb-4" />
-      <h2 className="text-3xl font-bold text-gray-800">Game Over!</h2>
-      <p className="text-xl text-gray-600 mt-2">Your final score is: <span className="font-bold text-blue-600">{score} / {questions.length}</span></p>
-      <Button onClick={loadNewQuestions} className="mt-8">
-        <RefreshCw className="mr-2 h-4 w-4" /> Play Again
-      </Button>
-    </motion.div>
-  );
-
-  const renderGame = () => {
-    if (!questions[currentIndex]) return renderError(); // Sorular bittiyse veya yoksa hata göster
-    const { sentence, options } = questions[currentIndex];
-
-    return (
-      <div className="w-full max-w-2xl mx-auto">
-        <div className="text-center mb-6">
-          <p className="text-sm text-gray-500">Question {currentIndex + 1} of {questions.length}</p>
-          <p className="text-lg font-semibold text-gray-800">Fill in the blank:</p>
-        </div>
-        <p className="text-2xl md:text-3xl text-center font-serif bg-gray-100 p-6 rounded-lg shadow-inner min-h-[100px]">
-            {sentence.replace('_____', '_______')}
-          </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-          {options.map((option) => (
-            <motion.button
-              key={option}
-              onClick={() => handleAnswerSelect(option)}
-              disabled={status === 'answered'}
-              className={`w-full p-4 rounded-lg font-semibold text-lg border-2 shadow-sm transition-all duration-300 ${getButtonClass(option)}`}
-              whileHover={{ scale: status === 'playing' ? 1.05 : 1 }}
-            >
-              {option}
-            </motion.button>
-          ))}
+  // --- MAIN COMPONENT LAYOUT ---
+  return (
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen flex flex-col justify-center items-center">
+      <div className="w-full max-w-2xl">
+        <Header score={score} currentIndex={currentIndex} totalQuestions={words.length} />
+        <div className="bg-white p-6 md:p-8 rounded-lg shadow-md mt-4">
+          {renderContent()}
         </div>
       </div>
-    );
-  };
-
-  return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen flex items-center justify-center">
-      <AnimatePresence mode="wait">
-        <motion.div key={status} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          {status === 'loading' && renderLoading()}
-          {status === 'error' && renderError()}
-          {status === 'completed' && renderCompleted()}
-          {(status === 'playing' || status === 'answered') && renderGame()}
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 };
+
+// --- HELPER COMPONENTS ---
+
+const Header: React.FC<{ score: number; currentIndex: number; totalQuestions: number; }> = ({ score, currentIndex, totalQuestions }) => (
+  <div className="mb-4">
+    <div className="flex justify-between items-center mb-2 text-gray-600">
+      <h1 className="text-xl font-bold text-gray-800">Sentence Completion</h1>
+      <p className="font-semibold">Score: <span className="text-blue-600">{score}</span></p>
+    </div>
+    <p className="text-right text-sm text-gray-500 mb-2">Question {Math.min(currentIndex + 1, totalQuestions)} of {totalQuestions}</p>
+    <div className="w-full bg-gray-200 rounded-full h-2.5">
+      <motion.div
+        className="bg-blue-600 h-2.5 rounded-full"
+        animate={{ width: `${(currentIndex / totalQuestions) * 100}%` }}
+        transition={{ duration: 0.5 }}
+      />
+    </div>
+  </div>
+);
+
+const GameSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="h-12 bg-gray-200 rounded w-full mb-8"></div>
+    <div className="space-y-4">
+      <div className="h-12 bg-gray-200 rounded w-full"></div>
+      <div className="h-12 bg-gray-200 rounded w-full"></div>
+      <div className="h-12 bg-gray-200 rounded w-full"></div>
+      <div className="h-12 bg-gray-200 rounded w-full"></div>
+    </div>
+  </div>
+);
+
+const ErrorDisplay: React.FC<{ onRetry: () => void; message?: string }> = ({ onRetry, message }) => (
+  <div className="flex flex-col items-center justify-center p-8 text-center">
+    <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+    <h2 className="text-xl font-bold text-red-800">Failed to Load Questions</h2>
+    <p className="text-red-600 mb-6">{message || "The AI service might be unavailable. Please try again."}</p>
+    <Button onClick={onRetry} className="bg-red-500 hover:bg-red-600">
+      <RefreshCw className="mr-2 h-4 w-4" /> Retry
+    </Button>
+  </div>
+);
+
+const CompletedDisplay: React.FC<{ score: number; total: number; onPlayAgain: () => void; }> = ({ score, total, onPlayAgain }) => (
+  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-8 text-center">
+    <Trophy className="w-16 h-16 text-yellow-500 mb-4" />
+    <h2 className="text-3xl font-bold text-gray-800">Game Over!</h2>
+    <p className="text-xl text-gray-600 mt-2">Your final score is: <span className="font-bold text-blue-600">{score} / {total}</span></p>
+    <Button onClick={onPlayAgain} className="mt-8">
+      <RefreshCw className="mr-2 h-4 w-4" /> Play Again
+    </Button>
+  </motion.div>
+);
 
 
 
