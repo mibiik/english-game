@@ -59,7 +59,7 @@ Only return the JSON object, no additional text.`;
     }
   }
 
-  private cleanJson(text: string): string {
+  public cleanJson(text: string): string {
     const match = text.match(/```json\s*([\s\S]*?)\s*```/);
     if (match && match[1]) {
         return match[1].trim();
@@ -135,6 +135,10 @@ Only return the JSON object, no additional text.`;
       console.error('Word forms generation failed:', error);
       throw new Error('Failed to generate word forms.');
     }
+  }
+
+  public async generateSentenceCompletion(prompt: string): Promise<string> {
+    return this.generateText(prompt);
   }
 }
 

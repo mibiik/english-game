@@ -59,7 +59,7 @@ const LiveQuizStudent: React.FC = () => {
 
       const quizRef = doc(db, 'liveQuizzes', quizId);
       const quizDoc = await getDoc(quizRef);
-
+      
       if (!quizDoc.exists()) {
         setError('Sınav bulunamadı. PIN\'i kontrol edin.');
         setIsJoining(false);
@@ -151,23 +151,23 @@ const LiveQuizStudent: React.FC = () => {
                     </svg>
                   </div>
                 </div>
-              </div>
+                </div>
 
               {/* Player Name Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">İsminiz</label>
-                <input
-                  type="text"
+                  <input
+                    type="text"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                   placeholder="İsminizi girin"
                   disabled={isJoining}
-                />
-              </div>
+                  />
+                </div>
 
               {/* Error Message */}
-              {error && (
+                {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,28 +175,28 @@ const LiveQuizStudent: React.FC = () => {
                     </svg>
                     <span>{error}</span>
                   </div>
-                </div>
-              )}
+                  </div>
+                )}
 
               {/* Join Button */}
               <Button
                 onClick={joinQuiz}
                 disabled={isJoining || !quizId.trim() || !playerName.trim()}
                 className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isJoining ? (
+                >
+                  {isJoining ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Katılım Sağlanıyor...</span>
                   </div>
-                ) : (
+                  ) : (
                   <div className="flex items-center space-x-2">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                     <span>Sınava Katıl</span>
                   </div>
-                )}
+                  )}
               </Button>
 
               {/* Progress Bar */}
@@ -216,7 +216,7 @@ const LiveQuizStudent: React.FC = () => {
           <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl font-bold text-gray-800">
-                Nasıl Katılırım?
+                      Nasıl Katılırım?
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -260,9 +260,9 @@ const LiveQuizStudent: React.FC = () => {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                  </div>
+                          </div>
                   <span className="text-sm font-medium text-gray-700">Hızlı Oyun</span>
-                </div>
+                          </div>
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

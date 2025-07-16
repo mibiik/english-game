@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, CheckCircle, XCircle, Trophy, Play, ArrowRight, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Loader2, RefreshCw, CheckCircle, XCircle, Trophy, AlertTriangle, ArrowRight } from 'lucide-react';
 import { aiService } from '../../services/aiService';
 import { WordDetail } from '../../data/words';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
+// --- TYPE DEFINITIONS ---
 interface WordFormsGameProps {
   words: WordDetail[];
 }
@@ -14,539 +17,120 @@ interface WordFormQuestion {
   correctAnswer: string;
 }
 
-interface QuestionState {
-  userAnswer: string;
-  isCorrect: boolean | null;
-  isAnswered: boolean;
-}
+type GameStatus = 'loading' | 'playing' | 'answered' | 'completed' | 'error';
 
-type GameState = 'loading' | 'playing' | 'answered' | 'completed' | 'error';
-type Theme = 'ocean' | 'pink' | 'dark';
+// --- HELPER FUNCTIONS ---
 
-const getThemeClasses = (theme: Theme) => {
-    switch (theme) {
-        case 'ocean':
-            return {
-                bg: 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50',
-                cardBg: 'bg-white/80 backdrop-blur-xl border border-blue-100 shadow-2xl',
-                text: 'text-slate-800',
-                accent: 'text-blue-600',
-                button: 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl',
-                progress: 'bg-blue-500',
-                input: 'text-blue-700',
-                theme: 'bg-blue-500'
-            };
-        case 'pink':
-            return {
-                bg: 'bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50',
-                cardBg: 'bg-white/80 backdrop-blur-xl border border-pink-100 shadow-2xl',
-                text: 'text-slate-800',
-                accent: 'text-pink-600',
-                button: 'bg-pink-500 hover:bg-pink-600 text-white shadow-lg hover:shadow-xl',
-                progress: 'bg-pink-500',
-                input: 'text-pink-700',
-                theme: 'bg-pink-500'
-            };
-        default: // dark
-            return {
-                bg: 'bg-gradient-to-br from-gray-900 via-slate-900 to-black',
-                cardBg: 'bg-gray-800/80 backdrop-blur-xl border border-gray-700 shadow-2xl',
-                text: 'text-gray-100',
-                accent: 'text-gray-300',
-                button: 'bg-gray-700 hover:bg-gray-600 text-white shadow-lg hover:shadow-xl',
-                progress: 'bg-gray-600',
-                input: 'text-gray-200',
-                theme: 'bg-gray-800'
-            };
-    }
-};
-
+/**
+ * AI'a gönderilecek soruları hazırlar ve AI servisinden yanıt alır.
+ */
 const generateWordFormQuestions = async (words: WordDetail[]): Promise<WordFormQuestion[]> => {
-    if (words.length === 0) return [];
+  if (words.length === 0) return [];
 
-    // Her kelimeden rastgele bir form seç
-    const selectedForms = words.map(word => {
-        const allForms = [];
-        
-        // Tüm formları topla
-        if (word.forms.verb && word.forms.verb.length > 0) {
-            allForms.push(...word.forms.verb.map(form => ({ type: 'verb', form })));
-        }
-        if (word.forms.noun && word.forms.noun.length > 0) {
-            allForms.push(...word.forms.noun.map(form => ({ type: 'noun', form })));
-        }
-        if (word.forms.adjective && word.forms.adjective.length > 0) {
-            allForms.push(...word.forms.adjective.map(form => ({ type: 'adjective', form })));
-        }
-        if (word.forms.adverb && word.forms.adverb.length > 0) {
-            allForms.push(...word.forms.adverb.map(form => ({ type: 'adverb', form })));
-        }
-        
-        // Eğer form yoksa ana kelimeyi ekle
-        if (allForms.length === 0) {
-            allForms.push({ type: 'base', form: word.headword });
-        }
-        
-        // Rastgele bir form seç
-        const randomForm = allForms[Math.floor(Math.random() * allForms.length)];
-        
-        return {
-            baseWord: word.headword,
-            selectedForm: randomForm.form,
-            type: randomForm.type
-        };
-    });
+  // Her kelimeden rastgele bir form seç (fiil, isim, sıfat vb.)
+  const selectedForms = words.map(word => {
+    const allForms = [
+      ...(word.forms.verb?.map(f => ({ type: 'verb', form: f })) || []),
+      ...(word.forms.noun?.map(f => ({ type: 'noun', form: f })) || []),
+      ...(word.forms.adjective?.map(f => ({ type: 'adjective', form: f })) || []),
+      ...(word.forms.adverb?.map(f => ({ type: 'adverb', form: f })) || []),
+    ];
 
-    // AI'ya göndermek için format
-    const formsForAI = selectedForms.map((item, index) => 
-        `${index + 1}. Word: "${item.selectedForm}" (base: ${item.baseWord})`
-    ).join('\n');
+    const chosenForm = allForms.length > 0 
+      ? allForms[Math.floor(Math.random() * allForms.length)] 
+      : { type: 'base', form: word.headword };
 
-    const prompt = `Create B1-B2 level English sentences for these word forms. Replace each word with "___" in the sentence.
+    return { baseWord: word.headword, selectedForm: chosenForm.form };
+  });
 
-Selected forms:
-${formsForAI}
+  const prompt = `
+    Create B1-B2 level English sentences for the following word forms. 
+    Replace each target word with "_____".
+    The sentence context must clearly indicate which word form is needed.
 
-Rules:
-- Create natural B1-B2 level sentences
-- Replace the selected word form with "___" (three underscores)
-- Make sure the sentence context clearly indicates which word form fits
-- Return JSON array with sentence, baseWord, and correctAnswer
+    Word forms:
+    ${selectedForms.map((item, i) => `${i + 1}. Word: "${item.selectedForm}" (from base: ${item.baseWord})`).join('\n')}
 
-Example:
-Input: "competition" (base: compete)
-Output: {"sentence": "The ___ was very intense.", "baseWord": "compete", "correctAnswer": "competition"}
+    RULES:
+    - Return ONLY a valid JSON array of objects.
+    - JSON structure: { "sentence": "...", "baseWord": "...", "correctAnswer": "..." }
+    - Example for "competition" (from compete): { "sentence": "The _____ was very intense.", "baseWord": "compete", "correctAnswer": "competition" }
+  `;
 
-Return ONLY JSON array:`;
-
-    try {
-        const results = await aiService.generateWordFormsQuestion(prompt);
-        return Array.isArray(results) ? results.filter(q => q.sentence && q.baseWord && q.correctAnswer) : [];
-    } catch (error) {
-        console.error('Word forms generation error:', error);
-        return [];
-    }
+  try {
+    const results = await aiService.generateWordFormsQuestion(prompt);
+    // Gelen yanıtın dizi olduğundan ve gerekli alanları içerdiğinden emin ol
+    return Array.isArray(results) ? results.filter(q => q.sentence && q.baseWord && q.correctAnswer) : [];
+  } catch (error) {
+    console.error('Error generating word form questions:', error);
+    return []; // Hata durumunda boş dizi dön
+  }
 };
+
+// --- MAIN COMPONENT ---
 
 const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
-    const [questions, setQuestions] = useState<WordFormQuestion[]>([]);
-    const [gameState, setGameState] = useState<GameState>('loading');
+  const [status, setStatus] = useState<GameStatus>('loading');
+  const [questions, setQuestions] = useState<WordFormQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-    const [score, setScore] = useState(0);
-    const [userAnswer, setUserAnswer] = useState('');
-    const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [theme, setTheme] = useState<Theme>('ocean');
-    const [totalWords, setTotalWords] = useState(0);
-    const [questionStates, setQuestionStates] = useState<QuestionState[]>([]);
-    
-    const advanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const backgroundFetchInitiated = useRef(false);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const themeClasses = getThemeClasses(theme);
+  const [score, setScore] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    // Cümleyi temizle
-    const getSentenceParts = (sentence: string) => {
-        return sentence.replace('___', '[MASK]').split('[MASK]');
-    };
-
-    // En başa kaydır
-    useEffect(() => { window.scrollTo(0, 0); }, []);
-
-    const loadQuestions = useCallback(async (isInitialLoad = true) => {
-        if (words.length === 0) {
-            setErrorMessage('Bu ünite için soru oluşturulacak kelime bulunamadı.');
-            setGameState('error');
-            return;
-        }
-        
-        setGameState('loading');
-        if (isInitialLoad) {
-            setCurrentIndex(0);
-            setScore(0);
-            setUserAnswer('');
-            setIsCorrect(null);
-            setQuestions([]);
-            setQuestionStates([]);
-            setTotalWords(words.length);
-            backgroundFetchInitiated.current = false;
-        }
-      
-        try {
-            const shuffledWords = isInitialLoad ? [...words].sort(() => Math.random() - 0.5) : words;
-            const initialWords = shuffledWords.slice(0, 10);
-            const remainingWords = shuffledWords.slice(10);
-            const initialQuestions = await generateWordFormQuestions(initialWords);
-
-            if (initialQuestions.length === 0 && isInitialLoad) {
-                setErrorMessage('Yapay zeka bu kelimelerle soru oluşturamadı.');
-                setGameState('error');
-                return;
-      }
-      
-            setQuestions([...initialQuestions].sort(() => Math.random() - 0.5));
-            // Initialize question states
-            setQuestionStates(initialQuestions.map(() => ({
-                userAnswer: '',
-                isCorrect: null,
-                isAnswered: false
-            })));
-            setGameState('playing');
-
-            if (remainingWords.length > 0 && !backgroundFetchInitiated.current) {
-                backgroundFetchInitiated.current = true;
-                generateWordFormQuestions(remainingWords)
-                    .then((remainingQuestions: WordFormQuestion[]) => {
-                        // Yeni gelen soruları kendi içinde karıştır ve mevcut listenin sonuna ekle
-                        const shuffledRemaining = [...remainingQuestions].sort(() => Math.random() - 0.5);
-                        setQuestions(prev => [...prev, ...shuffledRemaining]);
-                        setQuestionStates(prev => [
-                            ...prev, 
-                            ...remainingQuestions.map(() => ({
-                                userAnswer: '',
-                                isCorrect: null,
-                                isAnswered: false
-                            }))
-                        ]);
-                    })
-                    .catch((err: any) => console.error("Arka plan soru yükleme hatası:", err));
-            }
-        } catch (error) {
-            console.error('Failed to load questions:', error);
-            setErrorMessage('Sorular yüklenirken bir hata oluştu.');
-            setGameState('error');
+  const loadQuestions = useCallback(async () => {
+    setStatus('loading');
+    const generatedQuestions = await generateWordFormQuestions(words);
+    if (generatedQuestions.length > 0) {
+      setQuestions(generatedQuestions);
+      setStatus('playing');
+    } else {
+      setStatus('error');
     }
   }, [words]);
 
-    useEffect(() => {
-        loadQuestions(true);
-        return () => {
-            if (advanceTimeoutRef.current) clearTimeout(advanceTimeoutRef.current);
-        };
-    }, [loadQuestions]);
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
-    useEffect(() => {
-        if (gameState === 'playing' && inputRef.current) {
-            inputRef.current.focus();
-        }
-    }, [currentIndex, gameState]);
-
-    const handleNextQuestion = useCallback(() => {
-        if (advanceTimeoutRef.current) {
-            clearTimeout(advanceTimeoutRef.current);
-            advanceTimeoutRef.current = null;
-        }
-
-        if (currentIndex + 1 < questions.length) {
-            setCurrentIndex(prev => prev + 1);
-            setUserAnswer('');
-            setIsCorrect(null);
-            setGameState('playing');
-        } else {
-            setGameState('completed');
-        }
-    }, [currentIndex, questions.length]);
-
-    const handlePreviousQuestion = useCallback(() => {
-        if (currentIndex > 0) {
-            // Mevcut sorunun durumunu kaydet
-            if (questionStates[currentIndex]) {
-                setQuestionStates(prev => {
-                    const newStates = [...prev];
-                    newStates[currentIndex] = {
-                        userAnswer,
-                        isCorrect,
-                        isAnswered: gameState === 'answered'
-                    };
-                    return newStates;
-                });
-            }
-
-            const newIndex = currentIndex - 1;
-            setCurrentIndex(newIndex);
-            
-            // Önceki sorunun durumunu yükle
-            const prevState = questionStates[newIndex];
-            if (prevState && prevState.isAnswered) {
-                setUserAnswer(prevState.userAnswer);
-                setIsCorrect(prevState.isCorrect);
-                setGameState('answered');
-            } else {
-                setUserAnswer('');
-                setIsCorrect(null);
-                setGameState('playing');
-            }
-            
-            if (advanceTimeoutRef.current) {
-                clearTimeout(advanceTimeoutRef.current);
-                advanceTimeoutRef.current = null;
-            }
-        }
-    }, [currentIndex, questionStates, userAnswer, isCorrect, gameState]);
-
-    const handleCheckAnswer = useCallback(() => {
-        if (gameState === 'playing') {
-            if (userAnswer.trim() === '') {
-                // Eğer cevap verilmemişse, doğru cevabı göster
-                const currentQuestion = questions[currentIndex];
-                if (currentQuestion) {
-                    setUserAnswer(currentQuestion.correctAnswer);
-                    setIsCorrect(false);
-                    setGameState('answered');
-                    
-                    advanceTimeoutRef.current = setTimeout(() => {
-                        if (currentIndex + 1 < questions.length) {
-                            setCurrentIndex(prev => prev + 1);
-                            setUserAnswer('');
-                            setIsCorrect(null);
-                            setGameState('playing');
-                        } else {
-                            setGameState('completed');
-                        }
-                    }, 2000);
-                }
-            } else {
-                // Cevabı kontrol et
-                handleAnswerSubmit();
-            }
-        } else if (gameState === 'answered') {
-            // Mevcut sorunun durumunu kaydet
-            setQuestionStates(prev => {
-                const newStates = [...prev];
-                newStates[currentIndex] = {
-                    userAnswer,
-                    isCorrect,
-                    isAnswered: true
-                };
-                return newStates;
-            });
-
-            // Cevap verildikten sonra sonraki soruya geç
-            if (currentIndex + 1 < questions.length) {
-                const newIndex = currentIndex + 1;
-                setCurrentIndex(newIndex);
-                
-                // Sonraki sorunun durumunu yükle
-                const nextState = questionStates[newIndex];
-                if (nextState && nextState.isAnswered) {
-                    setUserAnswer(nextState.userAnswer);
-                    setIsCorrect(nextState.isCorrect);
-                    setGameState('answered');
-                } else {
-                    setUserAnswer('');
-                    setIsCorrect(null);
-                    setGameState('playing');
-                }
-                
-                if (advanceTimeoutRef.current) {
-                    clearTimeout(advanceTimeoutRef.current);
-                    advanceTimeoutRef.current = null;
-                }
-            } else {
-                setGameState('completed');
-            }
-        }
-    }, [gameState, userAnswer, questions, currentIndex]);
-
-    const handleManualNext = useCallback(() => {
-        // Sadece sonraki soruya geçiş için
-        if (currentIndex + 1 < questions.length) {
-      setCurrentIndex(prev => prev + 1);
-            setUserAnswer('');
-            setIsCorrect(null);
-            setGameState('playing');
-            if (advanceTimeoutRef.current) {
-                clearTimeout(advanceTimeoutRef.current);
-                advanceTimeoutRef.current = null;
+  useEffect(() => {
+    if (status === 'playing' && inputRef.current) {
+      inputRef.current.focus();
     }
-        }
-    }, [currentIndex, questions.length]);
+  }, [status, currentIndex]);
 
-    const handleAnswerSubmit = (e?: React.FormEvent) => {
-        e?.preventDefault();
-        if (gameState !== 'playing' || !userAnswer.trim()) return;
+  const handleAnswerSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (status !== 'playing' || !userAnswer.trim()) return;
 
-        const currentQuestion = questions[currentIndex];
-        if (!currentQuestion) return;
+    const currentQuestion = questions[currentIndex];
+    const correct = userAnswer.trim().toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
+    
+    setIsCorrect(correct);
+    setStatus('answered');
+    if (correct) setScore(prev => prev + 1);
 
-        const correct = userAnswer.trim().toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
-        setIsCorrect(correct);
-        setGameState('answered');
-
-        if (correct) setScore(prev => prev + 1);
-
-        advanceTimeoutRef.current = setTimeout(() => {
-            handleNextQuestion();
-        }, correct ? 1500 : 2500);
+    setTimeout(() => {
+      if (currentIndex < questions.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setUserAnswer('');
+        setIsCorrect(null);
+        setStatus('playing');
+      } else {
+        setStatus('completed');
+      }
+    }, correct ? 1200 : 2000);
   };
 
-    if (gameState === 'loading') {
-        return (
-            <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-500 ${themeClasses.bg}`}>
-                <div className="text-center">
-                    <Loader2 className={`w-12 h-12 animate-spin mx-auto mb-6 ${themeClasses.accent}`} />
-                    <h2 className={`text-2xl font-bold ${themeClasses.text}`}>Sorular Hazırlanıyor...</h2>
-                    <p className={`mt-2 text-lg ${themeClasses.accent}`}>Lütfen bekleyin, kelimeleriniz için en iyi alıştırmaları oluşturuyoruz.</p>
-                </div>
-            </div>
-        );
-    }
+  const handleRestart = () => {
+    setCurrentIndex(0);
+    setScore(0);
+    setUserAnswer('');
+    setIsCorrect(null);
+    loadQuestions();
+  };
 
-    if (gameState === 'error') {
-    return (
-            <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg}`}>
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`p-12 rounded-3xl ${themeClasses.cardBg} text-center max-w-md`}
-                >
-                    <XCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
-                    <h2 className={`text-2xl font-bold ${themeClasses.text} mb-4`}>Bir Hata Oluştu</h2>
-                    <p className="text-red-500 mb-6">{errorMessage}</p>
-                    <button 
-                        onClick={() => loadQuestions(true)} 
-                        className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 mx-auto"
-                    >
-                        <RefreshCw className="w-4 h-4" /> Tekrar Dene
-                    </button>
-                </motion.div>
-        </div>
-    );
-  }
-
-    if (gameState === 'completed') {
-        const percentage = Math.round((score / totalWords) * 100);
-        return (
-            <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg}`}>
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`p-12 rounded-3xl ${themeClasses.cardBg} text-center max-w-lg`}
-                >
-                    <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-                    <h2 className={`text-4xl font-bold ${themeClasses.accent} mb-4`}>Tebrikler!</h2>
-                    <div className={`text-6xl font-bold ${themeClasses.text} mb-2`}>{percentage}%</div>
-                    <p className={`text-xl ${themeClasses.text} mb-6`}>
-                        {score} / {totalWords} doğru cevap
-                    </p>
-                    <button 
-                        onClick={() => loadQuestions(true)} 
-                        className={`${themeClasses.button} px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 mx-auto`}
-                    >
-                        <Play className="w-5 h-5" /> Yeniden Başla
-      </button>
-                </motion.div>
-            </div>
-        );
-  }
-    
-    const currentQuestion = questions[currentIndex];
-    if (!currentQuestion) {
-        return (
-            <div className={`min-h-screen flex items-center justify-center ${themeClasses.bg}`}>
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`p-12 rounded-3xl ${themeClasses.cardBg} text-center max-w-md`}
-                >
-                    <Loader2 className={`w-16 h-16 animate-spin mx-auto ${themeClasses.accent} mb-6`} />
-                    <h2 className={`text-xl font-semibold ${themeClasses.text}`}>Soru yükleniyor...</h2>
-                </motion.div>
-            </div>
-        );
-    }
-
-    const sentenceParts = currentQuestion.sentence.split('___');
-   
-   // Eğer ___ ile split olmazsa, alternatif formatları dene
-   let normalizedSentence = currentQuestion.sentence;
-   if (sentenceParts.length === 1) {
-       // ___ yoksa, farklı boşluk formatlarını ___ ile değiştir
-       normalizedSentence = normalizedSentence
-           .replace(/_{1,10}/g, '___')  // _ veya __ formatlarını ___ yap
-           .replace(/\[BLANK\]/g, '___') // [BLANK] formatını ___ yap
-           .replace(/\.\.\./g, '___')    // ... formatını ___ yap
-           .replace(/__+/g, '___');      // Birden fazla _ yi ___ yap
-       
-       // Yeniden split et
-       const newParts = normalizedSentence.split('___');
-       if (newParts.length > 1) {
-           sentenceParts.length = 0;
-           sentenceParts.push(...newParts);
-       }
-   }
-   
-   // Eğer hala split olmazsa, manuel boşluk ekle
-   if (sentenceParts.length === 1) {
-       // Cümlenin ortasına boşluk ekle
-       const words = currentQuestion.sentence.split(' ');
-       const midPoint = Math.floor(words.length / 2);
-       sentenceParts.length = 0;
-       sentenceParts.push(
-           words.slice(0, midPoint).join(' '),
-           words.slice(midPoint).join(' ')
-       );
-   }
-   
-    const progress = ((currentIndex + 1) / totalWords) * 100;
-
-    return (
-        <div className={`h-screen overflow-hidden ${themeClasses.bg} transition-all duration-500`}>
-            {/* Header */}
-            <div className="p-4 sm:p-6">
-                <div className="max-w-4xl mx-auto">
-                    {/* Mobile Layout */}
-                    <div className="block sm:hidden mb-4">
-                        <div className="flex justify-between items-center mb-3">
-                            <h1 className={`text-xl font-bold ${themeClasses.accent}`}>Kelime Formları</h1>
-                            <div className={`text-sm font-bold ${themeClasses.text}`}>
-                                {currentIndex + 1} / {totalWords}
-                            </div>
-                        </div>
-                        <div className="flex justify-center gap-3">
-                            <button 
-                                onClick={() => setTheme('ocean')} 
-                                className={`w-6 h-6 rounded-full bg-blue-500 transition-all ${theme === 'ocean' ? 'ring-2 ring-blue-200 scale-110' : ''}`} 
-                            />
-                            <button 
-                                onClick={() => setTheme('pink')} 
-                                className={`w-6 h-6 rounded-full bg-pink-500 transition-all ${theme === 'pink' ? 'ring-2 ring-pink-200 scale-110' : ''}`} 
-                            />
-                            <button 
-                                onClick={() => setTheme('dark')} 
-                                className={`w-6 h-6 rounded-full bg-gray-800 transition-all ${theme === 'dark' ? 'ring-2 ring-gray-400 scale-110' : ''}`} 
-                            />
-                        </div>
-                    </div>
-
-                    {/* Desktop Layout */}
-                    <div className="hidden sm:flex justify-between items-center">
-                        <h1 className={`text-3xl font-bold ${themeClasses.accent}`}>Kelime Formları</h1>
-                        <div className="flex items-center gap-4">
-                            <div className={`text-lg font-bold ${themeClasses.text}`}>
-                                {currentIndex + 1} / {totalWords}
-                            </div>
-                            <div className="flex gap-2">
-                                <button 
-                                    onClick={() => setTheme('ocean')} 
-                                    className={`w-8 h-8 rounded-full bg-blue-500 transition-all ${theme === 'ocean' ? 'ring-4 ring-blue-200 scale-110' : ''}`} 
-                                />
-                                <button 
-                                    onClick={() => setTheme('pink')} 
-                                    className={`w-8 h-8 rounded-full bg-pink-500 transition-all ${theme === 'pink' ? 'ring-4 ring-pink-200 scale-110' : ''}`} 
-                                />
-                                <button 
-                                    onClick={() => setTheme('dark')} 
-                                    className={`w-8 h-8 rounded-full bg-gray-800 transition-all ${theme === 'dark' ? 'ring-4 ring-gray-400 scale-110' : ''}`} 
-                                />
-                            </div>
-                        </div>
-                    </div>
-                
-                    {/* Progress Bar */}
-                    <div className="mt-4 sm:mt-6">
-                        <div className="w-full bg-white/50 rounded-full h-2 sm:h-3 overflow-hidden">
-                            <motion.div
+  // --- RENDER FUNCTIONS ---
                                 className={`h-full ${themeClasses.progress} rounded-full`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progress}%` }}

@@ -48,7 +48,7 @@ const LiveQuizTeacher: React.FC = () => {
           return prev + 10;
         });
       }, 100);
-
+      
       const selectedWords = wordLists[settings.wordList];
       const shuffledWords = [...selectedWords].sort(() => Math.random() - 0.5);
       const quizWords = shuffledWords.slice(0, settings.questionCount);
@@ -124,8 +124,8 @@ const LiveQuizTeacher: React.FC = () => {
               {/* Quiz Title */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Sınav Başlığı</label>
-                <input
-                  type="text"
+                  <input
+                    type="text"
                   value={settings.title}
                   onChange={(e) => setSettings({...settings, title: e.target.value})}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -150,8 +150,8 @@ const LiveQuizTeacher: React.FC = () => {
                       {count}
                     </button>
                   ))}
-                </div>
               </div>
+            </div>
 
               {/* Time Per Question */}
               <div className="space-y-2">
@@ -194,7 +194,7 @@ const LiveQuizTeacher: React.FC = () => {
                       settings.wordList === 'intermediate'
                         ? 'bg-purple-500 text-white border-purple-500 shadow-lg scale-105'
                         : 'bg-white text-gray-700 border-gray-200 hover:border-purple-300 hover:shadow-md'
-                    }`}
+                        }`}
                   >
                     <div className="font-semibold">Orta Seviye</div>
                     <div className="text-xs opacity-80">{word4.length} kelime</div>
@@ -212,7 +212,7 @@ const LiveQuizTeacher: React.FC = () => {
                       settings.isPublic
                         ? 'bg-blue-500 text-white border-blue-500 shadow-lg'
                         : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300'
-                    }`}
+                        }`}
                   >
                     <div className="font-semibold">Herkese Açık</div>
                     <div className="text-xs opacity-80">PIN ile katılım</div>
@@ -249,12 +249,12 @@ const LiveQuizTeacher: React.FC = () => {
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-gray-600">Soru Sayısı:</span>
                     <span className="font-semibold">{settings.questionCount}</span>
-                  </div>
+                    </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span className="text-gray-600">Süre:</span>
                     <span className="font-semibold">{settings.timePerQuestion}s</span>
-                  </div>
+                    </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                     <span className="text-gray-600">Seviye:</span>
@@ -268,10 +268,10 @@ const LiveQuizTeacher: React.FC = () => {
                     <span className="font-semibold">
                       {settings.isPublic ? 'Herkese Açık' : 'Özel'}
                     </span>
-                  </div>
-                </div>
-              </div>
-
+                        </div>
+                      </div>
+                    </div>
+                    
               {/* Sample Questions */}
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-700">Örnek Sorular</h4>
@@ -318,7 +318,7 @@ const LiveQuizTeacher: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        </div>
+              </div>
 
         {/* Back Button */}
         <div className="text-center mt-8">

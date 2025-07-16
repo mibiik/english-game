@@ -92,8 +92,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   };
 
   const gameModes: GameMode[] = [
-    { id: 'live-quiz-host', title: 'Canlı Quiz Oluştur', icon: <GraduationCap />, link: '/live-quiz/create', color: 'from-purple-600 to-pink-600', shadow: 'hover:shadow-purple-600/40' },
-    { id: 'live-quiz-join', title: 'Quize Katıl', icon: <Users />, link: '/live-quiz/join', color: 'from-green-600 to-blue-600', shadow: 'hover:shadow-green-600/40' },
     { id: 'learning-mode', title: 'Öğretici Mod', icon: <Book />, link: `/learning-mode?unit=${unit}&level=${level}`, color: 'from-blue-500 to-indigo-600', shadow: 'hover:shadow-blue-500/30' },
     { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-orange-600', shadow: 'hover:shadow-amber-500/30' },
     { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
