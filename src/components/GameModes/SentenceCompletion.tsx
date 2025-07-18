@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
-import { AlertTriangle, Trophy, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Trophy, RefreshCw, LoaderCircle } from 'lucide-react'; // LoaderCircle eklendi
 import { Button } from '../ui/button';
 
 interface SentenceCompletionProps {
@@ -36,7 +36,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
       const newArray = [...array];
       for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        [newArray[i], newArray[j]] = [newArray[i], newArray[j]];
       }
       return newArray;
     };
@@ -96,17 +96,17 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
 
   // --- UI RENDER FUNCTIONS ---
   const getButtonClass = (option: string) => {
-    // BURADA DEĞİŞİKLİK YAPILDI: text-gray-900 eklendi
+    // BURADA DEĞİŞİKLİK YAPILDI: Şıkların varsayılan ve pasif hallerinde metin rengi belirtildi.
     if (status !== 'answered') return 'bg-white hover:bg-blue-50 text-gray-900'; 
     if (option === questions[currentIndex].correctAnswer) return 'bg-green-100 border-green-500 text-green-800';
     if (option === selectedAnswer) return 'bg-red-100 border-red-500 text-red-800';
-    return 'bg-white opacity-60'; // Bu durumda metin rengi diğer renkler tarafından belirlenir veya varsayılan kalır.
+    return 'bg-white opacity-60 text-gray-900'; // Seçili olmayan ve doğru olmayan şıklar için
   };
 
   const renderContent = () => {
     switch (status) {
       case 'loading':
-        return <GameSkeleton />;
+        return <InitialLoadingScreen />; // Yükleme ekranı burada kullanılıyor
       case 'error':
         return <ErrorDisplay onRetry={loadGame} />;
       case 'completed':
@@ -114,7 +114,8 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
       case 'playing':
       case 'answered':
         const question = questions[currentIndex];
-        if (!question && isLoadingMore) return <GameSkeleton />;
+        // Sadece soru yüklenene kadar GameSkeleton'ı koruyun (arka plan yüklemesi için)
+        if (!question && isLoadingMore) return <GameSkeleton />; 
         if (!question) return <ErrorDisplay onRetry={loadGame} message="Question not found. Try again?" />;
         
         return (
@@ -161,7 +162,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
   );
 };
 
-// --- HELPER COMPONENTS ---
+// --- YARDIMCI BİLEŞENLER ---
 
 const Header: React.FC<{ score: number; currentIndex: number; totalQuestions: number; }> = ({ score, currentIndex, totalQuestions }) => (
   <div className="mb-4">
@@ -177,6 +178,22 @@ const Header: React.FC<{ score: number; currentIndex: number; totalQuestions: nu
         transition={{ duration: 0.5 }}
       />
     </div>
+  </div>
+);
+
+// --- YENİ BAŞLANGIÇ YÜKLEME EKRANI BİLEŞENİ ---
+const InitialLoadingScreen: React.FC = () => (
+  <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-md min-h-[300px]">
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
+      className="flex flex-col items-center"
+    >
+      <LoaderCircle className="w-16 h-16 text-blue-500 animate-spin mb-4" />
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">Loading your game...</h2>
+      <p className="text-gray-600 text-center">Please wait while we prepare the questions.</p>
+    </motion.div>
   </div>
 );
 
