@@ -96,10 +96,11 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
 
   // --- UI RENDER FUNCTIONS ---
   const getButtonClass = (option: string) => {
-    if (status !== 'answered') return 'bg-white hover:bg-blue-50';
+    // BURADA DEĞİŞİKLİK YAPILDI: text-gray-900 eklendi
+    if (status !== 'answered') return 'bg-white hover:bg-blue-50 text-gray-900'; 
     if (option === questions[currentIndex].correctAnswer) return 'bg-green-100 border-green-500 text-green-800';
     if (option === selectedAnswer) return 'bg-red-100 border-red-500 text-red-800';
-    return 'bg-white opacity-60';
+    return 'bg-white opacity-60'; // Bu durumda metin rengi diğer renkler tarafından belirlenir veya varsayılan kalır.
   };
 
   const renderContent = () => {
@@ -212,6 +213,3 @@ const CompletedDisplay: React.FC<{ score: number; total: number; onPlayAgain: ()
     </Button>
   </motion.div>
 );
-
-
-
