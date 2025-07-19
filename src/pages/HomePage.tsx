@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, Trash2, Users, GraduationCap, UserPlus, X, LogIn } from 'lucide-react';
+import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, Trash2, Users, GraduationCap, UserPlus, X, LogIn, ChevronDown } from 'lucide-react';
 import logo from './a.png';
 import icoLogo from '../ico.png';
 import { newDetailedWords_part1 } from '../data/words';
@@ -353,6 +353,38 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               alt="WordPlay Logo"
               className="w-36 h-36 drop-shadow-2xl"
             />
+          </motion.div>
+
+          {/* Mobil Scroll İkonu */}
+          <motion.div
+            className="flex justify-center mb-8 md:hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <motion.button
+              className="flex flex-col items-center cursor-pointer"
+              animate={{ y: [0, 10, 0] }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              onClick={() => {
+                const gameModesSection = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4');
+                if (gameModesSection) {
+                  gameModesSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <ChevronDown className="w-8 h-8 text-red-500 drop-shadow-lg" />
+              <span className="text-sm text-gray-400 mt-2 font-medium">Oyun Modları</span>
+            </motion.button>
           </motion.div>
 
           <div className="max-w-xl">
