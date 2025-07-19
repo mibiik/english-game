@@ -287,8 +287,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </motion.button>
             </div>
             
-            {/* Mobile: Hamburger Menu Button */}
-            <div className="md:hidden flex items-center space-x-2">
+            {/* Mobile: Hamburger Menu Button - GİZLENDİ */}
+            <div className="hidden flex items-center space-x-2">
               <motion.button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)} 
                 className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
