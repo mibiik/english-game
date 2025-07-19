@@ -259,12 +259,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             
             <div className="flex-shrink-0 flex items-center relative">
               <Link to="/home" onClick={() => { setIsMenuOpen(false); setIsBottomSheetOpen(false); }}>
-                <img src={logo} alt="Logo" className="h-20 w-auto" />
+                <img src={logo} alt="Logo" className="h-12 md:h-20 w-auto" />
               </Link>
 
               {/* Mobilde seçim butonu */}
               <button
-                className="ml-6 md:hidden px-5 py-3 rounded-2xl bg-gray-800 text-lg font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
+                className="ml-4 md:ml-6 md:hidden px-3 py-2 rounded-xl bg-gray-800 text-sm font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
                 onClick={() => setIsBottomSheetOpen(true)}
                 aria-label="Kurs ve Ünite Seçimi"
               >
@@ -287,17 +287,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </motion.button>
             </div>
             
-            {/* Mobile: Hamburger Menu Button - GİZLENDİ */}
-            <div className="hidden flex items-center space-x-2">
-              <motion.button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.95 }} 
-                title="Menü"
-              >
-                <Menu className="w-7 h-7" />
-              </motion.button>
+            {/* Mobile: Profile Button */}
+            <div className="md:hidden flex items-center">
               <motion.button 
                 onClick={handleProfileClick} 
                 className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
