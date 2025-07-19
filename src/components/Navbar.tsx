@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown } from 'lucide-react';
+import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown, Search, MessageCircle, Users, Settings, LogOut } from 'lucide-react';
 import logo from '../pages/a.png';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
@@ -288,8 +288,23 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             
             {/* Mobile: Hamburger Menu Button */}
-            <div className="md:hidden">
-              <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
+            <div className="md:hidden flex items-center space-x-2">
+              <motion.button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
+                whileHover={{ scale: 1.1 }} 
+                whileTap={{ scale: 0.95 }} 
+                title="Menü"
+              >
+                <Menu className="w-7 h-7" />
+              </motion.button>
+              <motion.button 
+                onClick={handleProfileClick} 
+                className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
+                whileHover={{ scale: 1.1 }} 
+                whileTap={{ scale: 0.95 }} 
+                title="Profil"
+              >
                 <User className="w-7 h-7" />
               </motion.button>
             </div>
@@ -328,7 +343,114 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
       </nav>
 
-      {/* Mobile Menu Panel kaldırıldı */}
+      {/* Mobile Menu Panel */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            className="fixed top-0 right-0 h-full w-80 bg-gray-900/95 backdrop-blur-xl z-50 border-l border-gray-800 shadow-2xl"
+          >
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                <h2 className="text-xl font-bold text-white">Menü</h2>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Menu Items */}
+              <div className="flex-1 p-6 space-y-4">
+                <Link
+                  to="/home"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
+                >
+                  <Home className="w-5 h-5 text-blue-400" />
+                  <span>Ana Sayfa</span>
+                </Link>
+
+                <Link
+                  to="/discover"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
+                >
+                  <Search className="w-5 h-5 text-green-400" />
+                  <span>Keşfet</span>
+                </Link>
+
+                <Link
+                  to="/messages"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
+                >
+                  <MessageCircle className="w-5 h-5 text-purple-400" />
+                  <span>Mesajlar</span>
+                </Link>
+
+                <Link
+                  to="/users"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
+                >
+                  <Users className="w-5 h-5 text-orange-400" />
+                  <span>Kullanıcılar</span>
+                </Link>
+
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
+                >
+                  <User className="w-5 h-5 text-cyan-400" />
+                  <span>Profil</span>
+                </Link>
+
+                <button
+                  onClick={() => setIsBottomSheetOpen(true)}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
+                >
+                  <Settings className="w-5 h-5 text-yellow-400" />
+                  <span>Ayarlar</span>
+                </button>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-gray-800">
+                {authService.isAuthenticated() ? (
+                  <button
+                    onClick={async () => {
+                      await authService.logout();
+                      setIsMenuOpen(false);
+                      navigate('/home');
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-red-600/20 hover:bg-red-600/30 transition-colors text-red-400"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Çıkış Yap</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onShowAuth();
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 transition-colors text-blue-400"
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Giriş Yap</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Sheet Panel */}
       <BottomSheet

@@ -60,6 +60,10 @@ const ProfilePage: React.FC = () => {
     'word-race': 0,
     'wordTypes': 0
   });
+  const [userStats, setUserStats] = useState<{ gamesPlayed: number; lastPlayed: Date | null }>({
+    gamesPlayed: 0,
+    lastPlayed: null
+  });
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null); // Profil fotoğrafı URL'si
   const [bgImage, setBgImage] = useState<string | null>(null); // Arka plan görseli URL'si
   const [uploading, setUploading] = useState(false); // Fotoğraf yükleme durumu
@@ -69,6 +73,7 @@ const ProfilePage: React.FC = () => {
   const [additionalInfo, setAdditionalInfo] = useState<Array<{ title: string; value: string }>>([]); // Ek bilgiler
   const [showAddInfoForm, setShowAddInfoForm] = useState(false); // Ek bilgi formu görünürlüğü
   const [newInfo, setNewInfo] = useState({ title: '', value: '' }); // Yeni eklenecek bilgi
+  const [loading, setLoading] = useState(true); // Yükleme durumu
 
   // Kullanıcı oturum açmamışsa yönlendirme
   useEffect(() => {
@@ -81,28 +86,33 @@ const ProfilePage: React.FC = () => {
 
   // Kullanıcı skorlarını yükleme
   useEffect(() => {
-    const loadUserScores = async () => {
-      let total = 0;
-      const loadedScores: Record<GameMode, number> = { ...scores }; // Mevcut skorları kopyala
+    const loadUserData = async () => {
+      if (!user) return;
 
-      // Her oyun modu için en yüksek skoru al
-      for (const mode of Object.keys(loadedScores) as GameMode[]) {
-        try {
-          const score = await gameScoreService.getUserHighScore(mode, user?.uid || 'anonymous'); // Kullanıcı ID'si ile sorgu
-          loadedScores[mode] = score || 0; // Skor yoksa 0 ata
-          total += score || 0;
-        } catch (error) {
-          console.error(`Skor yüklenirken hata: ${mode}`, error);
-          loadedScores[mode] = 0; // Hata durumunda 0 ata
-        }
+      try {
+        setLoading(true);
+        
+        // Kullanıcının tüm skorlarını al
+        const userScores = await gameScoreService.getUserAllScores();
+        setScores(userScores);
+        
+        // Toplam skoru hesapla
+        const total = Object.values(userScores).reduce((sum, score) => sum + score, 0);
+        setTotalScore(total);
+        
+        // Kullanıcı istatistiklerini al
+        const stats = await gameScoreService.getUserStats();
+        setUserStats(stats);
+        
+      } catch (error) {
+        console.error('Kullanıcı verileri yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
       }
-
-      setScores(loadedScores);
-      setTotalScore(total);
     };
 
     if (user) {
-      loadUserScores();
+      loadUserData();
     }
   }, [user]); // Sadece user değiştiğinde çalışır
 
@@ -127,7 +137,7 @@ const ProfilePage: React.FC = () => {
   const handleSaveProfileName = async () => {
     if (!user) return;
     try {
-      await authService.updateProfile({ displayName: editedName });
+        await authService.updateProfile({ displayName: editedName });
       setIsEditingName(false);
       // Başarı mesajı gösterilebilir.
     } catch (err) {
@@ -164,21 +174,21 @@ const ProfilePage: React.FC = () => {
       setUploadError('Lütfen geçerli bir resim dosyası seçin.');
       return;
     }
-
+    
     setUploading(true);
     setUploadError(null);
-
+    
     try {
       const formData = new FormData();
       formData.append('image', file);
-
+      
       const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
         method: 'POST',
         body: formData,
       });
-
+      
       const data = await response.json();
-
+      
       if (data.success) {
         const uploadedUrl = data.data.url;
         setProfilePhoto(uploadedUrl);
@@ -199,6 +209,18 @@ const ProfilePage: React.FC = () => {
   // Kullanıcı yoksa componenti render etme
   if (!user) {
     return null;
+  }
+
+  // Yükleme durumu
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Profil yükleniyor...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -299,13 +321,13 @@ const ProfilePage: React.FC = () => {
       <div className="max-w-4xl mx-auto relative z-10 py-12 px-4 sm:px-6 lg:px-8">
 
         {/* Geri dön butonu */}
-        <button
+          <button 
           onClick={() => navigate('/home')}
-          className="absolute top-0 left-0 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-shadow flex items-center justify-center border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="absolute top-0 left-0 p-2 bg-gray-900/60 backdrop-blur-md rounded-full shadow-2xl hover:shadow-xl transition-all flex items-center justify-center border border-gray-700/50 text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label="Geri dön"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
 
         {/* Profil Kartı */}
         <div className="relative bg-gray-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50 p-6 sm:p-8 mb-8">
@@ -313,13 +335,13 @@ const ProfilePage: React.FC = () => {
           <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
             <div className="relative w-28 h-28 sm:w-32 sm:h-32">
               <div className="w-full h-full rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
-                {profilePhoto ? (
+              {profilePhoto ? (
                   <img src={profilePhoto} alt="Profil Fotoğrafı" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-blue-100 dark:bg-gray-700 flex items-center justify-center">
-                    <User className="w-16 h-16 text-blue-400 dark:text-gray-300" />
+                  <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                    <User className="w-16 h-16 text-blue-400" />
                   </div>
-                )}
+              )}
               </div>
               <input
                 type="file"
@@ -328,8 +350,8 @@ const ProfilePage: React.FC = () => {
                 className="hidden"
                 onChange={handlePhotoChange}
               />
-              <label
-                htmlFor="profile-photo-input"
+              <label 
+                htmlFor="profile-photo-input" 
                 className="absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors shadow-md flex items-center justify-center"
                 title="Profil Fotoğrafı Değiştir"
               >
@@ -365,7 +387,7 @@ const ProfilePage: React.FC = () => {
               ) : (
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">
                   {user?.displayName || 'Kullanıcı Adı Girilmedi'}
-                </h1>
+            </h1>
               )}
               {!isEditingName && (
                 <button
@@ -396,6 +418,24 @@ const ProfilePage: React.FC = () => {
             </span>
             <p className="text-gray-400 text-sm">Toplam Puan</p>
           </div>
+          
+          {/* Kullanıcı İstatistikleri */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg p-4 border border-gray-600/50 text-center">
+              <div className="text-2xl font-bold text-blue-400">{userStats.gamesPlayed}</div>
+              <div className="text-gray-400 text-sm">Oynanan Oyun</div>
+            </div>
+            <div className="bg-gray-800/60 backdrop-blur-sm rounded-lg p-4 border border-gray-600/50 text-center">
+              <div className="text-lg font-bold text-green-400">
+                {userStats.lastPlayed 
+                  ? new Date(userStats.lastPlayed).toLocaleDateString('tr-TR')
+                  : 'Henüz oynanmadı'
+                }
+              </div>
+              <div className="text-gray-400 text-sm">Son Oynama</div>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(scores).map(([mode, score]) => (
               <div
@@ -417,9 +457,9 @@ const ProfilePage: React.FC = () => {
         {/* Ek Bilgiler ve Arka Plan Seçimi */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Ek Bilgiler */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50 p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Ek Bilgiler</h3>
+              <h3 className="text-lg font-semibold text-gray-100">Ek Bilgiler</h3>
               <button
                 onClick={() => setShowAddInfoForm(true)}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -431,27 +471,27 @@ const ProfilePage: React.FC = () => {
 
             {/* Ek Bilgi Ekleme Formu */}
             {showAddInfoForm && (
-              <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className="mb-4 p-4 bg-gray-800/60 backdrop-blur-sm rounded-lg border border-gray-600/50">
                 <div className="grid grid-cols-1 gap-3 mb-3">
                   <input
                     type="text"
                     value={newInfo.title}
                     onChange={(e) => setNewInfo({ ...newInfo, title: e.target.value })}
                     placeholder="Başlık"
-                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="px-3 py-2 rounded-lg border border-gray-600 bg-gray-800/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                   <input
                     type="text"
                     value={newInfo.value}
                     onChange={(e) => setNewInfo({ ...newInfo, value: e.target.value })}
                     placeholder="Değer"
-                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="px-3 py-2 rounded-lg border border-gray-600 bg-gray-800/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => setShowAddInfoForm(false)}
-                    className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors focus:outline-none"
+                    className="px-3 py-1.5 text-sm bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors focus:outline-none"
                   >
                     İptal
                   </button>
@@ -467,21 +507,21 @@ const ProfilePage: React.FC = () => {
 
             {/* Mevcut Ek Bilgiler */}
             {additionalInfo.length === 0 && !showAddInfoForm && (
-              <p className="text-center text-gray-400 dark:text-gray-500 text-sm italic py-4">Henüz ek bilgi yok.</p>
+              <p className="text-center text-gray-500 text-sm italic py-4">Henüz ek bilgi yok.</p>
             )}
             <div className="space-y-3">
               {additionalInfo.map((info, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600"
+                  className="flex items-center justify-between p-3 bg-gray-800/60 backdrop-blur-sm rounded-lg border border-gray-600/50"
                 >
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">{info.title}</h4>
-                    <p className="text-gray-600 dark:text-gray-400 text-xs">{info.value}</p>
+                    <h4 className="font-medium text-gray-100 text-sm">{info.title}</h4>
+                    <p className="text-gray-400 text-xs">{info.value}</p>
                   </div>
                   <button
                     onClick={() => handleRemoveInfo(index)}
-                    className="p-1 text-red-500 hover:text-red-600 transition-colors focus:outline-none"
+                    className="p-1 text-red-400 hover:text-red-300 transition-colors focus:outline-none"
                     title="Bilgiyi sil"
                   >
                     <X className="w-4 h-4" />
@@ -492,8 +532,8 @@ const ProfilePage: React.FC = () => {
           </div>
 
           {/* Arka Plan Seçimi */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center justify-center">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Profil Arka Planı</h3>
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50 p-6 flex flex-col items-center justify-center">
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">Profil Arka Planı</h3>
             <div className="flex flex-wrap gap-3 justify-center">
               {[null, '/assets/bg1.jpg', '/assets/bg2.jpg', '/assets/bg3.jpg'].map((img, i) => (
                 <button
@@ -501,18 +541,18 @@ const ProfilePage: React.FC = () => {
                   onClick={() => setBgImage(img)}
                   className={`
                     w-14 h-14 rounded-lg 
-                    ${bgImage === img ? 'ring-4 ring-blue-500 shadow-xl' : 'ring-2 ring-gray-300 dark:ring-gray-600 shadow-sm'}
+                    ${bgImage === img ? 'ring-4 ring-blue-500 shadow-xl' : 'ring-2 ring-gray-600 shadow-sm'}
                     overflow-hidden cursor-pointer transition-all duration-300 ease-in-out
                     hover:scale-105 hover:shadow-lg
                   `}
                   style={
                     img
                       ? { backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                      : { backgroundImage: 'linear-gradient(135deg, #e0e7ff 0%, #fef9c3 100%)' }
+                      : { backgroundImage: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }
                   }
                   title={img ? 'Arka Plan Seç' : 'Varsayılan Arka Plan'}
                 >
-                  {!img && <span className="flex items-center justify-center h-full w-full text-xs font-semibold text-gray-500">Varsayılan</span>}
+                  {!img && <span className="flex items-center justify-center h-full w-full text-xs font-semibold text-gray-400">Varsayılan</span>}
                 </button>
               ))}
             </div>
@@ -521,9 +561,9 @@ const ProfilePage: React.FC = () => {
 
         {/* Çıkış Yap Butonu */}
         <div className="mt-10 mb-5">
-          <button
+          <button 
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
+            className="w-full flex items-center justify-center gap-2 p-3 bg-red-500/80 backdrop-blur-sm hover:bg-red-600/80 text-white rounded-lg shadow-2xl border border-red-400/30 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-400 hover:shadow-red-500/25"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-semibold">Çıkış Yap</span>
@@ -535,4 +575,4 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-export default ProfilePage;
+export default ProfilePage; 

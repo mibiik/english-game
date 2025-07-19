@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { learningStatsTracker } from '../../data/learningStats';
 import { Star, Trophy, Medal, ArrowRight, CheckCircle, Target, Zap, Flame, Award, Sparkles, Crown } from 'lucide-react';
 import { WordDetail } from '../../data/words';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface GameWord extends WordDetail {
   type: 'english' | 'turkish';
@@ -219,18 +220,30 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       if (unitProgress >= 100) {
         setShowUnitComplete(true);
         setShowConfetti(true);
+        // Skoru kaydet
+        try {
+          gameScoreService.saveScore('matching', score, unit);
+        } catch (error) {
+          console.error('Skor kaydedilirken hata:', error);
+        }
         setTimeout(() => {
           setShowConfetti(false);
           setShowUnitComplete(false);
           setShowResult(true);
         }, 4000);
       } else {
+        // Skoru kaydet
+        try {
+          gameScoreService.saveScore('matching', score, unit);
+        } catch (error) {
+          console.error('Skor kaydedilirken hata:', error);
+        }
         setTimeout(() => {
             setShowResult(true);
         }, 500);
     }
     }
-  }, [matchedPairs, gameWords, unitProgress]);
+  }, [matchedPairs, gameWords, unitProgress, score, unit]);
 
   // Motivasyonlu mesajlar
   const getMotivationalMessage = (combo: number, streak: number) => {

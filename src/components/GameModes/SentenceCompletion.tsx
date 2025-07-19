@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
-import { AlertTriangle, Trophy, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Trophy, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
+import { gameScoreService } from '../../services/gameScoreService';
+import { WordDetail } from '../../data/words';
 
 interface SentenceCompletionProps {
-  words: { headword: string }[];
+  words: WordDetail[];
 }
 
 const INITIAL_LOAD_COUNT = 5;
@@ -85,6 +87,13 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     setTimeout(() => {
       const isLastQuestion = currentIndex === words.length - 1;
       if (isLastQuestion) {
+        // Oyun bitti, skoru kaydet
+        const unit = words[0]?.unit || '1';
+        try {
+          gameScoreService.saveScore('sentence-completion', score + (option === questions[currentIndex].correctAnswer ? 1 : 0), unit);
+        } catch (error) {
+          console.error('Skor kaydedilirken hata:', error);
+        }
         setStatus('completed');
       } else {
         setCurrentIndex(prev => prev + 1);

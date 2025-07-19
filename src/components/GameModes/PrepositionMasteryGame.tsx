@@ -4,6 +4,7 @@ import { Loader2, Check, X, Trophy, ArrowLeft, Swords, Sparkles, Star, BrainCirc
 import { PrepositionExercise } from '../../types';
 import { aiService } from '../../services/aiService';
 import { prepositionsByLevel, Preposition } from '../../data/prepositions';
+import { gameScoreService } from '../../services/gameScoreService';
 
 type GameState = 'menu' | 'loading' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
@@ -86,6 +87,17 @@ export const PrepositionMasteryGame: React.FC = () => {
       setSelectedAnswer(null);
     } else {
       setGameState('finished');
+      // Oyun bittiğinde skoru kaydet
+      const saveScore = async () => {
+        try {
+          const finalScore = score + (selectedAnswer === exercises[currentQuestionIndex]?.correctAnswer ? 1 : 0);
+          await gameScoreService.saveScore('prepositionMastery', finalScore, 'all');
+          console.log('PrepositionMasteryGame skoru kaydedildi:', finalScore);
+        } catch (error) {
+          console.error('PrepositionMasteryGame skoru kaydedilirken hata:', error);
+        }
+      };
+      saveScore();
     }
   };
   

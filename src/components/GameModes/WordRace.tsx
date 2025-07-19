@@ -6,6 +6,7 @@ import { gameStateManager } from '../../lib/utils';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
 import { Timer, Target, RotateCcw, CheckCircle as CheckCircleIcon, X } from 'lucide-react';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface WordRaceProps {
   words: WordDetail[];
@@ -131,7 +132,15 @@ export function WordRace({ words }: WordRaceProps) {
   const endGame = useCallback(() => {
     setGameCompleted(true);
     setIsGameActive(false);
-  }, []);
+    
+    // Oyun bitti, skoru kaydet
+    const unit = raceWords[0]?.unit || '1';
+    try {
+      gameScoreService.saveScore('word-race', score, unit);
+    } catch (error) {
+      console.error('Skor kaydedilirken hata:', error);
+    }
+  }, [score, raceWords]);
 
   useEffect(() => {
     if (isGameActive && timeLeft > 0) {

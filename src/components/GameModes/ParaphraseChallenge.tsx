@@ -4,6 +4,7 @@ import { aiService } from '../../services/aiService';
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { WordDetail } from '../../data/words';
 import { RefreshCw, CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface ParaphraseChallengeProps {
   words: WordDetail[];
@@ -134,7 +135,19 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
   const handleNextType = () => {
     if (currentType === 'parenthetical') setCurrentType('narrativeVerb');
     else if (currentType === 'narrativeVerb') setCurrentType('narrativeAccording');
-    else generateRandomSentence();
+    else {
+      // Tüm türler tamamlandığında skoru kaydet
+      const saveScore = async () => {
+        try {
+          await gameScoreService.saveScore('paraphraseChallenge', score, unit);
+          console.log('ParaphraseChallenge skoru kaydedildi:', score);
+        } catch (error) {
+          console.error('ParaphraseChallenge skoru kaydedilirken hata:', error);
+        }
+      };
+      saveScore();
+      generateRandomSentence();
+    }
 
     setParaphraseState({
       input: '',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VocabularyService, Unit, VocabularyGame } from '../../services/vocabularyService';
 import { generateSentences } from '../../services/openRouterService';
 import { Word } from '../../data/words';
+import { gameScoreService } from '../../services/gameScoreService';
 
 type VocabularyGameProps = {
   words: Word[];
@@ -64,6 +65,13 @@ export const VocabularyGameComponent: React.FC<VocabularyGameProps> = ({ words, 
         }));
         setFeedback('');
       } else {
+        // Oyun bitti, skoru kaydet
+        const unit = words[0]?.unit || '1';
+        try {
+          gameScoreService.saveScore('vocabulary', gameState.score + (isCorrect ? 1 : 0), unit);
+        } catch (error) {
+          console.error('Skor kaydedilirken hata:', error);
+        }
         onComplete();
       }
     }, 1500);

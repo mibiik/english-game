@@ -4,6 +4,7 @@ import { Loader2, RefreshCw, CheckCircle, XCircle, Trophy, AlertTriangle, ArrowR
 import { aiService } from '../../services/aiService';
 import { WordDetail } from '../../data/words';
 import { Button } from '../ui/button';
+import { gameScoreService } from '../../services/gameScoreService';
 
 // --- TYPE DEFINITIONS ---
 interface WordFormsGameProps {
@@ -149,6 +150,13 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
       if (isLoadingMore) {
         setIsWaitingForMore(true);
       } else {
+        // Oyun bitti, skoru kaydet
+        const unit = words[0]?.unit || '1';
+        try {
+          gameScoreService.saveScore('wordForms', score, unit);
+        } catch (error) {
+          console.error('Skor kaydedilirken hata:', error);
+        }
         setStatus('completed');
       }
     }

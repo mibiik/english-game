@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { userService } from './userService';
 
 class AuthService {
   private static instance: AuthService;
@@ -34,6 +35,14 @@ class AuthService {
       // Kullanıcı adını güncelle
       if (userCredential.user) {
         await firebaseUpdateProfile(userCredential.user, { displayName });
+        
+        // Kullanıcıyı users koleksiyonuna da ekle
+        try {
+          await userService.registerUser(displayName, email);
+        } catch (userError) {
+          console.error('Kullanıcı users koleksiyonuna eklenirken hata:', userError);
+          // Bu hata ana kayıt işlemini engellememeli
+        }
       }
       return userCredential.user;
     } catch (error) {

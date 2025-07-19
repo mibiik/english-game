@@ -4,6 +4,7 @@ import { gameStateManager } from '../../lib/utils';
 import { CheckCircle, X, RotateCcw, Sparkles, ArrowRight, Brain, Flame, Trophy } from 'lucide-react';
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface DefinitionToWordGameProps {
   words: WordDetail[];
@@ -262,6 +263,16 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
         setShowHint(false); // Hint'i sıfırla
       } else {
         setUnitCompleted(true);
+        // Ünite tamamlandığında skoru kaydet
+        const saveScore = async () => {
+          try {
+            await gameScoreService.saveScore('definitionToWord', score, unit);
+            console.log('DefinitionToWordGame skoru kaydedildi:', score);
+          } catch (error) {
+            console.error('DefinitionToWordGame skoru kaydedilirken hata:', error);
+          }
+        };
+        saveScore();
       }
     }, correct ? 1500 : 2500);
   };

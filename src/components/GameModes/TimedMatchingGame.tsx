@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Word } from '../../data/words';
 import { wordTracker } from '../../data/wordTracker';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface TimedMatchingGameProps {
   words: Word[];
@@ -44,6 +45,12 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
       }, 1000);
       return () => clearInterval(timer);
     } else if (timeLeft === 0) {
+      // Süre doldu, skoru kaydet
+      try {
+        gameScoreService.saveScore('timedMatching', score, unit);
+      } catch (error) {
+        console.error('Skor kaydedilirken hata:', error);
+      }
       setGameOver(true);
       setIsGameActive(false);
     }
@@ -82,6 +89,12 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
           setMatchedPairs(prev => prev + 1);
 
           if (matchedPairs + 1 === totalPairs) {
+            // Oyun bitti, skoru kaydet
+            try {
+              gameScoreService.saveScore('timedMatching', score + 10, unit);
+            } catch (error) {
+              console.error('Skor kaydedilirken hata:', error);
+            }
             setGameOver(true);
             setIsGameActive(false);
           }

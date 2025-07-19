@@ -1,100 +1,251 @@
 import { db } from '../config/firebase';
-import { collection, addDoc, serverTimestamp, doc, setDoc, getDoc, query, where, getDocs } from 'firebase/firestore';
-import { auth } from '../config/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { collection, doc, setDoc, getDoc, updateDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { authService } from './authService';
 
-// Helper function to get current user, returns a promise
-const getCurrentUser = () => {
-  return new Promise((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe();
-      resolve(user);
-    }, reject);
-  });
-};
+export interface User {
+  userId: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  bio?: string;
+  level?: string;
+  totalScore: number;
+  gamesPlayed: number;
+  lastPlayed: Date;
+  location?: string;
+  interests?: string[];
+  isOnline?: boolean;
+  lastSeen?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-// Browser fingerprint oluştur
-const generateBrowserFingerprint = (): string => {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    ctx.textBaseline = 'top';
-    ctx.font = '14px Arial';
-    ctx.fillText('Browser fingerprint', 2, 2);
-  }
-  
-  const fingerprint = [
-    navigator.userAgent,
-    navigator.language,
-    screen.width + 'x' + screen.height,
-    new Date().getTimezoneOffset(),
-    canvas.toDataURL()
-  ].join('|');
-  
-  // Simple hash
-  let hash = 0;
-  for (let i = 0; i < fingerprint.length; i++) {
-    const char = fingerprint.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString();
-};
+class UserService {
+  private readonly usersCollection = 'users';
+  private readonly userProfilesCollection = 'userProfiles';
 
-export const userService = {
-  saveUserName: async (name: string): Promise<void> => {
+  // Yeni kullanıcı kaydı
+  public async registerUser(displayName: string, email: string, photoURL?: string): Promise<void> {
+    const userId = authService.getCurrentUserId();
+    if (!userId) throw new Error('Kullanıcı oturum açmamış');
+
+    const userData: User = {
+      userId,
+      displayName,
+      email,
+      photoURL,
+      totalScore: 0,
+      gamesPlayed: 0,
+      lastPlayed: new Date(),
+      lastSeen: new Date(),
+      level: 'intermediate',
+      bio: '',
+      location: '',
+      isOnline: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
     try {
-      const user: any = await getCurrentUser();
-      if (user) {
-        // Authenticated user, use their UID
-        await setDoc(doc(db, "users", user.uid), {
-          name: name,
-          email: user.email,
-          lastSeen: serverTimestamp()
-        }, { merge: true }); // Merge to not overwrite other user data
-      } else {
-        // Anonymous guest user
-        await addDoc(collection(db, 'guests'), {
-          name: name,
-          createdAt: serverTimestamp(),
-        });
+      // users koleksiyonuna ekle
+      await setDoc(doc(db, this.usersCollection, userId), userData);
+      
+      // userProfiles koleksiyonuna da ekle (mevcut sistem için)
+      await setDoc(doc(db, this.userProfilesCollection, userId), userData);
+      
+      console.log('Kullanıcı başarıyla kaydedildi:', userId);
+    } catch (error) {
+      console.error('Kullanıcı kaydedilirken hata:', error);
+      throw error;
+    }
+  }
+
+  // Kullanıcı bilgilerini güncelle
+  public async updateUser(userId: string, updates: Partial<User>): Promise<void> {
+    try {
+      const updateData = {
+        ...updates,
+        updatedAt: new Date()
+      };
+
+      // Her iki koleksiyonu da güncelle
+      await updateDoc(doc(db, this.usersCollection, userId), updateData);
+      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
+    } catch (error) {
+      console.error('Kullanıcı güncellenirken hata:', error);
+      throw error;
+    }
+  }
+
+  // Kullanıcı bilgilerini getir
+  public async getUser(userId: string): Promise<User | null> {
+    try {
+      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
+      
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        return {
+          ...data,
+          lastPlayed: data.lastPlayed?.toDate(),
+          lastSeen: data.lastSeen?.toDate(),
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate()
+        } as User;
+      }
+      return null;
+    } catch (error) {
+      console.error('Kullanıcı getirilirken hata:', error);
+      return null;
+    }
+  }
+
+  // Tüm kullanıcıları getir
+  public async getAllUsers(): Promise<User[]> {
+    try {
+      const usersQuery = query(
+        collection(db, this.usersCollection),
+        orderBy('totalScore', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(usersQuery);
+      const users: User[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        users.push({
+          ...data,
+          lastPlayed: data.lastPlayed?.toDate(),
+          lastSeen: data.lastSeen?.toDate(),
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate()
+        } as User);
+      });
+      
+      return users;
+    } catch (error) {
+      console.error('Kullanıcılar getirilirken hata:', error);
+      return [];
+    }
+  }
+
+  // Kullanıcı ara
+  public async searchUsers(searchTerm: string): Promise<User[]> {
+    try {
+      const usersQuery = query(
+        collection(db, this.usersCollection),
+        orderBy('displayName')
+      );
+      
+      const querySnapshot = await getDocs(usersQuery);
+      const users: User[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const user: User = {
+          ...data,
+          lastPlayed: data.lastPlayed?.toDate(),
+          lastSeen: data.lastSeen?.toDate(),
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate()
+        } as User;
+        
+        // Arama filtresi
+        if (user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.location?.toLowerCase().includes(searchTerm.toLowerCase())) {
+          users.push(user);
+        }
+      });
+      
+      return users;
+    } catch (error) {
+      console.error('Kullanıcı arama hatası:', error);
+      return [];
+    }
+  }
+
+  // Online durumu güncelle
+  public async updateOnlineStatus(userId: string, isOnline: boolean): Promise<void> {
+    try {
+      const updateData = {
+        isOnline,
+        lastSeen: new Date(),
+        updatedAt: new Date()
+      };
+
+      await updateDoc(doc(db, this.usersCollection, userId), updateData);
+      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
+    } catch (error) {
+      console.error('Online durumu güncellenirken hata:', error);
+    }
+  }
+
+  // Kullanıcı skorunu güncelle
+  public async updateUserScore(userId: string, gameMode: string, score: number): Promise<void> {
+    try {
+      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        const newTotalScore = userData.totalScore + score;
+        const newGamesPlayed = userData.gamesPlayed + 1;
+        
+        const updateData = {
+          totalScore: newTotalScore,
+          gamesPlayed: newGamesPlayed,
+          lastPlayed: new Date(),
+          updatedAt: new Date()
+        };
+
+        await updateDoc(doc(db, this.usersCollection, userId), updateData);
+        await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
       }
     } catch (error) {
-      console.error("Error saving user/guest name: ", error);
+      console.error('Kullanıcı skoru güncellenirken hata:', error);
     }
-  },
-  saveUserFeedback: async (name: string, feedback: string): Promise<void> => {
+  }
+
+  // En iyi kullanıcıları getir
+  public async getTopUsers(limit: number = 10): Promise<User[]> {
     try {
-      await addDoc(collection(db, 'feedbacks'), {
-        name: name,
-        feedback: feedback,
-        createdAt: serverTimestamp(),
+      const usersQuery = query(
+        collection(db, this.usersCollection),
+        orderBy('totalScore', 'desc'),
+        limit(limit)
+      );
+      
+      const querySnapshot = await getDocs(usersQuery);
+      const users: User[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        users.push({
+          ...data,
+          lastPlayed: data.lastPlayed?.toDate(),
+          lastSeen: data.lastSeen?.toDate(),
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate()
+        } as User);
       });
+      
+      return users;
     } catch (error) {
-      console.error("Error saving feedback: ", error);
+      console.error('En iyi kullanıcılar getirilirken hata:', error);
+      return [];
     }
-  },
-  checkIfModalSeen: async (): Promise<boolean> => {
+  }
+
+  // Kullanıcı sayısını getir
+  public async getUserCount(): Promise<number> {
     try {
-      const browserId = generateBrowserFingerprint();
-      const q = query(collection(db, 'modalViews'), where('browserId', '==', browserId));
-      const querySnapshot = await getDocs(q);
-      return !querySnapshot.empty;
+      const usersQuery = query(collection(db, this.usersCollection));
+      const querySnapshot = await getDocs(usersQuery);
+      return querySnapshot.size;
     } catch (error) {
-      console.error("Error checking modal view: ", error);
-      return false;
+      console.error('Kullanıcı sayısı getirilirken hata:', error);
+      return 0;
     }
-  },
-  markModalAsSeen: async (): Promise<void> => {
-    try {
-      const browserId = generateBrowserFingerprint();
-      await addDoc(collection(db, 'modalViews'), {
-        browserId: browserId,
-        viewedAt: serverTimestamp(),
-        userAgent: navigator.userAgent,
-      });
-    } catch (error) {
-      console.error("Error marking modal as seen: ", error);
-    }
-  },
-}; 
+  }
+}
+
+export const userService = new UserService(); 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { WordDetail } from '../../data/word4';
-import { updateWordDifficulty } from '../../data/difficultWords';
+import { Trophy, Target, CheckCircle, XCircle } from 'lucide-react';
+import { WordDetail } from '../../data/words';
 import { learningStatsTracker } from '../../data/learningStats';
-import { CheckCircle, XCircle, Trophy, Target } from 'lucide-react';
+import { gameScoreService } from '../../services/gameScoreService';
+import { updateWordDifficulty } from '../../data/difficultWords';
 
 interface MultipleChoiceProps {
   words: WordDetail[];
@@ -150,6 +151,14 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     const nextIndex = currentWordIndex + 1;
     
     if (nextIndex >= roundWords.length) {
+      // Oyun bitti, skoru kaydet
+      const finalScore = score + (isCorrect ? 1 : 0);
+      const unit = roundWords[0]?.unit || '1';
+      try {
+        gameScoreService.saveScore('multiple-choice', finalScore, unit);
+      } catch (error) {
+        console.error('Skor kaydedilirken hata:', error);
+      }
       return;
     }
 
@@ -158,7 +167,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     setSelectedAnswer(null);
     setIsCorrect(null);
     setShowFeedback(false);
-  }, [roundWords, currentWordIndex, generateOptions]);
+  }, [roundWords, currentWordIndex, generateOptions, score, isCorrect]);
 
   const getButtonStyle = (option: string) => {
     if (selectedAnswer === null) {

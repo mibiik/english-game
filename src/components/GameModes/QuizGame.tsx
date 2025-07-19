@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../../data/words';
+import { WordDetail } from '../../data/words';
 import { wordTracker } from '../../data/wordTracker';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface QuizGameProps {
-  words: Word[];
+  words: WordDetail[];
   unit: string;
   onUnitComplete?: (unit: string) => void;
 }
 
 export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
-  const [currentWord, setCurrentWord] = useState<Word | null>(null);
+  const [currentWord, setCurrentWord] = useState<WordDetail | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
@@ -40,11 +41,11 @@ export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
     setCurrentWord(newWord);
     wordTracker.markWordAsSeen(newWord);
 
-    const wrongOptions = filteredWords
-      .filter(w => w.turkish !== newWord.turkish)
+    const wrongOptions = words
+      .filter((w: WordDetail) => w.turkish !== newWord.turkish)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3)
-      .map(w => w.turkish);
+      .map((w: WordDetail) => w.turkish);
 
     const allOptions = [...wrongOptions, newWord.turkish];
     setOptions(allOptions.sort(() => Math.random() - 0.5));
@@ -72,6 +73,17 @@ export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
 
       if (newProgress >= 100) {
         setShowUnitComplete(true);
+        // Ünite tamamlandığında skoru kaydet
+        const saveScore = async () => {
+          try {
+            await gameScoreService.saveScore('quizGame', score, unit);
+            console.log('QuizGame skoru kaydedildi:', score);
+          } catch (error) {
+            console.error('QuizGame skoru kaydedilirken hata:', error);
+          }
+        };
+        saveScore();
+        
         setTimeout(() => {
           if (onUnitComplete) {
             onUnitComplete(unit);
@@ -128,7 +140,7 @@ export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
         <div className="bg-white p-8 rounded-xl shadow-lg border border-blue-50">
           <div className="text-4xl sm:text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 to-indigo-600
             text-transparent bg-clip-text animate-pulse">
-            {currentWord.english}
+            {currentWord.headword}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

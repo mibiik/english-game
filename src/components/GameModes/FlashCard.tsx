@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, RotateCcw, Eye, EyeOff, Star } from 'lucide-react';
+import { RefreshCw, Sparkles } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { gameStateManager } from '../../lib/utils';
+import { gameScoreService } from '../../services/gameScoreService';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
 
@@ -110,7 +111,15 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
       if (currentWordIndex < roundWords.length - 1) {
         setCurrentWordIndex(currentWordIndex + 1);
       } else {
-        // Tur bitti
+        // Tur bitti, skoru kaydet
+        const finalScore = score + (known ? 1 : 0);
+        const unit = roundWords[0]?.unit || '1';
+        try {
+          gameScoreService.saveScore('flashcard', finalScore, unit);
+        } catch (error) {
+          console.error('Skor kaydedilirken hata:', error);
+        }
+        
         if (!isRepeatMode && repeatList.length > 0) {
           // Tekrar moduna geç
           startNewRound(repeatList);

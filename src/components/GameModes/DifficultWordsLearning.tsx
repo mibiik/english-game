@@ -8,6 +8,7 @@ import {
   Volume2, Image as ImageIcon, Zap, BookOpen
 } from 'lucide-react';
 import { aiService } from '../../services/aiService';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface DifficultWordsLearningProps {
   words: WordDetail[];
@@ -182,6 +183,20 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
       correctAnswers: correct ? sessionStats.correctAnswers + 1 : sessionStats.correctAnswers
     };
     setSessionStats(newStats);
+
+    // Session sonunda skor kaydetme
+    if (newStats.totalReviews >= 10) {
+      const saveScore = async () => {
+        try {
+          const finalScore = Math.round((newStats.correctAnswers / newStats.totalReviews) * 100);
+          await gameScoreService.saveScore('difficultWords', finalScore, 'all');
+          console.log('DifficultWordsLearning skoru kaydedildi:', finalScore);
+        } catch (error) {
+          console.error('DifficultWordsLearning skoru kaydedilirken hata:', error);
+        }
+      };
+      saveScore();
+    }
 
     if (correct) {
       const currentStage = wordProgress.spacedRepetition.stage;

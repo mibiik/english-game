@@ -9,6 +9,7 @@ import { gameStateManager } from '../../lib/utils';
 import { learningStatsTracker } from '../../data/learningStats';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { CheckCircle as CheckCircleIcon, X, Timer, Trophy, Target, RefreshCw, Clock as ClockIcon } from 'lucide-react';
+import { gameScoreService } from '../../services/gameScoreService';
 
 interface SpeedGameProps {
   words: WordDetail[];
@@ -385,6 +386,21 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       </div>
     );
   }
+
+  // Oyun sonunda skor kaydetme
+  useEffect(() => {
+    if (gameOver && score > 0) {
+      const saveScore = async () => {
+        try {
+          await gameScoreService.saveScore('speedGame', score, unit);
+          console.log('SpeedGame skoru kaydedildi:', score);
+        } catch (error) {
+          console.error('SpeedGame skoru kaydedilirken hata:', error);
+        }
+      };
+      saveScore();
+    }
+  }, [gameOver, score, unit]);
 
   if (gameOver) {
     return (

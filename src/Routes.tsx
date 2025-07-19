@@ -27,6 +27,8 @@ import QuizLobby from './pages/QuizLobby';
 import QuizHostPlay from './pages/QuizHostPlay';
 import JoinQuiz from './pages/JoinQuiz';
 import PlayerQuizFlow from './pages/PlayerQuizFlow';
+import DiscoverPage from './pages/DiscoverPage';
+import MessagesPage from './pages/MessagesPage';
 import { authService } from './services/authService';
 
 // Korumalı Route bileşeni
@@ -441,6 +443,40 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             />
             <div className="pt-32">
               <PlayerQuizFlow />
+            </div>
+          </>
+        </ProtectedRoute>
+      } />
+
+      {/* Keşfet ve Mesajlar Rotaları */}
+      <Route path="/discover" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated}>
+          <>
+            <Navbar 
+              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+              currentUnit={currentUnit}
+              setCurrentUnit={setCurrentUnit}
+              currentLevel={currentLevel}
+              setCurrentLevel={setCurrentLevel}
+            />
+            <div className="pt-32">
+              <DiscoverPage />
+            </div>
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/messages" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated}>
+          <>
+            <Navbar 
+              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+              currentUnit={currentUnit}
+              setCurrentUnit={setCurrentUnit}
+              currentLevel={currentLevel}
+              setCurrentLevel={setCurrentLevel}
+            />
+            <div className="pt-32">
+              <MessagesPage />
             </div>
           </>
         </ProtectedRoute>

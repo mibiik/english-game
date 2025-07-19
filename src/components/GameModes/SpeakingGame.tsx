@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, Volume2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { WordDetail } from '../../data/words';
+import { gameScoreService } from '../../services/gameScoreService';
 
 declare global {
   interface Window {
@@ -46,7 +47,14 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
     if (currentWordIndex < roundWords.length - 1) {
       setCurrentWordIndex(prev => prev + 1);
     } else {
-      // Tur bitti, yeni tur başlat
+      // Tur bitti, skoru kaydet
+      const unit = roundWords[0]?.unit || '1';
+      try {
+        gameScoreService.saveScore('speaking', score, unit);
+      } catch (error) {
+        console.error('Skor kaydedilirken hata:', error);
+      }
+      // Yeni tur başlat
       startNewRound();
     }
   };
