@@ -165,7 +165,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     <>
       <div className="text-center">
         <div className="mb-2">
-          <span className="text-white">ELC </span>
+          <span className="text-white text-6xl md:text-7xl">ELC </span>
           <motion.span
             className="inline-block align-middle"
             initial={{ opacity: 0, x: -40, scale: 0.8 }}
@@ -176,7 +176,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             <span className="text-white drop-shadow-lg font-bebas text-6xl md:text-7xl tracking-wider uppercase">Play'e</span>
           </motion.span>
         </div>
-        <div className="text-white font-bebas text-5xl md:text-7xl tracking-wider uppercase">
+        <div className="text-white font-bebas text-6xl md:text-7xl tracking-wider uppercase">
           Hoş Geldin Koç'lu!
         </div>
         {!isAuthenticated && (
@@ -343,7 +343,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         >
           {/* Mobil Logo */}
           <motion.div
-            className="flex justify-center mb-6 md:hidden"
+            className="flex justify-center mb-4 md:hidden"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -357,7 +357,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
 
           {/* Mobil Scroll İkonu */}
           <motion.div
-            className="flex justify-center mb-8 md:hidden"
+            className="flex justify-center mb-6 md:hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -389,7 +389,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
 
           <div className="max-w-xl">
             <motion.h1
-              className="text-5xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center leading-tight"
+              className="text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center leading-tight"
               initial={{ opacity: 0, y: -40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: 'easeOut' }}

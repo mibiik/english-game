@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, LogOut, Trophy, Star, Medal, Crown, Target, Zap, Edit2, Plus, X, ArrowLeft, Type, Camera } from 'lucide-react';
+import {
+  User,
+  Mail,
+  LogOut,
+  Trophy,
+  Star,
+  Medal,
+  Crown,
+  Target,
+  Zap,
+  Type,
+  Camera,
+  ArrowLeft,
+  Plus,
+  X,
+  Edit2 // Eğer düzenleme özelliği eklerseniz kullanabilirsiniz
+} from 'lucide-react';
 import { authService } from '../services/authService';
 import { gameScoreService, GameMode } from '../services/gameScoreService';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
+// Oyun modları için isim ve ikon haritaları
 const gameModeNames: Record<GameMode, string> = {
   'matching': 'Eşleştirme',
   'sentence-completion': 'Boşluk Doldurma',
@@ -15,27 +33,25 @@ const gameModeNames: Record<GameMode, string> = {
 };
 
 const gameModeIcons: Record<GameMode, React.ReactNode> = {
-  'matching': <Target className="w-5 h-5" />,
-  'sentence-completion': <Zap className="w-5 h-5" />,
-  'multiple-choice': <Medal className="w-5 h-5" />,
-  'flashcard': <Star className="w-5 h-5" />,
-  'speaking': <Crown className="w-5 h-5" />,
-  'word-race': <Zap className="w-5 h-5" />,
-  'wordTypes': <Type className="w-5 h-5" />
+  'matching': <Target className="w-5 h-5 text-blue-500" />,
+  'sentence-completion': <Zap className="w-5 h-5 text-purple-500" />,
+  'multiple-choice': <Medal className="w-5 h-5 text-green-500" />,
+  'flashcard': <Star className="w-5 h-5 text-yellow-500" />,
+  'speaking': <Crown className="w-5 h-5 text-pink-500" />,
+  'word-race': <Zap className="w-5 h-5 text-indigo-500" />, // Aynı ikon, farklı renk
+  'wordTypes': <Type className="w-5 h-5 text-teal-500" />
 };
 
-const IMGBB_API_KEY = "e64118428b9b6ebad6c26d97dfd98cd2"; // Buraya kendi imgbb API anahtarını ekle
+// IMGBB API anahtarınızı buraya ekleyin. Güvenlik için ortam değişkeni kullanmak daha iyidir.
+const IMGBB_API_KEY = "e64118428b9b6ebad6c26d97dfd98cd2"; 
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const user = authService.getCurrentUser();
+  const user = authService.getCurrentUser(); // Kullanıcı bilgilerini al
+
+  // State'ler
   const [totalScore, setTotalScore] = useState(0);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState('');
-  const [showAddInfo, setShowAddInfo] = useState(false);
-  const [newInfo, setNewInfo] = useState({ title: '', value: '' });
-  const [additionalInfo, setAdditionalInfo] = useState<Array<{ title: string; value: string }>>([]);
-  const [scores, setScores] = useState<Record<GameMode, number>>({
+  const [scores, setScores] = useState<Record<GameMode, number>>({ // Oyun modlarına göre skorları tutar
     'matching': 0,
     'sentence-completion': 0,
     'multiple-choice': 0,
@@ -44,270 +60,429 @@ const ProfilePage: React.FC = () => {
     'word-race': 0,
     'wordTypes': 0
   });
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [bgImage, setBgImage] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null); // Profil fotoğrafı URL'si
+  const [bgImage, setBgImage] = useState<string | null>(null); // Arka plan görseli URL'si
+  const [uploading, setUploading] = useState(false); // Fotoğraf yükleme durumu
+  const [uploadError, setUploadError] = useState<string | null>(null); // Fotoğraf yükleme hatası
+  const [isEditingName, setIsEditingName] = useState(false); // Kullanıcı adını düzenleme durumu
+  const [editedName, setEditedName] = useState(''); // Düzenlenen kullanıcı adı
+  const [additionalInfo, setAdditionalInfo] = useState<Array<{ title: string; value: string }>>([]); // Ek bilgiler
+  const [showAddInfoForm, setShowAddInfoForm] = useState(false); // Ek bilgi formu görünürlüğü
+  const [newInfo, setNewInfo] = useState({ title: '', value: '' }); // Yeni eklenecek bilgi
 
+  // Kullanıcı oturum açmamışsa yönlendirme
   useEffect(() => {
     if (!user) {
       navigate('/home');
-      return;
+    } else {
+      setEditedName(user.displayName || ''); // Başlangıçta mevcut adı ayarla
     }
+  }, [user, navigate]);
 
+  // Kullanıcı skorlarını yükleme
+  useEffect(() => {
     const loadUserScores = async () => {
       let total = 0;
-      const scores: Record<GameMode, number> = {
-        'matching': 0,
-        'sentence-completion': 0,
-        'multiple-choice': 0,
-        'flashcard': 0,
-        'speaking': 0,
-        'word-race': 0,
-        'wordTypes': 0
-      };
+      const loadedScores: Record<GameMode, number> = { ...scores }; // Mevcut skorları kopyala
 
       // Her oyun modu için en yüksek skoru al
-      for (const mode of Object.keys(scores) as GameMode[]) {
-        const score = await gameScoreService.getUserHighScore(mode, '1');
-        scores[mode] = score;
-        total += score;
+      for (const mode of Object.keys(loadedScores) as GameMode[]) {
+        try {
+          const score = await gameScoreService.getUserHighScore(mode, user?.uid || 'anonymous'); // Kullanıcı ID'si ile sorgu
+          loadedScores[mode] = score || 0; // Skor yoksa 0 ata
+          total += score || 0;
+        } catch (error) {
+          console.error(`Skor yüklenirken hata: ${mode}`, error);
+          loadedScores[mode] = 0; // Hata durumunda 0 ata
+        }
       }
 
-      setScores(scores);
+      setScores(loadedScores);
       setTotalScore(total);
     };
 
-    loadUserScores();
-  }, [user, navigate]);
-
-  useEffect(() => {
     if (user) {
-      setEditedName(user.displayName || '');
+      loadUserScores();
     }
-  }, [user]);
+  }, [user]); // Sadece user değiştiğinde çalışır
 
+  // Profil fotoğrafını localStorage'dan yükleme
   useEffect(() => {
-    const savedPhoto = localStorage.getItem('profilePhoto');
+    const savedPhoto = localStorage.getItem(`profilePhoto_${user?.uid}`); // Kullanıcı bazlı kaydetme
     if (savedPhoto) setProfilePhoto(savedPhoto);
-  }, []);
+  }, [user?.uid]);
 
+  // Çıkış yapma fonksiyonu
   const handleLogout = async () => {
     try {
       await authService.logout();
       navigate('/home');
     } catch (err) {
       console.error('Çıkış yapılırken hata oluştu:', err);
+      // Kullanıcıya bir hata mesajı gösterebilirsiniz.
     }
   };
 
-  const handleSaveProfile = async () => {
+  // Profil adını kaydetme
+  const handleSaveProfileName = async () => {
+    if (!user) return;
     try {
-      if (user) {
-        await authService.updateProfile({ displayName: editedName });
-        setIsEditing(false);
-      }
+      await authService.updateProfile({ displayName: editedName });
+      setIsEditingName(false);
+      // Başarı mesajı gösterilebilir.
     } catch (err) {
-      console.error('Profil güncellenirken hata oluştu:', err);
+      console.error('Profil adı güncellenirken hata oluştu:', err);
+      // Kullanıcıya hata mesajı gösterilebilir.
     }
   };
 
+  // Ek bilgi ekleme fonksiyonu
   const handleAddInfo = () => {
-    if (newInfo.title && newInfo.value) {
+    if (newInfo.title.trim() && newInfo.value.trim()) {
       setAdditionalInfo([...additionalInfo, newInfo]);
-      setNewInfo({ title: '', value: '' });
-      setShowAddInfo(false);
+      setNewInfo({ title: '', value: '' }); // Formu temizle
+      setShowAddInfoForm(false);
     }
   };
 
+  // Ek bilgi silme fonksiyonu
   const handleRemoveInfo = (index: number) => {
     setAdditionalInfo(additionalInfo.filter((_, i) => i !== index));
   };
 
+  // Profil fotoğrafı yükleme fonksiyonu
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Fotoğraf seçildi:', e.target.files);
     const file = e.target.files?.[0];
-    if (!file) {
-      console.log('Dosya seçilmedi');
-      return;
-    }
-    
-    console.log('Dosya bilgileri:', file.name, file.size, file.type);
-    
-    // Dosya boyutu kontrolü (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
+    if (!file) return;
+
+    // Dosya boyutu ve türü kontrolü
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
       setUploadError('Dosya boyutu 5MB\'dan küçük olmalıdır.');
       return;
     }
-    
-    // Dosya tipi kontrolü
     if (!file.type.startsWith('image/')) {
       setUploadError('Lütfen geçerli bir resim dosyası seçin.');
       return;
     }
-    
+
     setUploading(true);
     setUploadError(null);
-    
+
     try {
-      console.log('Fotoğraf yükleniyor...');
       const formData = new FormData();
       formData.append('image', file);
-      
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
         method: 'POST',
         body: formData,
       });
-      
-      console.log('API yanıtı:', res.status);
-      const data = await res.json();
-      console.log('API verisi:', data);
-      
+
+      const data = await response.json();
+
       if (data.success) {
-        console.log('Fotoğraf başarıyla yüklendi:', data.data.url);
-        setProfilePhoto(data.data.url);
-        localStorage.setItem('profilePhoto', data.data.url);
+        const uploadedUrl = data.data.url;
+        setProfilePhoto(uploadedUrl);
+        localStorage.setItem(`profilePhoto_${user?.uid}`, uploadedUrl); // Kullanıcı bazlı kaydet
+        // Profil fotoğrafını kullanıcı bilgilerine de yansıtmak isteyebilirsiniz
+        // await authService.updateProfile({ photoURL: uploadedUrl });
       } else {
-        console.error('API hatası:', data);
-        setUploadError('Fotoğraf yüklenemedi: ' + (data.error?.message || 'Bilinmeyen hata'));
+        throw new Error(data.error?.message || 'Bilinmeyen bir API hatası oluştu.');
       }
-    } catch (err) {
-      console.error('Yükleme hatası:', err);
-      setUploadError('Fotoğraf yüklenirken hata oluştu: ' + (err as Error).message);
+    } catch (err: any) {
+      console.error('Fotoğraf yükleme hatası:', err);
+      setUploadError(`Fotoğraf yüklenemedi: ${err.message}`);
     } finally {
       setUploading(false);
     }
   };
 
+  // Kullanıcı yoksa componenti render etme
   if (!user) {
     return null;
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-all duration-500`} style={bgImage ? { backgroundImage: `url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
-      <div className="max-w-xl mx-auto">
-        {/* Header */}
-        <div className="relative flex flex-col items-center mb-8">
-          {/* Back Button */}
-          <button 
-            onClick={() => navigate('/home')} 
-            className="absolute top-0 left-0 p-2 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          {/* Profil Fotoğrafı */}
-          <div className="relative w-32 h-32 mt-2 mb-4">
-            <div className="w-full h-full bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-700 overflow-hidden">
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="Profil" className="object-cover w-full h-full rounded-full" />
-              ) : (
-                <User className="w-16 h-16 text-gray-400" />
-              )}
-              <input type="file" accept="image/*" className="hidden" id="profile-photo-input" onChange={handlePhotoChange} />
-              <label 
-                htmlFor="profile-photo-input" 
-                className="absolute bottom-2 right-2 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 p-2 rounded-full border border-gray-300 dark:border-gray-600 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer flex items-center justify-center" 
-                title="Fotoğraf Yükle"
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden relative">
+      {/* Floating Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-blue-500/20 rounded-full"
+            animate={{
+              x: [0, 100, 0],
+              y: [0, -100, 0],
+              opacity: [0.2, 0.8, 0.2],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          />
+        ))}
+        
+        {/* Büyük uçuşan elementler */}
+        {[...Array(10)].map((_, i) => (
+          <motion.div
+            key={`large-${i}`}
+            className="absolute w-1 h-1 bg-cyan-500/30 rounded-full"
+            animate={{
+              x: [0, 200, 0],
+              y: [0, -200, 0],
+              opacity: [0.1, 0.6, 0.1],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: Math.random() * 15 + 15,
+              repeat: Infinity,
+              delay: Math.random() * 10,
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          />
+        ))}
+        
+        {/* Yıldız şeklinde elementler */}
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={`star-${i}`}
+            className="absolute w-1 h-1 bg-yellow-500/40"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+            }}
+            animate={{
+              rotate: [0, 360],
+              opacity: [0.3, 0.8, 0.3],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: Math.random() * 8 + 8,
+              repeat: Infinity,
+              delay: Math.random() * 5,
+            }}
+          />
+        ))}
+
+        {/* Ek küçük elementler */}
+        {[...Array(18)].map((_, i) => (
+          <motion.div
+            key={`small-${i}`}
+            className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
+            animate={{
+              x: [0, 150, 0],
+              y: [0, -150, 0],
+              opacity: [0.1, 0.5, 0.1],
+            }}
+            transition={{
+              duration: Math.random() * 12 + 12,
+              repeat: Infinity,
+              delay: Math.random() * 8,
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Ana içerik container'ı */}
+      <div className="max-w-4xl mx-auto relative z-10 py-12 px-4 sm:px-6 lg:px-8">
+
+        {/* Geri dön butonu */}
+        <button
+          onClick={() => navigate('/home')}
+          className="absolute top-0 left-0 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-shadow flex items-center justify-center border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Geri dön"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+
+        {/* Profil Kartı */}
+        <div className="relative bg-gray-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50 p-6 sm:p-8 mb-8">
+          {/* Profil Fotoğrafı ve Düzenleme */}
+          <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+              <div className="w-full h-full rounded-full overflow-hidden border-4 border-blue-500 shadow-lg">
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Profil Fotoğrafı" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-blue-100 dark:bg-gray-700 flex items-center justify-center">
+                    <User className="w-16 h-16 text-blue-400 dark:text-gray-300" />
+                  </div>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                id="profile-photo-input"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+              <label
+                htmlFor="profile-photo-input"
+                className="absolute bottom-2 right-2 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition-colors shadow-md flex items-center justify-center"
+                title="Profil Fotoğrafı Değiştir"
               >
                 {uploading ? (
-                  <span className="w-5 h-5 block animate-spin border-2 border-gray-400 border-t-transparent rounded-full"></span>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                 ) : (
                   <Camera className="w-5 h-5" />
                 )}
               </label>
             </div>
           </div>
+
+          {/* Yükleme Hatası Mesajı */}
           {uploadError && (
-            <div className="text-center text-red-500 text-xs mt-1">{uploadError}</div>
+            <div className="text-center text-red-400 text-sm mt-48 sm:mt-44 -mb-4">
+              {uploadError}
+            </div>
           )}
-          {/* Kullanıcı Bilgisi */}
-          <div className="w-full flex flex-col items-center mt-2 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-              {user?.displayName || 'Kullanıcı'}
-            </h1>
-            <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm">
-              <Mail className="w-4 h-4 mr-1" />
+
+          {/* Kullanıcı Bilgileri */}
+          <div className="mt-16 sm:mt-20 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              {isEditingName ? (
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onBlur={handleSaveProfileName}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSaveProfileName()}
+                  className="text-2xl sm:text-3xl font-bold text-white text-center px-2 py-1 rounded-lg bg-gray-800/80 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              ) : (
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                  {user?.displayName || 'Kullanıcı Adı Girilmedi'}
+                </h1>
+              )}
+              {!isEditingName && (
+                <button
+                  onClick={() => setIsEditingName(true)}
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                  title="Kullanıcı adını düzenle"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center justify-center text-gray-400 text-sm sm:text-base gap-1">
+              <Mail className="w-4 h-4" />
               <span>{user?.email}</span>
             </div>
           </div>
         </div>
-        {/* Skorlar */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8 flex flex-col items-center">
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy className="w-7 h-7 text-yellow-400" />
-            <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">Toplam Puan</span>
+
+        {/* Skorlar Bölümü */}
+        <div className="bg-gray-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50 p-6 mb-8">
+          <div className="flex items-center justify-center gap-3 mb-5">
+            <Trophy className="w-8 h-8 text-yellow-400" />
+            <h2 className="text-xl sm:text-2xl font-bold text-yellow-400">Genel Başarın</h2>
           </div>
-          <div className="text-3xl font-extrabold text-gray-900 dark:text-yellow-400 mb-4">{totalScore}</div>
-          <div className="grid grid-cols-2 gap-2 w-full">
+          <div className="text-center mb-6">
+            <span className="text-4xl sm:text-5xl font-extrabold text-yellow-400">
+              {totalScore}
+            </span>
+            <p className="text-gray-400 text-sm">Toplam Puan</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(scores).map(([mode, score]) => (
-              <div key={mode} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-lg px-3 py-2 border border-gray-100 dark:border-gray-800">
-                <span className="text-base">{gameModeIcons[mode as GameMode]}</span>
-                <span className="text-gray-700 dark:text-gray-200 text-sm">{gameModeNames[mode as GameMode]}</span>
-                <span className="font-bold text-gray-900 dark:text-yellow-400 ml-auto">{score}</span>
+              <div
+                key={mode}
+                className="flex items-center justify-between p-4 bg-gray-800/60 backdrop-blur-sm rounded-lg shadow-lg border border-gray-600/50 transition-all duration-300 hover:shadow-xl hover:border-blue-400/50 hover:bg-gray-800/80"
+              >
+                <div className="flex items-center gap-3">
+                  {gameModeIcons[mode as GameMode]}
+                  <span className="text-base font-medium text-gray-200">
+                    {gameModeNames[mode as GameMode]}
+                  </span>
+                </div>
+                <span className="text-lg font-bold text-yellow-400">{score}</span>
               </div>
             ))}
           </div>
         </div>
-        {/* Ek Bilgiler ve Arka Plan */}
-        <div className="flex flex-col md:flex-row gap-6 mb-8">
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Ek Bilgiler</h2>
+
+        {/* Ek Bilgiler ve Arka Plan Seçimi */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Ek Bilgiler */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Ek Bilgiler</h3>
               <button
-                onClick={() => setShowAddInfo(true)}
-                className="flex items-center px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 transition-colors"
+                onClick={() => setShowAddInfoForm(true)}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
-                <Plus className="w-4 h-4 mr-1" />
+                <Plus className="w-4 h-4" />
                 <span>Ekle</span>
               </button>
             </div>
-            {showAddInfo && (
-              <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="grid grid-cols-2 gap-2 mb-2">
+
+            {/* Ek Bilgi Ekleme Formu */}
+            {showAddInfoForm && (
+              <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="grid grid-cols-1 gap-3 mb-3">
                   <input
                     type="text"
                     value={newInfo.title}
                     onChange={(e) => setNewInfo({ ...newInfo, title: e.target.value })}
-                    className="px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                     placeholder="Başlık"
+                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                   <input
                     type="text"
                     value={newInfo.value}
                     onChange={(e) => setNewInfo({ ...newInfo, value: e.target.value })}
-                    className="px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                     placeholder="Değer"
+                    className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex justify-end gap-2">
                   <button
-                    onClick={() => setShowAddInfo(false)}
-                    className="px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-600 transition-colors"
+                    onClick={() => setShowAddInfoForm(false)}
+                    className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors focus:outline-none"
                   >
                     İptal
                   </button>
                   <button
                     onClick={handleAddInfo}
-                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-3 py-1.5 text-sm bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     Ekle
                   </button>
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-1 gap-2">
+
+            {/* Mevcut Ek Bilgiler */}
+            {additionalInfo.length === 0 && !showAddInfoForm && (
+              <p className="text-center text-gray-400 dark:text-gray-500 text-sm italic py-4">Henüz ek bilgi yok.</p>
+            )}
+            <div className="space-y-3">
               {additionalInfo.map((info, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-100 dark:border-gray-600"
                 >
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">{info.title}</h3>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">{info.title}</h4>
                     <p className="text-gray-600 dark:text-gray-400 text-xs">{info.value}</p>
                   </div>
                   <button
                     onClick={() => handleRemoveInfo(index)}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1 text-red-500 hover:text-red-600 transition-colors focus:outline-none"
+                    title="Bilgiyi sil"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -315,37 +490,49 @@ const ProfilePage: React.FC = () => {
               ))}
             </div>
           </div>
-          {/* Arka Plan Seçimi Alanı */}
-          <div className="flex-1 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <div className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-2">Arka Plan</div>
-            <div className="flex flex-wrap gap-2 justify-center">
+
+          {/* Arka Plan Seçimi */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center justify-center">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Profil Arka Planı</h3>
+            <div className="flex flex-wrap gap-3 justify-center">
               {[null, '/assets/bg1.jpg', '/assets/bg2.jpg', '/assets/bg3.jpg'].map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setBgImage(img)}
-                  className={`w-12 h-12 rounded-lg border ${bgImage === img ? 'border-blue-500 ring-2 ring-blue-400' : 'border-gray-300 dark:border-gray-700'} overflow-hidden shadow-sm transition-all`}
-                  style={img ? { backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: 'linear-gradient(135deg, #f3f4f6 0%, #e0e7ff 100%)' }}
-                  title={img ? 'Arka Plan' : 'Varsayılan'}
+                  className={`
+                    w-14 h-14 rounded-lg 
+                    ${bgImage === img ? 'ring-4 ring-blue-500 shadow-xl' : 'ring-2 ring-gray-300 dark:ring-gray-600 shadow-sm'}
+                    overflow-hidden cursor-pointer transition-all duration-300 ease-in-out
+                    hover:scale-105 hover:shadow-lg
+                  `}
+                  style={
+                    img
+                      ? { backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                      : { backgroundImage: 'linear-gradient(135deg, #e0e7ff 0%, #fef9c3 100%)' }
+                  }
+                  title={img ? 'Arka Plan Seç' : 'Varsayılan Arka Plan'}
                 >
-                  {!img && <span className="block w-full h-full flex items-center justify-center text-gray-400 text-xs">Varsayılan</span>}
+                  {!img && <span className="flex items-center justify-center h-full w-full text-xs font-semibold text-gray-500">Varsayılan</span>}
                 </button>
               ))}
             </div>
           </div>
         </div>
-        {/* Logout Button */}
-        <div className="mt-8">
-          <button 
+
+        {/* Çıkış Yap Butonu */}
+        <div className="mt-10 mb-5">
+          <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center p-3 bg-gray-200 dark:bg-gray-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-colors"
+            className="w-full flex items-center justify-center gap-2 p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-400"
           >
-            <LogOut className="w-5 h-5 mr-2" />
-            <span>Çıkış Yap</span>
+            <LogOut className="w-5 h-5" />
+            <span className="font-semibold">Çıkış Yap</span>
           </button>
         </div>
+
       </div>
     </div>
   );
 };
 
-export default ProfilePage; 
+export default ProfilePage;
