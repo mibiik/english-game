@@ -244,7 +244,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden relative">
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(25)].map((_, i) => (
+        {[...Array(35)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-2 h-2 bg-red-500/20 rounded-full"
@@ -266,7 +266,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         ))}
         
         {/* Büyük uçuşan elementler */}
-        {[...Array(8)].map((_, i) => (
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={`large-${i}`}
             className="absolute w-1 h-1 bg-cyan-500/30 rounded-full"
@@ -289,7 +289,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         ))}
         
         {/* Yıldız şeklinde elementler */}
-        {[...Array(12)].map((_, i) => (
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={`star-${i}`}
             className="absolute w-1 h-1 bg-yellow-500/40"
@@ -307,6 +307,28 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               duration: Math.random() * 8 + 8,
               repeat: Infinity,
               delay: Math.random() * 5,
+            }}
+          />
+        ))}
+
+        {/* Ek küçük elementler */}
+        {[...Array(25)].map((_, i) => (
+          <motion.div
+            key={`small-${i}`}
+            className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
+            animate={{
+              x: [0, 150, 0],
+              y: [0, -150, 0],
+              opacity: [0.1, 0.5, 0.1],
+            }}
+            transition={{
+              duration: Math.random() * 12 + 12,
+              repeat: Infinity,
+              delay: Math.random() * 8,
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
             }}
           />
         ))}
