@@ -259,12 +259,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             
             <div className="flex-shrink-0 flex items-center relative">
               <Link to="/home" onClick={() => { setIsMenuOpen(false); setIsBottomSheetOpen(false); }}>
-                <img src={logo} alt="Logo" className="h-12 md:h-20 w-auto" />
+                <img src={logo} alt="Logo" className="h-24 md:h-32 w-auto" />
               </Link>
 
               {/* Mobilde seçim butonu */}
               <button
-                className="ml-4 md:ml-6 md:hidden px-3 py-2 rounded-xl bg-gray-800 text-sm font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
+                className="ml-2 md:ml-4 md:hidden px-6 py-5 rounded-xl bg-gray-800 text-xl font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
                 onClick={() => setIsBottomSheetOpen(true)}
                 aria-label="Kurs ve Ünite Seçimi"
               >
@@ -287,7 +287,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </motion.button>
             </div>
             
-            {/* Mobile: Profile Button */}
+            {/* Mobile: Profile Button Only */}
             <div className="md:hidden flex items-center">
               <motion.button 
                 onClick={handleProfileClick} 
