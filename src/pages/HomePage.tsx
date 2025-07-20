@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, Trash2, Users, GraduationCap, UserPlus, X, LogIn, ChevronDown } from 'lucide-react';
+import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX } from 'react-icons/hi';
 import logo from './a.png';
-import icoLogo from './ico.png';
+// import icoLogo from './ico.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
 import { gameStateManager } from '../lib/utils';
@@ -147,25 +147,25 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   };
 
   const gameModes: GameMode[] = [
-    { id: 'learning-mode', title: 'Öğretici Mod', icon: <Book />, link: `/learning-mode?unit=${unit}&level=${level}`, color: 'from-blue-500 to-indigo-600', shadow: 'hover:shadow-blue-500/30' },
-    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <Award />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: 'from-amber-500 to-orange-600', shadow: 'hover:shadow-amber-500/30' },
-    { id: 'matching', title: 'Eşleştirme', icon: <BookCopy />, link: `/matching-game?unit=${unit}&level=${level}`, color: 'from-cyan-500 to-blue-600', shadow: 'hover:shadow-cyan-500/30' },
-    { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <Zap />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: 'from-green-500 to-emerald-600', shadow: 'hover:shadow-green-500/30' },
-    { id: 'word-forms', title: 'Kelime Formları', icon: <Layers />, link: `/word-forms?unit=${unit}&level=${level}`, color: 'from-pink-500 to-rose-500', shadow: 'hover:shadow-pink-500/30' },
-    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <Type />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: 'from-green-700 to-blue-700', shadow: 'hover:shadow-green-700/30' },
-    { id: 'paraphrase', title: 'Paraphrase', icon: <Sparkles />, link: `/paraphrase`, color: 'from-purple-500 to-indigo-600', shadow: 'hover:shadow-purple-500/30' },
-    { id: 'essay-writing', title: 'Essay Yazma', icon: <BookOpen />, link: '/essay-writing', color: 'from-gray-500 to-gray-600', shadow: 'hover:shadow-gray-500/30' },
-    { id: 'preposition-mastery', title: 'Preposition Mastery', icon: <Puzzle />, link: '/preposition-mastery', color: 'from-teal-500 to-cyan-600', shadow: 'hover:shadow-teal-500/30' },
-    { id: 'flashcard', title: 'Kelime Kartları', icon: <Brain />, link: `/flashcard?unit=${unit}&level=${level}`, color: 'from-violet-500 to-fuchsia-600', shadow: 'hover:shadow-violet-500/30' },
-    { id: 'word-race', title: 'Kelime Yarışı', icon: <Zap />, link: `/word-race?unit=${unit}&level=${level}`, color: 'from-red-500 to-red-600', shadow: 'hover:shadow-red-500/30' },
-    { id: 'speaking', title: 'Konuşma', icon: <Mic />, link: `/speaking?unit=${unit}&level=${level}`, color: 'from-rose-500 to-red-600', shadow: 'hover:shadow-rose-500/30' },
+    { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'word-forms', title: 'Kelime Formları', icon: <HiCollection />, link: `/word-forms?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <HiBookOpen />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'paraphrase', title: 'Paraphrase', icon: <HiSpeakerphone />, link: `/paraphrase`, color: '', shadow: '' },
+    { id: 'essay-writing', title: 'Essay Yazma', icon: <HiDocumentText />, link: '/essay-writing', color: '', shadow: '' },
+    { id: 'preposition-mastery', title: 'Preposition', icon: <HiPuzzle />, link: '/preposition-mastery', color: '', shadow: '' },
+    { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
   ];
 
   const headingLines = [
     <>
       <div className="text-center">
         <div className="mb-2">
-          <span className="text-white text-6xl md:text-7xl">ELC </span>
+          <span className="text-white text-9xl font-bebas tracking-wider uppercase drop-shadow font-extrabold">ELC </span>
           <motion.span
             className="inline-block align-middle"
             initial={{ opacity: 0, x: -40, scale: 0.8 }}
@@ -190,7 +190,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              <UserPlus className="w-4 h-4" />
+              <HiUserGroup className="w-4 h-4" />
               Kayıt Ol
             </motion.button>
             <motion.button
@@ -202,7 +202,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              <LogIn className="w-4 h-4" />
+              <HiAcademicCap className="w-4 h-4" />
               Giriş Yap
             </motion.button>
           </div>
@@ -241,7 +241,19 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#080b16] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-x-hidden relative">
+      {/* Sabit beyaz küçük yıldızlar */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        <div className="absolute w-1 h-1 bg-white rounded-full" style={{ left: '12%', top: '18%' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white rounded-full" style={{ left: '40%', top: '30%' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white rounded-full" style={{ left: '70%', top: '12%' }} />
+        <div className="absolute w-1 h-1 bg-white rounded-full" style={{ left: '80%', top: '40%' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white rounded-full" style={{ left: '60%', top: '70%' }} />
+      </div>
+      {/* Hafif mavi bulut efekti */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[400px] rounded-full bg-[#1a233a]/40 blur-3xl" />
+      </div>
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(35)].map((_, i) => (
@@ -332,62 +344,52 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             }}
           />
         ))}
+        {/* Büyük glow efektli yıldızlar */}
+        {[...Array(4)].map((_, i) => (
+          <motion.div
+            key={`glow-star-${i}`}
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              width: `${120 + Math.random() * 100}px`,
+              height: `${120 + Math.random() * 100}px`,
+              left: `${10 + Math.random() * 80}%`,
+              top: `${10 + Math.random() * 80}%`,
+              background: 'radial-gradient(circle, #fff 0%, #2a1a5a 40%, #0a0120 100%)',
+              opacity: 0.10 + Math.random() * 0.15,
+              filter: 'blur(16px)'
+            }}
+            animate={{ opacity: [0.08, 0.18, 0.08] }}
+            transition={{ duration: 8 + Math.random() * 4, repeat: Infinity, repeatType: 'reverse', delay: Math.random() * 4 }}
+          />
+        ))}
+        {/* Mor-mavi bulutlar */}
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={`cloud-${i}`}
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              width: `${300 + Math.random() * 200}px`,
+              height: `${180 + Math.random() * 120}px`,
+              left: `${5 + Math.random() * 80}%`,
+              top: `${20 + Math.random() * 60}%`,
+              background: 'radial-gradient(circle, #2a1a5a 0%, #0a0120 60%, transparent 100%)',
+              opacity: 0.08 + Math.random() * 0.10,
+              filter: 'blur(60px)'
+            }}
+            animate={{ opacity: [0.06, 0.14, 0.06] }}
+            transition={{ duration: 12 + Math.random() * 6, repeat: Infinity, repeatType: 'reverse', delay: Math.random() * 6 }}
+          />
+        ))}
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+      <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
         <motion.div
           initial="hidden"
           animate="visible"
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative mb-20 text-left"
+          className="relative mb-10 text-left"
         >
-          {/* Mobil Logo */}
-          <motion.div
-            className="flex justify-center mb-4 md:hidden"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <img
-              src={icoLogo}
-              alt="WordPlay Logo"
-              className="w-36 h-36 drop-shadow-2xl"
-            />
-          </motion.div>
-
-          {/* Mobil Scroll İkonu */}
-          <motion.div
-            className="flex justify-center mb-6 md:hidden"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <motion.button
-              className="flex flex-col items-center cursor-pointer"
-              animate={{ y: [0, 10, 0] }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              onClick={() => {
-                const gameModesSection = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4');
-                if (gameModesSection) {
-                  gameModesSection.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                  });
-                }
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <ChevronDown className="w-8 h-8 text-red-500 drop-shadow-lg" />
-              <span className="text-sm text-gray-400 mt-2 font-medium">Oyun Modları</span>
-            </motion.button>
-          </motion.div>
-
-          <div className="max-w-xl">
+          <div className="max-w-xl ml-0 md:ml-16">
             <motion.h1
               className="text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center leading-tight"
               initial={{ opacity: 0, y: -40 }}
@@ -398,6 +400,38 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                 <span className="block" key={lineIndex}>{line}</span>
               ))}
             </motion.h1>
+            
+            {/* Mobilde başlığın hemen altında Oyun Modları butonu */}
+            <motion.div
+              className="flex justify-center mb-6 md:hidden"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <motion.button
+                className="flex flex-col items-center cursor-pointer"
+                animate={{ y: [0, 10, 0] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                onClick={() => {
+                  const gameModesSection = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4');
+                  if (gameModesSection) {
+                    gameModesSection.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <HiAcademicCap className="w-8 h-8 text-red-500 drop-shadow-lg" />
+                <span className="text-sm text-gray-400 mt-2 font-medium">Oyun Modları</span>
+              </motion.button>
+            </motion.div>
             <motion.div
               className="w-full max-w-4xl h-1 mx-auto bg-gradient-to-r from-red-800 via-red-600 to-red-400 rounded-full mb-6 overflow-hidden"
               initial={{ opacity: 0, scaleX: 0.7 }}
@@ -421,14 +455,19 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           </div>
 
           <motion.img
-            src={icoLogo}
+            src={logo}
             alt="WordPlay Logo"
-            className="absolute -top-10 right-0 w-64 lg:w-[400px] h-auto -mr-16 hidden md:block pointer-events-none"
-            animate={{ y: ["-4px", "4px"], rotate: [-2, 2] }}
+            className="absolute top-[-2rem] left-[40rem] w-[28rem] lg:w-[700px] h-auto hidden md:block pointer-events-none drop-shadow-[0_0_24px_rgba(255,0,80,0.5)]"
+            style={{ filter: 'drop-shadow(0 0 24px #ff0080)' }}
+            animate={{ scale: [1, 1.01, 1], filter: [
+              'drop-shadow(0 0 24px #ff0080)',
+              'drop-shadow(0 0 26px #ff0080)',
+              'drop-shadow(0 0 24px #ff0080)'
+            ] }}
             transition={{
               repeat: Infinity,
               repeatType: "reverse",
-              duration: 8,
+              duration: 2.2,
               ease: "easeInOut",
             }}
           />
@@ -455,7 +494,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                     onClick={() => setShowNameModal(false)}
                     className="text-gray-500 hover:text-gray-700"
                   >
-                    <X className="w-6 h-6" />
+                    <HiX className="w-6 h-6" />
                   </button>
                 </div>
                 
@@ -479,29 +518,53 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           )}
         </AnimatePresence>
 
-        <motion.div 
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
-          variants={cardContainerVariant}
-          initial="hidden"
-          animate="visible"
-        >
-          {gameModes.map((mode) => (
-            <Link to={mode.link} key={mode.id} className="block group">
-              <motion.div 
-                className={`group bg-white/5 backdrop-blur-md p-5 rounded-2xl h-full border border-white/10 hover:border-white/20 hover:bg-white/10 transition-all duration-300 shadow-lg ${mode.shadow}`}
-                variants={cardItemVariant}
-              >
-                <div className={`w-12 h-12 flex items-center justify-center rounded-md mb-4 bg-gradient-to-br ${mode.color}`}>
-                  {React.cloneElement(mode.icon, { className: 'w-7 h-7 text-white' })}
-                  </div>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-white transition-colors font-heading">{mode.title}</h3>
+        {/* Oyun Modları Görseldeki Bordo-Siyah Kartlar */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-4">
+          {gameModes.map((mode) => {
+            // Başlığa göre dosya adı eşleştirme
+            const imageMap: Record<string, string> = {
+              'Öğretici Mod': 'ogrenmemodu.jpg',
+              'Çoktan Seçmeli': 'coktansecmeli.jpg',
+              'Eşleştirme': 'eşeştirme.jpg',
+              'Boşluk Doldurma': 'boslukdoldurma.jpg',
+              'Kelime Formları': 'wordform.jpg',
+              'Tanımdan Kelime': 'tanım.jpg',
+              'Paraphrase': 'parapprase.jpg',
+              'Essay Yazma': 'essay.jpg',
+              'Preposition': 'preposition.jpg',
+              'Kelime Kartları': 'kelimekartlari.jpg',
+              'Kelime Yarışı': 'kelimeyarisi.jpg',
+              'Konuşma': 'konusma.jpg', // örnek, png de olabilir
+            };
+            const imgSrc = imageMap[mode.title] ? `/assets/aaaaaaaadwü/${imageMap[mode.title]}` : '';
+            // Bordo-kırmızı/siyah gradient
+            const bgGradient = 'from-[#2a0618] via-[#a10d2f] to-[#1a0105]';
+            return (
+              <div key={mode.id} className="relative group rounded-xl overflow-hidden shadow-2xl border-4 border-transparent bg-gradient-to-br from-[#1a0105] to-[#2a0618] flex flex-col backdrop-blur-md before:absolute before:inset-0 before:rounded-xl before:pointer-events-none before:z-20 before:bg-gradient-to-br before:from-[#ff416c]/60 before:to-[#ff4b2b]/60 before:opacity-0 group-hover:before:opacity-100 before:transition-all before:duration-300">
+                {/* Başlık kartın en üstünde */}
+                <div className="w-full flex justify-center pt-4 pb-2 z-30">
+                  <span className="text-white text-2xl md:text-3xl font-bebas uppercase drop-shadow-lg bg-gradient-to-r from-[#ff416c] to-[#ff4b2b] bg-clip-text text-transparent text-center px-2">
+                    {mode.title}
+                  </span>
                 </div>
-                <p className="text-gray-400 text-sm mt-2 font-inter leading-relaxed">{gameModeDescriptions[mode.id] || 'Bu mod için açıklama yakında eklenecek.'}</p>
-                </motion.div>
-              </Link>
-          ))}
-        </motion.div>
+                {/* Güçlü gradient border */}
+                <div className="absolute inset-0 z-10 rounded-xl pointer-events-none border-2 border-[#ff416c] group-hover:border-[#ff4b2b] transition-all duration-300" />
+                {/* Görsel ve buton */}
+                <div className="relative w-full aspect-square min-h-[80px] overflow-hidden flex flex-col justify-center items-center"> 
+                  <img src={imgSrc} alt="Oyun görseli" className="absolute inset-0 w-full h-full object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" />
+                </div>
+                {/* Alt panelde Oyna butonu */}
+                <div className="w-full flex justify-center items-center py-3 bg-[#18141a]/95">
+                  <Link to={mode.link} className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#7a0a22]/80 hover:bg-[#a10d2f]/90 text-white font-black text-lg shadow-md border-b-4 border-[#a10d2f] transition-all duration-200 opacity-90">
+                    <svg className="w-8 h-8 text-white/90" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 5v14l11-7z" /></svg>
+                    Oyna
+                  </Link>
+                </div>
+                {/* Alt panel yok, sadece görsel ve buton var */}
+              </div>
+            );
+          })}
+        </div>
       </main>
       <div className="w-full text-center mt-8 mb-4 relative z-10">
         <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>
