@@ -25,12 +25,12 @@ class UserService {
   private readonly userProfilesCollection = 'userProfiles';
 
   // Yeni kullanıcı kaydı
-  public async registerUser(displayName: string, email: string, photoURL?: string): Promise<void> {
-    const userId = authService.getCurrentUserId();
-    if (!userId) throw new Error('Kullanıcı oturum açmamış');
+  public async registerUser(displayName: string, email: string, photoURL?: string, userId?: string): Promise<void> {
+    const currentUserId = userId || authService.getCurrentUserId();
+    if (!currentUserId) throw new Error('Kullanıcı oturum açmamış');
 
     const userData: User = {
-      userId,
+      userId: currentUserId,
       displayName,
       email,
       photoURL,
@@ -48,12 +48,12 @@ class UserService {
 
     try {
       // users koleksiyonuna ekle
-      await setDoc(doc(db, this.usersCollection, userId), userData);
+      await setDoc(doc(db, this.usersCollection, currentUserId), userData);
       
       // userProfiles koleksiyonuna da ekle (mevcut sistem için)
-      await setDoc(doc(db, this.userProfilesCollection, userId), userData);
+      await setDoc(doc(db, this.userProfilesCollection, currentUserId), userData);
       
-      console.log('Kullanıcı başarıyla kaydedildi:', userId);
+      console.log('Kullanıcı başarıyla kaydedildi:', currentUserId);
     } catch (error) {
       console.error('Kullanıcı kaydedilirken hata:', error);
       throw error;
@@ -244,6 +244,55 @@ class UserService {
     } catch (error) {
       console.error('Kullanıcı sayısı getirilirken hata:', error);
       return 0;
+    }
+  }
+
+  // Modal görüldü olarak işaretle
+  public async markModalAsSeen(): Promise<void> {
+    try {
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        await updateDoc(doc(db, this.usersCollection, userId), {
+          hasSeenWelcomePopup: true,
+          updatedAt: new Date()
+        });
+      }
+      localStorage.setItem('hasSeenWelcomePopupV2', 'true');
+    } catch (error) {
+      console.error('Modal görüldü işaretlenirken hata:', error);
+    }
+  }
+
+  // Modal görülüp görülmediğini kontrol et
+  public async checkIfModalSeen(): Promise<boolean> {
+    try {
+      const userId = authService.getCurrentUserId();
+      if (!userId) return false;
+
+      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        return data.hasSeenWelcomePopup || false;
+      }
+      return false;
+    } catch (error) {
+      console.error('Modal durumu kontrol edilirken hata:', error);
+      return false;
+    }
+  }
+
+  // Kullanıcı adını kaydet
+  public async saveUserName(name: string): Promise<void> {
+    try {
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        await updateDoc(doc(db, this.usersCollection, userId), {
+          displayName: name,
+          updatedAt: new Date()
+        });
+      }
+    } catch (error) {
+      console.error('Kullanıcı adı kaydedilirken hata:', error);
     }
   }
 }

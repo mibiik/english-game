@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Brain, Mic, BookOpen, Award, Star, Type, BookCopy, Layers, Sparkles, Puzzle, Book, Trash2, Users, GraduationCap, UserPlus, X, LogIn, ChevronDown } from 'lucide-react';
 import logo from './a.png';
-import icoLogo from '../ico.png';
+import icoLogo from './ico.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
 import { gameStateManager } from '../lib/utils';

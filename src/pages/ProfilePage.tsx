@@ -20,6 +20,7 @@ import { authService } from '../services/authService';
 import { gameScoreService, GameMode } from '../services/gameScoreService';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { UserAnalytics } from '../components/UserAnalytics';
 
 // Oyun modları için isim ve ikon haritaları
 const gameModeNames: Record<GameMode, string> = {
@@ -557,6 +558,11 @@ const ProfilePage: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Analytics Bölümü */}
+        <div className="mt-8">
+          <UserAnalytics />
         </div>
 
         {/* Çıkış Yap Butonu */}

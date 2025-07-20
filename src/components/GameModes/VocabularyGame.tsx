@@ -3,6 +3,7 @@ import { VocabularyService, Unit, VocabularyGame } from '../../services/vocabula
 import { generateSentences } from '../../services/openRouterService';
 import { Word } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
+import { userAnalyticsService } from '../../services/userAnalyticsService';
 
 type VocabularyGameProps = {
   words: Word[];

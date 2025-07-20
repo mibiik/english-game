@@ -15,7 +15,7 @@ import {
   Clock,
   Trophy
 } from 'lucide-react';
-import logo from '../ico.png';
+import logo from './ico.png';
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();

@@ -13,7 +13,6 @@ import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 import { auth } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { X, Sparkles } from 'lucide-react';
-import { WelcomePopup } from './components/WelcomePopup';
 import { userService } from './services/userService';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
@@ -24,7 +23,6 @@ const foundationWords: WordDetail[] = foundationWordsRaw;
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -72,6 +70,9 @@ function AppContent() {
         // Kullanıcı giriş yapmış
         console.log('User is authenticated:', user.email);
         
+        // Oturum bilgilerini localStorage'a kaydet
+        localStorage.setItem('lastAuthCheck', new Date().toISOString());
+        
         // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
         if (location.pathname === '/') {
           navigate('/home', { replace: true });
@@ -79,6 +80,9 @@ function AppContent() {
       } else {
         // Kullanıcı çıkış yapmış
         console.log('User is not authenticated');
+        
+        // localStorage'dan oturum bilgilerini temizle
+        localStorage.removeItem('lastAuthCheck');
         
         // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
         if (location.pathname !== '/') {
@@ -90,40 +94,24 @@ function AppContent() {
     return () => unsubscribe();
   }, [navigate, location.pathname]);
 
+  // Sayfa yüklendiğinde oturum durumunu kontrol et
   useEffect(() => {
-    const checkModalStatus = async () => {
-      // Önce localStorage kontrol et (geçiş dönemi için)
-      const hasSeenPopupLocal = localStorage.getItem('hasSeenWelcomePopupV2') || localStorage.getItem('hasSeenWelcomePopup');
+    const lastAuthCheck = localStorage.getItem('lastAuthCheck');
+    if (lastAuthCheck) {
+      const lastCheck = new Date(lastAuthCheck);
+      const now = new Date();
+      const diffInHours = (now.getTime() - lastCheck.getTime()) / (1000 * 60 * 60);
       
-      if (hasSeenPopupLocal) {
-        // Eski kullanıcı - Firebase'e de kaydet
-        await userService.markModalAsSeen();
-        return; // Modal gösterme
+      // Son 24 saat içinde auth check yapılmışsa, kullanıcı muhtemelen hala oturum açık
+      if (diffInHours < 24) {
+        console.log('Recent auth check found, user likely still authenticated');
       }
-      
-      // Firebase kontrolü
-      const hasSeenPopupFirebase = await userService.checkIfModalSeen();
-      if (!hasSeenPopupFirebase) {
-      const timer = setTimeout(() => {
-        setShowWelcomePopup(true);
-        }, 60000); // 1 dakika = 60000 ms
-      return () => clearTimeout(timer);
     }
-    };
-    
-    checkModalStatus();
   }, []);
 
-  const handleWelcomeClose = async (name: string | null) => {
-    await userService.markModalAsSeen();
-    localStorage.setItem('cookieConsent', 'true'); // Onay burada veriliyor
-    
-    if (name) {
-      localStorage.setItem('userName', name);
-      await userService.saveUserName(name);
-    }
-    setShowWelcomePopup(false);
-  };
+
+
+
 
   // URL parametrelerini güncelle
   const updateURLParams = (unit: string, level: string) => {
@@ -226,10 +214,10 @@ function AppContent() {
       />
       {showAuth && <Auth onClose={() => {
         setShowAuth(false);
+        // Auth modal kapandığında event gönder
         window.dispatchEvent(new CustomEvent('auth-closed'));
       }} userName={userName || undefined} isLogin={authMode === 'login'} />}
       {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
-      {showWelcomePopup && <WelcomePopup onClose={handleWelcomeClose} />}
     </div>
   );
 }

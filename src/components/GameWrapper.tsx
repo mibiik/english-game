@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { WordDetail } from '../data/words';
+import { userAnalyticsService } from '../services/userAnalyticsService';
 
 interface GameWrapperProps {
   component: React.ComponentType<any>;
@@ -9,8 +10,10 @@ interface GameWrapperProps {
 
 export const GameWrapper: React.FC<GameWrapperProps> = ({ component: Component, words }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [hasCheckedWords, setHasCheckedWords] = useState(false);
   const [redirectTimer, setRedirectTimer] = useState<NodeJS.Timeout | null>(null);
+  const [gameSessionId, setGameSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     // Kelimeler yüklendikten sonra kontrol et
@@ -29,9 +32,27 @@ export const GameWrapper: React.FC<GameWrapperProps> = ({ component: Component, 
           clearTimeout(redirectTimer);
           setRedirectTimer(null);
         }
+        
+        // Oyun başlangıcını kaydet
+        const startGameAnalytics = async () => {
+          try {
+            // URL'den oyun modunu ve seviye bilgilerini al
+            const pathParts = location.pathname.split('/');
+            const gameMode = pathParts[pathParts.length - 1] || 'unknown';
+            const level = 'intermediate'; // Bu bilgiyi props olarak alabiliriz
+            const unit = words[0]?.unit || '1';
+            
+            const sessionId = await userAnalyticsService.logGameStart(gameMode, level, unit);
+            setGameSessionId(sessionId);
+          } catch (error) {
+            console.error('Oyun başlangıcı kaydedilirken hata:', error);
+          }
+        };
+        
+        startGameAnalytics();
       }
     }
-  }, [words, navigate, redirectTimer]);
+  }, [words, navigate, redirectTimer, location.pathname]);
 
   // Component unmount olduğunda timer'ı temizle
   useEffect(() => {
@@ -67,5 +88,16 @@ export const GameWrapper: React.FC<GameWrapperProps> = ({ component: Component, 
     );
   }
 
-  return <Component words={words} />;
+  // Oyun tamamlama fonksiyonu
+  const handleGameComplete = async (score: number, wordsPlayed: number, correctAnswers: number, wrongAnswers: number) => {
+    if (gameSessionId) {
+      try {
+        await userAnalyticsService.logGameComplete(gameSessionId, score, wordsPlayed, correctAnswers, wrongAnswers);
+      } catch (error) {
+        console.error('Oyun tamamlama kaydedilirken hata:', error);
+      }
+    }
+  };
+
+  return <Component words={words} onGameComplete={handleGameComplete} />;
 }; 
