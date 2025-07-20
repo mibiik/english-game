@@ -285,7 +285,7 @@ export const Auth: React.FC<AuthProps> = ({ onClose, userName, isLogin: initialI
               </motion.button>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
+            <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-5">
               {!isLogin && (
                 <div>
                   <label className="block text-lg font-medium text-gray-300 mb-2">
