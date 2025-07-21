@@ -241,14 +241,100 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#080b16] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-x-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-x-hidden relative">
       {/* Sabit beyaz küçük yıldızlar */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        <div className="absolute w-1 h-1 bg-white rounded-full" style={{ left: '12%', top: '18%' }} />
-        <div className="absolute w-0.5 h-0.5 bg-white rounded-full" style={{ left: '40%', top: '30%' }} />
-        <div className="absolute w-0.5 h-0.5 bg-white rounded-full" style={{ left: '70%', top: '12%' }} />
-        <div className="absolute w-1 h-1 bg-white rounded-full" style={{ left: '80%', top: '40%' }} />
-        <div className="absolute w-0.5 h-0.5 bg-white rounded-full" style={{ left: '60%', top: '70%' }} />
+      {/* Derinlik için birden fazla yıldız katmanı */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Uzak, çok küçük yıldızlar */}
+        {[...Array(120)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white opacity-30"
+            style={{
+              width: `${Math.random() * 1 + 0.5}px`,
+              height: `${Math.random() * 1 + 0.5}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              filter: 'blur(0.5px)'
+            }}
+          />
+        ))}
+        {/* Orta katman yıldızlar */}
+        {[...Array(40)].map((_, i) => (
+          <div
+            key={`mid-${i}`}
+            className="absolute rounded-full bg-blue-200 opacity-50"
+            style={{
+              width: `${Math.random() * 2 + 1}px`,
+              height: `${Math.random() * 2 + 1}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              filter: 'blur(1.2px)'
+            }}
+          />
+        ))}
+        {/* Yakın, parlak yıldızlar */}
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={`close-${i}`}
+            className="absolute rounded-full bg-white opacity-80 shadow-lg"
+            style={{
+              width: `${Math.random() * 3 + 2}px`,
+              height: `${Math.random() * 3 + 2}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              filter: 'blur(0.5px)'
+            }}
+          />
+        ))}
+      </div>
+      {/* Nebula ve galaksi efektleri için ekstra katmanlar */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Büyük mor bulutlar */}
+        {[...Array(2)].map((_, i) => (
+          <div
+            key={`nebula-purple-${i}`}
+            className="absolute rounded-full"
+            style={{
+              width: `${600 + Math.random() * 300}px`,
+              height: `${300 + Math.random() * 200}px`,
+              left: `${10 + Math.random() * 70}%`,
+              top: `${10 + Math.random() * 70}%`,
+              background: 'radial-gradient(circle, #a259ff55 0%, #2a1a5a33 60%, transparent 100%)',
+              opacity: 0.18 + Math.random() * 0.10,
+              filter: 'blur(60px)'
+            }}
+          />
+        ))}
+        {/* Büyük mavi bulutlar */}
+        {[...Array(2)].map((_, i) => (
+          <div
+            key={`nebula-blue-${i}`}
+            className="absolute rounded-full"
+            style={{
+              width: `${500 + Math.random() * 300}px`,
+              height: `${250 + Math.random() * 200}px`,
+              left: `${10 + Math.random() * 70}%`,
+              top: `${10 + Math.random() * 70}%`,
+              background: 'radial-gradient(circle, #00c3ff44 0%, #1a233a33 60%, transparent 100%)',
+              opacity: 0.13 + Math.random() * 0.10,
+              filter: 'blur(60px)'
+            }}
+          />
+        ))}
+        {/* Hafif pembe galaksi izi */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: '900px',
+            height: '200px',
+            left: '30%',
+            top: '60%',
+            background: 'radial-gradient(circle, #ff61a6aa 0%, #0a0d1a00 80%)',
+            opacity: 0.10,
+            filter: 'blur(80px)'
+          }}
+        />
       </div>
       {/* Hafif mavi bulut efekti */}
       <div className="absolute inset-0 z-0 pointer-events-none">
