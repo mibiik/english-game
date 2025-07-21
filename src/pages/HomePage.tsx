@@ -519,8 +519,18 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </AnimatePresence>
 
         {/* Oyun Modları Görseldeki Bordo-Siyah Kartlar */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mt-4">
-          {gameModes.map((mode) => {
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-12 mt-4">
+          {gameModes.map((mode, idx) => {
+            // Her karta çok hafif farklı bir transparan pastel renk
+            const pastelGradients = [
+              'from-[#ff416c]/10 to-[#ff4b2b]/10',
+              'from-[#42e695]/10 to-[#3bb2b8]/10',
+              'from-[#4776e6]/10 to-[#8e54e9]/10',
+              'from-[#f7971e]/10 to-[#ffd200]/10',
+              'from-[#f953c6]/10 to-[#b91d73]/10',
+              'from-[#43cea2]/10 to-[#185a9d]/10',
+            ];
+            const pastelBg = pastelGradients[idx % pastelGradients.length];
             // Başlığa göre dosya adı eşleştirme
             const imageMap: Record<string, string> = {
               'Öğretici Mod': 'ogrenmemodu.jpg',
@@ -540,34 +550,29 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             // Bordo-kırmızı/siyah gradient
             const bgGradient = 'from-[#2a0618] via-[#a10d2f] to-[#1a0105]';
             return (
-              <div key={mode.id} className="relative group rounded-xl overflow-hidden shadow-2xl border-4 border-transparent bg-gradient-to-br from-[#1a0105] to-[#2a0618] flex flex-col backdrop-blur-md before:absolute before:inset-0 before:rounded-xl before:pointer-events-none before:z-20 before:bg-gradient-to-br before:from-[#ff416c]/60 before:to-[#ff4b2b]/60 before:opacity-0 group-hover:before:opacity-100 before:transition-all before:duration-300">
+              <Link to={mode.link} key={mode.id} className={`relative group rounded-xl overflow-hidden shadow-lg border-2 border-white/10 bg-black/30 bg-gradient-to-br ${pastelBg} flex flex-col backdrop-blur-md transition-all duration-200 hover:scale-105 cursor-pointer p-2 md:p-3`}>
                 {/* Başlık kartın en üstünde */}
-                <div className="w-full flex justify-center pt-4 pb-2 z-30">
-                  <span className="text-white text-2xl md:text-3xl font-bebas uppercase drop-shadow-lg bg-gradient-to-r from-[#ff416c] to-[#ff4b2b] bg-clip-text text-transparent text-center px-2">
+                <div className="w-full flex justify-center pt-2 pb-2 z-30">
+                  <span className="text-3xl md:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                     {mode.title}
                   </span>
                 </div>
-                {/* Güçlü gradient border */}
-                <div className="absolute inset-0 z-10 rounded-xl pointer-events-none border-2 border-[#ff416c] group-hover:border-[#ff4b2b] transition-all duration-300" />
-                {/* Görsel ve buton */}
-                <div className="relative w-full aspect-square min-h-[80px] overflow-hidden flex flex-col justify-center items-center"> 
-                  <img src={imgSrc} alt="Oyun görseli" className="absolute inset-0 w-full h-full object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" />
-                </div>
-                {/* Alt panelde Oyna butonu */}
-                <div className="w-full flex justify-center items-center py-3 bg-[#18141a]/95">
-                  <Link to={mode.link} className="flex items-center gap-2 px-8 py-3 rounded-full bg-[#7a0a22]/80 hover:bg-[#a10d2f]/90 text-white font-black text-lg shadow-md border-b-4 border-[#a10d2f] transition-all duration-200 opacity-90">
-                    <svg className="w-8 h-8 text-white/90" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 5v14l11-7z" /></svg>
-                    Oyna
+                {/* Güçlü transparan border */}
+                <div className="absolute inset-0 z-10 rounded-xl pointer-events-none border-2 border-white/20 group-hover:border-[#ff416c]/60 transition-all duration-300" />
+                {/* Görsel ve başlık */}
+                <div className="relative w-full aspect-[1/1] min-h-[16px] md:min-h-[28px] overflow-hidden flex flex-col justify-center items-center"> 
+                  <Link to={mode.link} className="absolute inset-0 w-full h-full z-10">
+                    <img src={imgSrc} alt="Oyun görseli" className="w-full h-full object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" />
                   </Link>
                 </div>
-                {/* Alt panel yok, sadece görsel ve buton var */}
-              </div>
+              </Link>
             );
           })}
         </div>
       </main>
-      <div className="w-full text-center mt-8 mb-4 relative z-10">
-        <span className="text-xs text-gray-500 dark:text-gray-600 tracking-wide">powered by mirac</span>
+      {/* Sabit sağ alt köşede, dikkat çekmeyen bir şekilde */}
+      <div className="fixed bottom-2 right-3 z-50 pointer-events-none select-none">
+        <span className="text-xs text-gray-400 dark:text-gray-600 tracking-wide opacity-70">made by Miraç Birlik</span>
       </div>
     </div>
   );
