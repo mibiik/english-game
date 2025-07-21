@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX } from 'react-icons/hi';
+import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX, HiChevronDown } from 'react-icons/hi';
 import logo from './a.png';
 // import icoLogo from './ico.png';
 import { newDetailedWords_part1 } from '../data/words';
@@ -485,7 +485,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           animate={{ y: [0, 10, 0], scale: [1, 1.03, 1] }}
           transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
         />
-        {/* Uzak, güneş gibi sarı gezegen (sadece masaüstü) */}
+        {/* Masaüstü için: Ay benzeri gezegen */}
         <motion.div
           className="absolute rounded-full hidden md:block"
           style={{
@@ -493,8 +493,8 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             height: '80px',
             left: '78%',
             top: '2%',
-            background: 'radial-gradient(circle at 60% 40%, #fffbe0 0%, #ffe066 40%, #ffb347 80%, #a85d1a 100%)',
-            boxShadow: '0 0 80px 20px #ffe06655, 0 0 160px 40px #ffb34722',
+            background: 'radial-gradient(circle at 60% 40%, #e0e7ef 0%, #bfc9d6 60%, #7a8596 100%)',
+            boxShadow: '0 0 60px 12px #bfc9d655, 0 0 120px 24px #e0e7ef22',
             opacity: 0.22,
             filter: 'blur(1.8px)'
           }}
@@ -502,12 +502,44 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             scale: [1, 1.06, 1],
             filter: [
               'blur(1.8px) brightness(1)',
-              'blur(2.2px) brightness(1.12)',
+              'blur(2.2px) brightness(1.08)',
               'blur(1.8px) brightness(1)'
             ]
           }}
           transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        >
+          {/* Kraterler */}
+          <div style={{position:'absolute', left:'22px', top:'18px', width:'13px', height:'13px', borderRadius:'50%', background:'radial-gradient(circle, #bfc9d6 60%, transparent 100%)', opacity:0.18}} />
+          <div style={{position:'absolute', left:'48px', top:'36px', width:'8px', height:'8px', borderRadius:'50%', background:'radial-gradient(circle, #7a8596 60%, transparent 100%)', opacity:0.22}} />
+          <div style={{position:'absolute', left:'30px', top:'54px', width:'6px', height:'6px', borderRadius:'50%', background:'radial-gradient(circle, #bfc9d6 60%, transparent 100%)', opacity:0.13}} />
+        </motion.div>
+        {/* Mobil için: Ay benzeri gezegen */}
+        <motion.div
+          className="absolute rounded-full md:hidden"
+          style={{
+            width: '38px',
+            height: '38px',
+            right: '6px',
+            top: '6px',
+            background: 'radial-gradient(circle at 60% 40%, #e0e7ef 0%, #bfc9d6 60%, #7a8596 100%)',
+            boxShadow: '0 0 18px 4px #bfc9d655, 0 0 36px 8px #e0e7ef22',
+            opacity: 0.22,
+            filter: 'blur(1.2px)'
+          }}
+          animate={{
+            scale: [1, 1.08, 1],
+            filter: [
+              'blur(1.2px) brightness(1)',
+              'blur(1.6px) brightness(1.08)',
+              'blur(1.2px) brightness(1)'
+            ]
+          }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {/* Kraterler */}
+          <div style={{position:'absolute', left:'10px', top:'7px', width:'6px', height:'6px', borderRadius:'50%', background:'radial-gradient(circle, #bfc9d6 60%, transparent 100%)', opacity:0.18}} />
+          <div style={{position:'absolute', left:'22px', top:'18px', width:'4px', height:'4px', borderRadius:'50%', background:'radial-gradient(circle, #7a8596 60%, transparent 100%)', opacity:0.22}} />
+        </motion.div>
       </div>
 
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
@@ -529,37 +561,20 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               ))}
             </motion.h1>
             
-            {/* Mobilde başlığın hemen altında Oyun Modları butonu */}
-            <motion.div
-              className="flex justify-center mb-6 md:hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              <motion.button
-                className="flex flex-col items-center cursor-pointer"
-                animate={{ y: [0, 10, 0] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                onClick={() => {
-                  const gameModesSection = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4');
-                  if (gameModesSection) {
-                    gameModesSection.scrollIntoView({ 
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                  }
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <HiAcademicCap className="w-8 h-8 text-red-500 drop-shadow-lg" />
-                <span className="text-sm text-gray-400 mt-2 font-medium">Oyun Modları</span>
-              </motion.button>
-            </motion.div>
+            {/* Minimal kırmızı ok ve 'Oyun Modları' yazısı, tıklanınca oyun modlarına kayar */}
+            <div className="flex flex-col items-center justify-center mb-6 select-none cursor-pointer group" 
+              onClick={() => {
+                const gameModesSection = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4');
+                if (gameModesSection) {
+                  gameModesSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }
+              }}>
+              <HiChevronDown className="w-5 h-5 text-red-500 mb-1 group-hover:scale-110 transition-transform duration-200" />
+              <span className="text-sm text-gray-200 font-medium tracking-wide">Oyun Modları</span>
+            </div>
             <motion.div
               className="w-full max-w-4xl h-1 mx-auto bg-gradient-to-r from-red-800 via-red-600 to-red-400 rounded-full mb-6 overflow-hidden"
               initial={{ opacity: 0, scaleX: 0.7 }}
