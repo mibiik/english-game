@@ -467,6 +467,48 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           />
         ))}
       </div>
+      {/* Gezegenler: Farklı boyut, renk ve konumda, derinlik için blur ve opacity ile */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Uzak, saydam mavi gezegen */}
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: '90px',
+            height: '90px',
+            left: '12%',
+            top: '7%',
+            background: 'radial-gradient(circle at 60% 40%, #4fd1ff 0%, #1a2a4a 90%)',
+            boxShadow: '0 0 40px 8px #4fd1ff33',
+            opacity: 0.22,
+            filter: 'blur(2.5px)'
+          }}
+          animate={{ y: [0, 10, 0], scale: [1, 1.03, 1] }}
+          transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Uzak, güneş gibi sarı gezegen (sadece masaüstü) */}
+        <motion.div
+          className="absolute rounded-full hidden md:block"
+          style={{
+            width: '80px',
+            height: '80px',
+            left: '78%',
+            top: '2%',
+            background: 'radial-gradient(circle at 60% 40%, #fffbe0 0%, #ffe066 40%, #ffb347 80%, #a85d1a 100%)',
+            boxShadow: '0 0 80px 20px #ffe06655, 0 0 160px 40px #ffb34722',
+            opacity: 0.22,
+            filter: 'blur(1.8px)'
+          }}
+          animate={{
+            scale: [1, 1.06, 1],
+            filter: [
+              'blur(1.8px) brightness(1)',
+              'blur(2.2px) brightness(1.12)',
+              'blur(1.8px) brightness(1)'
+            ]
+          }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
 
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
         <motion.div
