@@ -31,6 +31,9 @@ import DiscoverPage from './pages/DiscoverPage';
 import MessagesPage from './pages/MessagesPage';
 import { authService } from './services/authService';
 import LeaderboardPage from './pages/LeaderboardPage';
+// import SubscriptionInfo from './pages/SubscriptionInfo';
+// import { getAuth } from 'firebase/auth';
+// import { userService } from './services/userService';
 
 // Korumalı Route bileşeni
 const ProtectedRoute: React.FC<{ 
@@ -125,10 +128,10 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
 }) => {
   return (
     <Routes>
+      {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
       <Route path="/" element={<HomeRedirect filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} setCurrentUnit={setCurrentUnit} setCurrentLevel={setCurrentLevel} isAuthenticated={isAuthenticated} />} />
       <Route path="/home" element={
         <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
             <Navbar 
               onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
               currentUnit={currentUnit}
@@ -139,7 +142,6 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             <div className="pt-32">
               <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
             </div>
-          </>
         </ProtectedRoute>
       } />
       <Route path="/profile" element={

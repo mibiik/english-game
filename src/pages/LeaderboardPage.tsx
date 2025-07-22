@@ -185,34 +185,60 @@ const LeaderboardPage: React.FC = () => {
             <li className="text-center py-10 text-gray-400 text-lg">Liderlik tablosunda henüz kimse yok.</li>
           ) : (
             users.map((user, index) => (
-              <li key={user.userId} className={`flex items-center gap-3 px-3 md:px-6 py-3 md:py-4 transition-all duration-200 ease-in-out ${index % 2 === 0 ? 'bg-gray-900/20' : 'bg-gray-800/30'} hover:bg-gray-800/50`}>
-                {/* Sıra Numarası */}
-                <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full
-                  ${index === 0 ? 'bg-yellow-500 text-yellow-900' :
-                    index === 1 ? 'bg-purple-500 text-purple-900' :
-                    index === 2 ? 'bg-pink-500 text-pink-900' :
-                    'bg-gray-600 text-gray-300'}`}>{index + 1}</div>
+              user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' ? (
+                <li key={user.userId} className="flex items-center gap-4 px-4 py-4 my-2 bg-gradient-to-r from-yellow-100 via-pink-100 to-purple-100 border-2 border-yellow-300 rounded-xl shadow-lg relative">
+                  <div className="absolute -top-3 left-4 z-20">
+                    <Crown className="w-7 h-7 text-yellow-400" />
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-white border-2 border-pink-300 flex items-center justify-center overflow-hidden shadow">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      <FallbackAvatar name={user.displayName} size={48} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col items-start">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-yellow-500 to-purple-500">★ {user.displayName} ★</span>
+                      <span className="px-2 py-1 bg-yellow-400 text-white text-xs font-semibold rounded shadow">Özel</span>
+                    </div>
+                    <div className="text-sm text-gray-700 font-semibold mt-1">{user.email}</div>
+                  </div>
+                  <div className="text-right flex flex-col items-end">
+                    <div className="text-lg font-bold text-pink-700">{user.totalScore}</div>
+                    <div className="text-xs text-gray-500">puan</div>
+                  </div>
+                </li>
+              ) : (
+                <li key={user.userId} className={`flex items-center gap-3 px-3 md:px-6 py-3 md:py-4 transition-all duration-200 ease-in-out ${index % 2 === 0 ? 'bg-gray-900/20' : 'bg-gray-800/30'} hover:bg-gray-800/50`}>
+                  {/* Sıra Numarası */}
+                  <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full
+                    ${index === 0 ? 'bg-yellow-500 text-yellow-900' :
+                      index === 1 ? 'bg-purple-500 text-purple-900' :
+                      index === 2 ? 'bg-pink-500 text-pink-900' :
+                      'bg-gray-600 text-gray-300'}`}>{index + 1}</div>
 
-                {/* Kullanıcı Fotoğrafı */}
-                <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center overflow-hidden">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" onError={e => { e.currentTarget.onerror = null; e.currentTarget.style.display='none'; e.currentTarget.parentElement?.appendChild(document.createTextNode(user.displayName?.charAt(0)?.toUpperCase() || '?')); }} />
-                  ) : (
-                    <FallbackAvatar name={user.displayName} size={40} />
-                  )}
-                </div>
+                  {/* Kullanıcı Fotoğrafı */}
+                  <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center overflow-hidden">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" onError={e => { e.currentTarget.onerror = null; e.currentTarget.style.display='none'; e.currentTarget.parentElement?.appendChild(document.createTextNode(user.displayName?.charAt(0)?.toUpperCase() || '?')); }} />
+                    ) : (
+                      <FallbackAvatar name={user.displayName} size={40} />
+                    )}
+                  </div>
 
-                {/* Kullanıcı Bilgileri (isim ve email) */}
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-white truncate">{user.displayName}</div>
-                </div>
+                  {/* Kullanıcı Bilgileri (isim ve email) */}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white truncate">{user.displayName}</div>
+                  </div>
 
-                {/* Puan */}
-                <div className="text-right flex flex-col justify-center">
-                  <div className="text-lg font-bold text-white">{user.totalScore}</div>
-                  <div className="text-xs text-gray-400">puan</div>
-                </div>
-              </li>
+                  {/* Puan */}
+                  <div className="text-right flex flex-col justify-center">
+                    <div className="text-lg font-bold text-white">{user.totalScore}</div>
+                    <div className="text-xs text-gray-400">puan</div>
+                  </div>
+                </li>
+              )
             ))
           )}
         </ul>

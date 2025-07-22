@@ -18,6 +18,8 @@ export interface User {
   lastSeen?: Date;
   createdAt: Date;
   updatedAt: Date;
+  isPremium?: boolean;
+  premiumUntil?: string;
 }
 
 class UserService {

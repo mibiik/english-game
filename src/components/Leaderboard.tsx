@@ -129,28 +129,61 @@ export default function LeaderboardPage() {
               <p className="text-gray-500">Henüz skor bulunmamaktadır.</p>
             </div>
           ) : (
-            users.map((user, index) => (
-              <div key={user.userId} className={`flex items-center gap-4 px-4 py-3 ${index < 3 ? 'bg-gray-50' : ''}`}>
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <span className="font-semibold text-indigo-600 text-xs">#{index + 1}</span>
+            users.map((user, index) => {
+              if (user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43') {
+                return (
+                  <div key={user.userId} className="flex items-center gap-6 px-6 py-6 bg-gradient-to-r from-pink-400 via-yellow-300 to-purple-400 border-8 border-yellow-500 rounded-2xl shadow-2xl animate-pulse relative my-4">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 animate-bounce z-20">
+                      <Crown className="w-16 h-16 text-yellow-400 drop-shadow-2xl" />
+                    </div>
+                    <div className="w-20 h-20 rounded-full bg-white border-4 border-pink-500 flex items-center justify-center overflow-hidden shadow-xl">
+                      {user.photoURL ? (
+                        <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-12 h-12 text-pink-400" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col items-start">
+                      <div className="flex items-center gap-3">
+                        <span className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-yellow-600 to-purple-600 drop-shadow-glow animate-glow">★ {user.displayName.toUpperCase()} ★</span>
+                        <span className="px-3 py-2 bg-yellow-500 text-white text-lg font-bold rounded-full shadow-xl border-2 border-white">Özel</span>
+                      </div>
+                      <div className="text-base text-gray-700 font-semibold mt-2">{user.email}</div>
+                      <div className="mt-2 text-pink-700 font-bold text-lg animate-pulse">Bu kutu sadece Defne'ye özel!</div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <div className="text-3xl font-extrabold text-pink-700 drop-shadow">{user.totalScore}</div>
+                      <div className="text-lg text-gray-800 font-bold">puan</div>
+                    </div>
+                  </div>
+                );
+              }
+              const isDefne = user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43';
+              return (
+                <div key={user.userId} className={`flex items-center gap-4 px-4 py-3 ${index < 3 ? 'bg-gray-50' : ''}`}>
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span className="font-semibold text-indigo-600 text-xs">#{index + 1}</span>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex items-center gap-2">
+                    {isDefne && (
+                      <Crown className="w-5 h-5 text-yellow-500 mr-1" />
+                    )}
+                    <div className={`font-medium truncate ${isDefne ? 'text-yellow-600 font-bold' : 'text-gray-900'}`}>{isDefne ? '★ Defne ★' : user.displayName}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-bold text-indigo-600">{user.totalScore}</div>
+                    <div className="text-xs text-gray-400">puan</div>
+                  </div>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-5 h-5 text-gray-400" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 truncate">{user.displayName}</div>
-                  <div className="text-xs text-gray-500 truncate">{user.email}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-base font-bold text-indigo-600">{user.totalScore}</div>
-                  <div className="text-xs text-gray-400">puan</div>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

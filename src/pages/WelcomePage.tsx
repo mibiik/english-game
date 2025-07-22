@@ -16,6 +16,7 @@ import {
   Trophy
 } from 'lucide-react';
 import logo from './ico.png';
+// import SubscribeButton from '../components/SubscribeButton';
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
