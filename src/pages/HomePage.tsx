@@ -288,7 +288,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </div>
         {/* Mini Leaderboard */}
         {topUsers.length >= 3 && (
-          <div className="flex-1 max-w-md md:max-w-lg lg:max-w-xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-0 flex flex-col items-center p-4 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl scale-105 md:scale-110 relative">
+          <div className="flex-1 max-w-md md:max-w-lg lg:max-w-xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-0 flex flex-col items-center p-4 md:p-2 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl scale-105 md:scale-110 relative md:py-2">
             {/* Küçült butonu sadece masaüstünde */}
             <button
               className="absolute top-2 right-2 md:block hidden z-20 bg-gray-800/80 hover:bg-gray-700 text-gray-300 rounded-full p-1 transition-all"
@@ -306,74 +306,74 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               </div>
             ) : (
               <>
-                <div className="w-full text-center mb-5">
-                  <span className="text-2xl md:text-3xl font-black text-white tracking-wide uppercase drop-shadow">Leaderboard</span>
+                <div className="w-full text-center mb-5 md:mb-2">
+                  <span className="text-2xl md:text-xl font-black text-white tracking-wide uppercase drop-shadow">Leaderboard</span>
                 </div>
-                <div className="flex items-end justify-center gap-4 md:gap-6 mb-2">
+                <div className="flex items-end justify-center gap-4 md:gap-3 mb-2 md:mb-1">
                   {/* 2. Kullanıcı */}
                   <div className="flex flex-col items-center flex-1">
-                    <div className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
+                    <div className="w-10 h-10 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
                       {topUsers[1]?.photoURL ? (
                         <img src={topUsers[1].photoURL} alt={topUsers[1].displayName} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-base md:text-xl font-bold text-purple-600">{topUsers[1]?.displayName?.charAt(0).toUpperCase()}</span>
+                        <span className="text-base md:text-sm font-bold text-purple-600">{topUsers[1]?.displayName?.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="text-xs md:text-sm font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[1]?.displayName?.toUpperCase()}</span>
-                    <span className="text-base md:text-xl font-extrabold text-white text-center w-full">{topUsers[1]?.totalScore}</span>
+                    <span className="text-xs md:text-xs font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[1]?.displayName?.toUpperCase()}</span>
+                    <span className="text-base md:text-base font-extrabold text-white text-center w-full">{topUsers[1]?.totalScore}</span>
                     <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
                   </div>
                   {/* 1. Kullanıcı */}
                   <div className="flex flex-col items-center flex-1 z-10">
-                    <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-1 shadow-lg relative" style={{boxShadow:'0 0 32px 8px #ffd70088, 0 0 0 6px #fffbe6cc'}}>
+                    <div className="w-20 h-20 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-1 shadow-lg relative" style={{boxShadow:'0 0 32px 8px #ffd70088, 0 0 0 6px #fffbe6cc'}}>
                       {/* Altın parlama efekti */}
                       <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 32px 12px #ffd70088, 0 0 0 8px #fffbe644'}}></div>
                       {topUsers[0]?.photoURL ? (
                         <img src={topUsers[0].photoURL} alt={topUsers[0].displayName} className="w-full h-full object-cover relative z-10" />
                       ) : (
-                        <span className="text-3xl md:text-5xl font-extrabold text-yellow-700 relative z-10">{topUsers[0]?.displayName?.charAt(0).toUpperCase()}</span>
+                        <span className="text-3xl md:text-2xl font-extrabold text-yellow-700 relative z-10">{topUsers[0]?.displayName?.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="text-base md:text-2xl font-extrabold text-yellow-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[0]?.displayName?.toUpperCase()}</span>
-                    <span className="text-2xl md:text-4xl font-extrabold text-white text-center w-full">{topUsers[0]?.totalScore}</span>
+                    <span className="text-base md:text-base font-extrabold text-yellow-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[0]?.displayName?.toUpperCase()}</span>
+                    <span className="text-2xl md:text-xl font-extrabold text-white text-center w-full">{topUsers[0]?.totalScore}</span>
                     <span className="mt-1 text-xs bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 font-bold">1</span>
                   </div>
                   {/* 3. Kullanıcı */}
                   <div className="flex flex-col items-center flex-1">
-                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
+                    <div className="w-8 h-8 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
                       {topUsers[2]?.photoURL ? (
                         <img src={topUsers[2].photoURL} alt={topUsers[2].displayName} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xs md:text-base font-bold text-pink-600">{topUsers[2]?.displayName?.charAt(0).toUpperCase()}</span>
+                        <span className="text-xs md:text-xs font-bold text-pink-600">{topUsers[2]?.displayName?.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
                     <span className="text-xs md:text-xs font-extrabold text-pink-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[2]?.displayName?.toUpperCase()}</span>
-                    <span className="text-sm md:text-lg font-extrabold text-white text-center w-full">{topUsers[2]?.totalScore}</span>
+                    <span className="text-sm md:text-xs font-extrabold text-white text-center w-full">{topUsers[2]?.totalScore}</span>
                     <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
                   </div>
                 </div>
                 {/* 4 ve 5. kullanıcılar için ek liste */}
                 {(topUsers[3] || topUsers[4]) && (
-                  <div className="w-full mt-2">
+                  <div className="w-full mt-2 md:mt-1">
                     <ul className="divide-y divide-gray-700">
                       {topUsers.slice(3, 5).map((user, idx) => (
-                        <li key={user.displayName} className="flex items-center py-2 gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
+                        <li key={user.displayName} className="flex items-center py-2 md:py-1 gap-3">
+                          <div className={`w-8 h-8 md:w-7 md:h-7 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
                             {user.photoURL ? (
                               <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
                             ) : (
-                              <span className={`text-base font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
+                              <span className={`text-base md:text-sm font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
                             )}
                           </div>
-                          <span className="flex-1 text-sm font-semibold text-gray-200 truncate">{user.displayName}</span>
-                          <span className="text-base font-bold text-gray-100">{user.totalScore}</span>
+                          <span className="flex-1 text-sm md:text-xs font-semibold text-gray-200 truncate">{user.displayName}</span>
+                          <span className="text-base md:text-xs font-bold text-gray-100">{user.totalScore}</span>
                           <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
-                <button onClick={()=>navigate('/leaderboard')} className="mt-2 px-4 py-1 md:px-6 md:py-2 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-base font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+                <button onClick={()=>navigate('/leaderboard')} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
               </>
             )}
           </div>
