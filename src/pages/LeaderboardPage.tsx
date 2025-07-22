@@ -186,10 +186,8 @@ const LeaderboardPage: React.FC = () => {
           ) : (
             users.map((user, index) => (
               user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' ? (
-                <li key={user.userId} className="flex items-center gap-4 px-4 py-4 my-2 bg-gradient-to-r from-yellow-100 via-pink-100 to-purple-100 border-2 border-yellow-300 rounded-xl shadow-lg relative">
-                  <div className="absolute -top-3 left-4 z-20">
-                    <Crown className="w-7 h-7 text-yellow-400" />
-                  </div>
+                <li key={user.userId} className="flex items-center gap-4 px-4 py-4 my-2 bg-gradient-to-r from-pink-400 via-pink-200 to-pink-100 border-2 border-pink-400 rounded-xl shadow-lg relative">
+                  <div className="absolute -top-3 left-4 z-20 text-3xl select-none">🌟</div>
                   <div className="w-12 h-12 rounded-full bg-white border-2 border-pink-300 flex items-center justify-center overflow-hidden shadow">
                     {user.photoURL ? (
                       <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
@@ -199,8 +197,8 @@ const LeaderboardPage: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col items-start">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-yellow-500 to-purple-500">★ {user.displayName} ★</span>
-                      <span className="px-2 py-1 bg-yellow-400 text-white text-xs font-semibold rounded shadow">Özel</span>
+                      <span className="text-xl font-bold text-pink-700">★ {user.displayName} ★</span>
+                      <span className="px-2 py-1 bg-pink-400 text-white text-xs font-semibold rounded shadow">Özel</span>
                     </div>
                     <div className="text-sm text-gray-700 font-semibold mt-1">{user.email}</div>
                   </div>
