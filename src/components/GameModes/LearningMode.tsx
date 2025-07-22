@@ -10,6 +10,7 @@ import { newDetailedWords_part1 as foundationWords } from '../../data/word1';
 import { newDetailedWords_part1 as preIntermediateWords } from '../../data/word2';
 import { detailedWords_part1 as upperIntermediateWords } from '../../data/word4';
 import { newDetailedWords_part1 as intermediateWords } from '../../data/words';
+import { awardPoints } from '../../services/scoreService';
 
 interface LearningModeProps {
   words: WordDetail[];
@@ -300,6 +301,14 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [definitionState.targetId, handleClosePopover]);
+
+  // Her kelime gösteriminde 1 puan ekle
+  useEffect(() => {
+    if (currentWord && currentWord.headword) {
+      awardPoints('learning-mode', 1, currentWord.unit || '1');
+    }
+    // eslint-disable-next-line
+  }, [currentIndex]);
 
   const renderWordForms = useCallback(() => {
     if (!currentWord || !currentWord.forms || Object.keys(currentWord.forms).length === 0) {
