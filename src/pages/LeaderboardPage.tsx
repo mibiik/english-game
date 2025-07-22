@@ -45,20 +45,6 @@ const LeaderboardPage: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Kullanıcıları sıralamadan önce Eylül'ü çıkar ve 3. sıraya ekle
-  const eylulId = "OvNqDPNVV8OSyt28j3RPcR1Tb192";
-  let usersToShow = users.filter(u => u.userId !== eylulId);
-  const eylulUser = users.find(u => u.userId === eylulId);
-  if (eylulUser) {
-    const eylulOverride = { ...eylulUser, totalScore: 5000 };
-    // 2. index'e (3. sıra) ekle
-    usersToShow = [
-      ...usersToShow.slice(0, 1),
-      eylulOverride,
-      ...usersToShow.slice(1)
-    ];
-  }
-
   return (
     // Genel Arka Plan ve Font (Varsayılan Tailwind Sans)
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black px-4 py-8 md:py-16 flex flex-col items-center font-sans">
@@ -74,57 +60,57 @@ const LeaderboardPage: React.FC = () => {
       {/* Mobil Podium Tasarımı (Alt Alta, Daha Kompakt) */}
       <div className="w-full max-w-[360px] flex flex-col items-center gap-4 mb-8 md:hidden"> {/* Sadece mobilde görünür */}
         {/* 2. Kullanıcı */}
-        {usersToShow[1] && (
+        {users[1] && (
           <div className="w-full flex flex-col items-center p-4 border-2 border-gray-700/50 rounded-xl backdrop-blur-lg shadow-lg bg-gradient-to-br from-gray-800 to-gray-900">
             <div className="relative mb-3">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center overflow-hidden border-4 border-purple-400">
-                {usersToShow[1].photoURL ? (
-                  <img src={usersToShow[1].photoURL} alt={usersToShow[1].displayName} className="w-full h-full object-cover" />
+                {users[1].photoURL ? (
+                  <img src={users[1].photoURL} alt={users[1].displayName} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-8 h-8 text-purple-200" />
                 )}
               </div>
               <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-purple-600 text-white text-base font-bold flex items-center justify-center shadow-md">2</span>
             </div>
-            <div className="text-lg font-bold text-purple-300 truncate w-full text-center">{usersToShow[1].displayName}</div>
-            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-purple-200">{usersToShow[1].totalScore}</span> Puan</div>
+            <div className="text-lg font-bold text-purple-300 truncate w-full text-center">{users[1].displayName}</div>
+            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-purple-200">{users[1].totalScore}</span> Puan</div>
           </div>
         )}
 
         {/* 1. Kullanıcı (En Belirgin) */}
-        {usersToShow[0] && (
+        {users[0] && (
           <div className="w-full max-w-[380px] flex flex-col items-center p-5 border-2 border-yellow-400/60 rounded-xl backdrop-blur-lg shadow-xl bg-gradient-to-br from-yellow-500 to-orange-500 relative -mb-3 z-10">
             <Crown className="absolute -top-3 -left-3 w-8 h-8 text-yellow-400" />
             <div className="relative mb-4 mt-5">
               <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-yellow-400 shadow-lg">
-                {usersToShow[0].photoURL ? (
-                  <img src={usersToShow[0].photoURL} alt={usersToShow[0].displayName} className="w-full h-full object-cover" />
+                {users[0].photoURL ? (
+                  <img src={users[0].photoURL} alt={users[0].displayName} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-10 h-10 text-yellow-500" />
                 )}
               </div>
               <span className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-yellow-500 text-white text-lg font-bold flex items-center justify-center shadow-lg">1</span>
             </div>
-            <div className="text-xl font-extrabold text-yellow-900 truncate w-full text-center">{usersToShow[0].displayName}</div>
-            <div className="text-lg font-bold text-yellow-800 mt-1">Sıra: <span className="text-yellow-900">{usersToShow[0].totalScore}</span> Puan</div>
+            <div className="text-xl font-extrabold text-yellow-900 truncate w-full text-center">{users[0].displayName}</div>
+            <div className="text-lg font-bold text-yellow-800 mt-1">Sıra: <span className="text-yellow-900">{users[0].totalScore}</span> Puan</div>
           </div>
         )}
 
         {/* 3. Kullanıcı */}
-        {usersToShow[2] && (
+        {users[2] && (
           <div className="w-full flex flex-col items-center p-4 border-2 border-pink-400/50 rounded-xl backdrop-blur-lg shadow-lg bg-gradient-to-br from-pink-600 to-red-500">
             <div className="relative mb-3">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-400 to-red-400 flex items-center justify-center overflow-hidden border-4 border-pink-300">
-                {usersToShow[2].photoURL ? (
-                  <img src={usersToShow[2].photoURL} alt={usersToShow[2].displayName} className="w-full h-full object-cover" />
+                {users[2].photoURL ? (
+                  <img src={users[2].photoURL} alt={users[2].displayName} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-8 h-8 text-pink-200" />
                 )}
               </div>
               <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-pink-500 text-white text-base font-bold flex items-center justify-center shadow-md">3</span>
             </div>
-            <div className="text-lg font-bold text-pink-300 truncate w-full text-center">{usersToShow[2].displayName}</div>
-            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-pink-200">{usersToShow[2].totalScore}</span> Puan</div>
+            <div className="text-lg font-bold text-pink-300 truncate w-full text-center">{users[2].displayName}</div>
+            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-pink-200">{users[2].totalScore}</span> Puan</div>
           </div>
         )}
       </div>
@@ -132,57 +118,57 @@ const LeaderboardPage: React.FC = () => {
       {/* Masaüstü Podium Tasarımı (Yan Yana, Daha Geniş ve Animasyonlu) */}
       <div className="w-full max-w-5xl flex flex-row items-center justify-center gap-6 mb-20 hidden md:flex"> {/* Sadece masaüstünde görünür */}
         {/* 2. Kullanıcı */}
-        {usersToShow[1] && (
+        {users[1] && (
           <div className="flex-1 min-w-[240px] max-w-[280px] flex flex-col items-center p-6 border-2 border-gray-700/50 rounded-xl backdrop-blur-lg shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 transition-transform duration-300 ease-in-out hover:shadow-2xl hover:scale-105">
             <div className="relative mb-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center overflow-hidden border-4 border-purple-400">
-                {usersToShow[1].photoURL ? (
-                  <img src={usersToShow[1].photoURL} alt={usersToShow[1].displayName} className="w-full h-full object-cover" />
+                {users[1].photoURL ? (
+                  <img src={users[1].photoURL} alt={users[1].displayName} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-10 h-10 text-purple-200" />
                 )}
               </div>
               <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-purple-600 text-white text-sm font-bold flex items-center justify-center shadow-md">2</span>
             </div>
-            <div className="text-xl font-bold text-purple-300 truncate w-full text-center">{usersToShow[1].displayName}</div>
-            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-purple-200">{usersToShow[1].totalScore}</span> Puan</div>
+            <div className="text-xl font-bold text-purple-300 truncate w-full text-center">{users[1].displayName}</div>
+            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-purple-200">{users[1].totalScore}</span> Puan</div>
           </div>
         )}
 
         {/* 1. Kullanıcı (Ortada ve en belirgin) */}
-        {usersToShow[0] && (
+        {users[0] && (
           <div className="flex-1 min-w-[260px] max-w-[320px] flex flex-col items-center p-8 border-2 border-yellow-400/60 rounded-xl backdrop-blur-lg shadow-2xl bg-gradient-to-br from-yellow-500 to-orange-500 relative z-10">
             <Crown className="absolute -top-5 -translate-x-1/2 left-1/2 w-14 h-14 text-yellow-400" />
             <div className="relative mb-5 mt-6">
               <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-yellow-400 shadow-lg">
-                {usersToShow[0].photoURL ? (
-                  <img src={usersToShow[0].photoURL} alt={usersToShow[0].displayName} className="w-full h-full object-cover" />
+                {users[0].photoURL ? (
+                  <img src={users[0].photoURL} alt={users[0].displayName} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-12 h-12 text-yellow-500" />
                 )}
               </div>
               <span className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-yellow-500 text-white text-xl font-bold flex items-center justify-center shadow-lg">1</span>
             </div>
-            <div className="text-2xl font-extrabold text-yellow-900 truncate w-full text-center">{usersToShow[0].displayName}</div>
-            <div className="text-xl font-bold text-yellow-800 mt-1">Sıra: <span className="text-yellow-900">{usersToShow[0].totalScore}</span> Puan</div>
+            <div className="text-2xl font-extrabold text-yellow-900 truncate w-full text-center">{users[0].displayName}</div>
+            <div className="text-xl font-bold text-yellow-800 mt-1">Sıra: <span className="text-yellow-900">{users[0].totalScore}</span> Puan</div>
           </div>
         )}
 
         {/* 3. Kullanıcı */}
-        {usersToShow[2] && (
+        {users[2] && (
           <div className="flex-1 min-w-[240px] max-w-[280px] flex flex-col items-center p-6 border-2 border-pink-400/50 rounded-xl backdrop-blur-lg shadow-xl bg-gradient-to-br from-pink-600 to-red-500 transition-transform duration-300 ease-in-out hover:shadow-2xl hover:scale-105">
             <div className="relative mb-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 to-red-400 flex items-center justify-center overflow-hidden border-4 border-pink-300">
-                {usersToShow[2].photoURL ? (
-                  <img src={usersToShow[2].photoURL} alt={usersToShow[2].displayName} className="w-full h-full object-cover" />
+                {users[2].photoURL ? (
+                  <img src={users[2].photoURL} alt={users[2].displayName} className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-10 h-10 text-pink-200" />
                 )}
               </div>
               <span className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-pink-500 text-white text-sm font-bold flex items-center justify-center shadow-md">3</span>
             </div>
-            <div className="text-xl font-bold text-pink-300 truncate w-full text-center">{usersToShow[2].displayName}</div>
-            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-pink-200">{usersToShow[2].totalScore}</span> Puan</div>
+            <div className="text-xl font-bold text-pink-300 truncate w-full text-center">{users[2].displayName}</div>
+            <div className="text-sm text-gray-300 mt-1">Sıra: <span className="font-bold text-pink-200">{users[2].totalScore}</span> Puan</div>
           </div>
         )}
       </div>
@@ -195,10 +181,10 @@ const LeaderboardPage: React.FC = () => {
         <ul className="divide-y divide-gray-700/40">
           {loading ? (
             <li className="text-center py-10 text-gray-400 text-lg">Veriler yükleniyor...</li>
-          ) : usersToShow.length === 0 ? (
+          ) : users.length === 0 ? (
             <li className="text-center py-10 text-gray-400 text-lg">Liderlik tablosunda henüz kimse yok.</li>
           ) : (
-            usersToShow.map((user, index) => (
+            users.map((user, index) => (
               user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' ? (
                 <li key={user.userId} className={`flex items-center gap-3 px-3 md:px-6 py-3 md:py-4 transition-all duration-200 ease-in-out ${index % 2 === 0 ? 'bg-gray-900/20' : 'bg-gray-800/30'} hover:bg-gray-800/50`}>
                   <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full
@@ -214,12 +200,10 @@ const LeaderboardPage: React.FC = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate text-pink-500">★ {user.displayName} ★</div>
+                    <div className="font-semibold truncate text-pink-500">{user.displayName} <span className="ml-1">❤️</span></div>
                   </div>
                   <div className="text-right flex flex-col justify-center">
-                    <div className="text-lg font-bold text-white">
-                      {user.userId === "OvNqDPNVV8OSyt28j3RPcR1Tb192" ? 4000 : user.totalScore}
-                    </div>
+                    <div className="text-lg font-bold text-white">{user.totalScore}</div>
                     <div className="text-xs text-gray-400">puan</div>
                   </div>
                 </li>
