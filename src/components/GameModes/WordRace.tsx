@@ -41,6 +41,7 @@ export function WordRace({ words }: WordRaceProps) {
   const [gameCompleted, setGameCompleted] = useState(false);
   const [feedback, setFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
   const [usedWords, setUsedWords] = useState<WordDetail[]>([]);
+  const [streak, setStreak] = useState(0);
 
   // Oyun anahtarı
   const GAME_KEY = 'wordRace';
@@ -67,6 +68,7 @@ export function WordRace({ words }: WordRaceProps) {
     setUserInput('');
     setFeedback(null);
     setUsedWords([]);
+    setStreak(0);
   }, [GAME_KEY]);
 
   // İlk yükleme - localStorage'dan state'i kontrol et
@@ -85,6 +87,7 @@ export function WordRace({ words }: WordRaceProps) {
         setGameCompleted(savedState.gameCompleted);
         setFeedback(savedState.feedback);
         setUsedWords(savedState.usedWords);
+        setStreak(savedState.streak || 0);
         
         // Eğer oyun aktifse timer'ı yeniden başlat
         if (savedState.isGameActive && savedState.timeLeft > 0) {
@@ -117,11 +120,12 @@ export function WordRace({ words }: WordRaceProps) {
         isGameActive,
         gameCompleted,
         feedback,
-        usedWords
+        usedWords,
+        streak
       };
       gameStateManager.saveGameState(GAME_KEY, gameState);
     }
-  }, [currentWordIndex, userInput, score, correctCount, incorrectCount, timeLeft, isGameActive, gameCompleted, feedback, usedWords, words.length, GAME_KEY]);
+  }, [currentWordIndex, userInput, score, correctCount, incorrectCount, timeLeft, isGameActive, gameCompleted, feedback, usedWords, streak, words.length, GAME_KEY]);
 
   useEffect(() => {
     if(isGameActive) {
@@ -160,6 +164,7 @@ export function WordRace({ words }: WordRaceProps) {
     setFeedback(null);
     setCurrentWordIndex(prev => prev + 1);
     setUserInput('');
+    setStreak(0);
   }, [currentWordIndex, raceWords.length, endGame]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -171,14 +176,15 @@ export function WordRace({ words }: WordRaceProps) {
     const isCorrect = answer === currentWord.turkish.toLowerCase();
 
     if (isCorrect) {
-      const points = 1 + Math.floor(timeLeft / 15);
-      setScore(prev => prev + points);
+      setScore(prev => prev + 2);
       setCorrectCount(prev => prev + 1);
-      setFeedback({ message: `+${points}`, isCorrect: true });
-      // Anında puan ekle
-      awardPoints('word-race', 2, raceWords[0]?.unit || '1');
+      setStreak(prev => prev + 1);
+      setFeedback({ message: `+2`, isCorrect: true });
+      const bonus = Math.min(streak, 5);
+      awardPoints('word-race', 2 + bonus, raceWords[0]?.unit || '1');
       setTimeout(nextWord, 500);
     } else {
+      setStreak(0);
       setFeedback({ message: `Doğru: ${currentWord.turkish}`, isCorrect: false });
       setTimeout(nextWord, 1300);
     }

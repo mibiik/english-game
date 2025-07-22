@@ -75,6 +75,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   const [userAnswer, setUserAnswer] = useState('');
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [streak, setStreak] = useState(0);
 
   const loadQuestions = useCallback(async () => {
     setStatus('loading');
@@ -138,8 +139,11 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     setIsCorrect(correct);
     if (correct) {
       setScore(prev => prev + 1);
-      // Anında puan ekle
-      awardPoints('wordForms', 1, words[0]?.unit || '1');
+      setStreak(prev => prev + 1);
+      const bonus = Math.min(streak, 5);
+      awardPoints('wordForms', 1 + bonus, words[0]?.unit || '1');
+    } else {
+      setStreak(0);
     }
     setStatus('answered');
   };

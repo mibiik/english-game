@@ -26,6 +26,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
   
   // State for background loading
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   // --- DATA LOADING AND GAME SETUP ---
   const loadGame = useCallback(async () => {
@@ -35,6 +36,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     setScore(0);
     setSelectedAnswer(null);
     setIsLoadingMore(false);
+    setStreak(0); // Streak'i sıfırla
 
     const shuffleArray = (array: any[]) => {
       const newArray = [...array];
@@ -84,8 +86,11 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
 
     if (option === questions[currentIndex].correctAnswer) {
       setScore(prev => prev + 1);
-      // Anında puan ekle
-      awardPoints('sentence-completion', 1, words[0]?.unit || '1');
+      setStreak(prev => prev + 1);
+      const bonus = Math.min(streak, 5);
+      awardPoints('sentence-completion', 1 + bonus, words[0]?.unit || '1');
+    } else {
+      setStreak(0);
     }
 
     setTimeout(() => {

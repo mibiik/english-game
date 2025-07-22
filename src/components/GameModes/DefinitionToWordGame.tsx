@@ -252,8 +252,8 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
         setMaxStreak(current => Math.max(current, newStreak));
         return newStreak;
       });
-      // Anında puan ekle
-      awardPoints('definitionToWord', 1, unit);
+      const bonus = Math.min(streak, 5);
+      awardPoints('definitionToWord', 1 + bonus, unit);
     } else {
       setStreak(0);
     }

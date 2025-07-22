@@ -96,16 +96,16 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
       if (transcript === correctWord) {
         setIsCorrect(true);
         setScore(score + 10);
-        const newStreak = streak + 1;
-        setStreak(newStreak);
-        setBestStreak(Math.max(bestStreak, newStreak));
+        setStreak(prev => prev + 1);
+        const bonus = Math.min(streak, 5);
+        awardPoints('speaking', 1 + bonus, currentWord.unit);
+        setBestStreak(Math.max(bestStreak, streak));
         setFeedback('Harika! Doğru telaffuz!');
         // Anında puan ekle
         const userId = authService.getCurrentUserId();
         if (userId) {
           gameScoreService.addScore(userId, 'speaking', 10);
         }
-        awardPoints('speaking', 1, currentWord.unit);
         setTimeout(nextWord, 2000);
       } else {
         setIsCorrect(false);

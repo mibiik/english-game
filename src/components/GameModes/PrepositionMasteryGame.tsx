@@ -57,6 +57,7 @@ export const PrepositionMasteryGame: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   const startGame = useCallback(async (selectedDifficulty: Difficulty) => {
     setDifficulty(selectedDifficulty);
@@ -84,8 +85,12 @@ export const PrepositionMasteryGame: React.FC = () => {
       const userId = authService.getCurrentUserId();
       if (userId) {
         gameScoreService.addScore(userId, 'prepositionMastery', 1);
-        awardPoints('preposition', 10, 'unit');
+        setStreak(prev => prev + 1);
+        const bonus = Math.min(streak, 20);
+        awardPoints('preposition', 10 + bonus, 'unit');
       }
+    } else {
+      setStreak(0);
     }
   };
 

@@ -139,8 +139,8 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
       setScore(prev => prev + 1);
       setStreak(prev => prev + 1);
       learningStatsTracker.recordWordLearned(currentWord);
-      // Anında puan ekle
-      awardPoints('multiple-choice', 1, currentWord.unit);
+      const bonus = Math.min(streak, 5);
+      awardPoints('multiple-choice', 1 + bonus, currentWord.unit);
     } else {
       setStreak(0);
     }

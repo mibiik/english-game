@@ -41,6 +41,7 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
   const [wordMeaning, setWordMeaning] = useState<string>('');
   const [isLoadingMeaning, setIsLoadingMeaning] = useState(false);
   const [showExample, setShowExample] = useState(false);
+  const [streak, setStreak] = useState(0);
 
   const generateRandomSentence = async () => {
     try {
@@ -55,6 +56,7 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
         isChecking: false,
         similarity: '0'
       });
+      setStreak(0);
     } catch (error) {
       console.error('API error:', error);
       setCurrentSentence('Rules are beneficial to set ethical standards (Rogers & Zemach, 2018, p.141)');
@@ -127,7 +129,11 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
         if (userId) {
           gameScoreService.addScore(userId, 'paraphraseChallenge', 10);
         }
-        awardPoints('paraphrase', 1, unit);
+        setStreak(prev => prev + 1);
+        const bonus = Math.min(streak, 5);
+        awardPoints('paraphrase', 1 + bonus, unit);
+      } else {
+        setStreak(0);
       }
     } catch (error) {
       console.error('API error:', error);

@@ -198,16 +198,18 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         const bonusPoints = Math.min(newCombo * 2, 20); // Max 20 bonus
         setCombo(newCombo);
         setStreak(newStreak);
-        setScore(prev => prev + 10 + bonusPoints);
+        const bonus = Math.min(newStreak, 5);
+        setScore(prev => prev + 1 + bonus); // Ekran skoru da bonuslu
         setMotivationalMessage(getMotivationalMessage(newCombo, newStreak));
-        checkAchievements(newCombo, newStreak, score + 10 + bonusPoints);
-        // Her doğru eşleşmede 10 puan ekle
-        awardPoints('matching', 1, unit);
+        checkAchievements(newCombo, newStreak, score + 1 + bonus);
+        // Her doğru eşleşmede streak bonusu ekle
+        awardPoints('matching', 1 + bonus, unit);
         setSelectedEnglish(null);
         setSelectedTurkish(null);
         setIsChecking(false);
       } else {
         setCombo(0); // Combo sıfırlanır
+        setStreak(0);
         setMotivationalMessage('');
         setTimeout(() => {
           setSelectedEnglish(null);
