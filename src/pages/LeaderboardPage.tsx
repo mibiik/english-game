@@ -186,28 +186,25 @@ const LeaderboardPage: React.FC = () => {
           ) : (
             users.map((user, index) => (
               user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' ? (
-                <li key={user.userId} className="flex items-center gap-4 px-4 py-4 my-2 bg-gradient-to-r from-pink-400 via-pink-200 to-pink-100 border-2 border-pink-400 rounded-xl shadow-lg relative">
-                  <div className="absolute -top-3 left-4 z-20 select-none">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="#ec4899" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/>
-                    </svg>
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-white border-2 border-pink-300 flex items-center justify-center overflow-hidden shadow">
+                <li key={user.userId} className={`flex items-center gap-3 px-3 md:px-6 py-3 md:py-4 transition-all duration-200 ease-in-out ${index % 2 === 0 ? 'bg-gray-900/20' : 'bg-gray-800/30'} hover:bg-gray-800/50`}>
+                  <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full
+                    ${index === 0 ? 'bg-yellow-500 text-yellow-900' :
+                      index === 1 ? 'bg-purple-500 text-purple-900' :
+                      index === 2 ? 'bg-pink-500 text-pink-900' :
+                      'bg-gray-600 text-gray-300'}`}>{index + 1}</div>
+                  <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center overflow-hidden">
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                      <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" onError={e => { e.currentTarget.onerror = null; e.currentTarget.style.display='none'; e.currentTarget.parentElement?.appendChild(document.createTextNode(user.displayName?.charAt(0)?.toUpperCase() || '?')); }} />
                     ) : (
-                      <FallbackAvatar name={user.displayName} size={48} />
+                      <FallbackAvatar name={user.displayName} size={40} />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0 flex flex-col items-start">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold text-pink-700">★ {user.displayName} ★</span>
-                    </div>
-                    <div className="text-sm text-gray-700 font-semibold mt-1">{user.email}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold truncate text-pink-500">★ {user.displayName} ★</div>
                   </div>
-                  <div className="text-right flex flex-col items-end">
-                    <div className="text-lg font-bold text-pink-700">{user.totalScore}</div>
-                    <div className="text-xs text-gray-500">puan</div>
+                  <div className="text-right flex flex-col justify-center">
+                    <div className="text-lg font-bold text-white">{user.totalScore}</div>
+                    <div className="text-xs text-gray-400">puan</div>
                   </div>
                 </li>
               ) : (
