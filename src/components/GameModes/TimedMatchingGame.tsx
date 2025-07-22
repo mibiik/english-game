@@ -89,12 +89,14 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
           setSelectedCards([]);
           setScore(prev => prev + 10);
           setMatchedPairs(prev => prev + 1);
-          // Anında puan ekle
-          awardPoints('timedMatching', 10, unit);
+          // Her doğru eşleşmede 1 puan ekle
+          awardPoints('timedMatching', 1, unit);
           if (matchedPairs + 1 === totalPairs) {
             // Oyun bitti, skoru kaydet
             try {
               gameScoreService.saveScore('timedMatching', score + 10, unit);
+              // Round sonunda toplam puan kadar ekle (ör: 90 puan)
+              awardPoints('timedMatching', score + 10, unit);
             } catch (error) {
               console.error('Skor kaydedilirken hata:', error);
             }
