@@ -72,7 +72,7 @@ export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
       const points = 10 + Math.floor(newStreak / 3);
       setScore(prev => prev + points);
       // Anında puan ekle
-      awardPoints('quizGame', points, unit);
+      awardPoints('quizGame', 10, unit);
       const newProgress = Math.min(100, progress + 10);
       setProgress(newProgress);
 

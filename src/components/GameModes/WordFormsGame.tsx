@@ -139,7 +139,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     if (correct) {
       setScore(prev => prev + 1);
       // Anında puan ekle
-      awardPoints('wordForms', 1, words[0]?.unit || '1');
+      awardPoints('wordForms', 10, words[0]?.unit || '1');
     }
     setStatus('answered');
   };

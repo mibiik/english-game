@@ -176,7 +176,7 @@ export function WordRace({ words }: WordRaceProps) {
       setCorrectCount(prev => prev + 1);
       setFeedback({ message: `+${points}`, isCorrect: true });
       // Anında puan ekle
-      awardPoints('word-race', points, raceWords[0]?.unit || '1');
+      awardPoints('word-race', 10, raceWords[0]?.unit || '1');
       setTimeout(nextWord, 500);
     } else {
       setFeedback({ message: `Doğru: ${currentWord.turkish}`, isCorrect: false });

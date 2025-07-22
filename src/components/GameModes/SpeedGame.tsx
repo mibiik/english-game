@@ -321,7 +321,7 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       setTimeLeft(prev => Math.min(MAX_TIME, prev + TIME_BONUS_PER_CORRECT));
       setFeedback({ type: 'correct', message: `+${points} Puan! +${TIME_BONUS_PER_CORRECT}sn` });
       // Anında puan ekle
-      awardPoints('speedGame', points, unit);
+      awardPoints('speedGame', 10, unit);
       // Anında puan ekle (AI onaylı cevaplar için de aşağıda var)
       const userId = authService.getCurrentUserId();
       if (userId) {
