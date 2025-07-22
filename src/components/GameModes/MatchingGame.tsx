@@ -78,7 +78,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   useEffect(() => {
     const userId = authService.getCurrentUserId();
-    if (userId === 'uckYnXidETgbgd8sI6ehlgZQnT43') {
+    if (userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' || userId === 'e4GgpNWJMmcBj9YiXub0xFpEHCA3') {
       setShowDefneModal(true);
     }
   }, []);
