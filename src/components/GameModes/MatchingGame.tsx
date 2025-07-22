@@ -6,6 +6,7 @@ import { WordDetail } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
 import { awardPoints } from '../../services/scoreService';
+import DefneSpecialModal from '../DefneSpecialModal';
 
 interface GameWord extends WordDetail {
   type: 'english' | 'turkish';
@@ -73,6 +74,15 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const previousWords = useRef<WordDetail[]>([]);
   const previousUnit = useRef<string>('');
   
+  const [showDefneModal, setShowDefneModal] = useState(false);
+
+  useEffect(() => {
+    const userId = authService.getCurrentUserId();
+    if (userId === 'uckYnXidETgbgd8sI6ehlgZQnT43') {
+      setShowDefneModal(true);
+    }
+  }, []);
+
   // Ünite kelimelerini al
   const unitWords = words.filter(word => word.unit === unit);
   const totalUnitWords = unitWords.length;
@@ -532,6 +542,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   return (
     <>
+      {showDefneModal && (
+        <DefneSpecialModal onClose={() => setShowDefneModal(false)} />
+      )}
       {showConfetti && <Confetti />}
       <div className={`flex items-center justify-center min-h-screen p-2 sm:p-4 ${
         theme === 'blue' ? 'bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100' :
