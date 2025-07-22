@@ -3,6 +3,7 @@ import { WordDetail } from '../../data/words';
 import { wordTracker } from '../../data/wordTracker';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 interface QuizGameProps {
   words: WordDetail[];
@@ -71,10 +72,7 @@ export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
       const points = 10 + Math.floor(newStreak / 3);
       setScore(prev => prev + points);
       // Anında puan ekle
-      const userId = authService.getCurrentUserId();
-      if (userId) {
-        gameScoreService.addScore(userId, 'quizGame', points);
-      }
+      awardPoints('quizGame', points, unit);
       const newProgress = Math.min(100, progress + 10);
       setProgress(newProgress);
 

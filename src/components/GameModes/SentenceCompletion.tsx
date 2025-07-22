@@ -6,6 +6,7 @@ import { SentenceCompletionService, SentenceQuestion } from '../../services/sent
 import { gameScoreService } from '../../services/gameScoreService';
 import { WordDetail } from '../../data/words';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 interface SentenceCompletionProps {
   words: WordDetail[];
@@ -84,10 +85,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     if (option === questions[currentIndex].correctAnswer) {
       setScore(prev => prev + 1);
       // Anında puan ekle
-      const userId = authService.getCurrentUserId();
-      if (userId) {
-        gameScoreService.addScore(userId, 'sentence-completion', 1);
-      }
+      awardPoints('sentence-completion', 1, words[0]?.unit || '1');
     }
 
     setTimeout(() => {

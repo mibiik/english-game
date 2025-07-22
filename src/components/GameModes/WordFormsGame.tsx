@@ -6,6 +6,7 @@ import { WordDetail } from '../../data/words';
 import { Button } from '../ui/button';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 // --- TYPE DEFINITIONS ---
 interface WordFormsGameProps {
@@ -138,10 +139,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     if (correct) {
       setScore(prev => prev + 1);
       // Anında puan ekle
-      const userId = authService.getCurrentUserId();
-      if (userId) {
-        gameScoreService.addScore(userId, 'wordForms', 1);
-      }
+      awardPoints('wordForms', 1, words[0]?.unit || '1');
     }
     setStatus('answered');
   };

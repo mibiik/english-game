@@ -6,6 +6,7 @@ import { definitionCacheService } from '../../services/definitionCacheService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 interface DefinitionToWordGameProps {
   words: WordDetail[];
@@ -252,10 +253,7 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
         return newStreak;
       });
       // Anında puan ekle
-      const userId = authService.getCurrentUserId();
-      if (userId) {
-        gameScoreService.addScore(userId, 'definitionToWord', 1);
-      }
+      awardPoints('definitionToWord', 1, unit);
     } else {
       setStreak(0);
     }

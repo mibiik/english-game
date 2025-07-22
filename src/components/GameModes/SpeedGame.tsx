@@ -11,6 +11,7 @@ import { updateWordDifficulty } from '../../data/difficultWords';
 import { CheckCircle as CheckCircleIcon, X, Timer, Trophy, Target, RefreshCw, Clock as ClockIcon } from 'lucide-react';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 interface SpeedGameProps {
   words: WordDetail[];
@@ -320,6 +321,8 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       setTimeLeft(prev => Math.min(MAX_TIME, prev + TIME_BONUS_PER_CORRECT));
       setFeedback({ type: 'correct', message: `+${points} Puan! +${TIME_BONUS_PER_CORRECT}sn` });
       // Anında puan ekle
+      awardPoints('speedGame', points, unit);
+      // Anında puan ekle (AI onaylı cevaplar için de aşağıda var)
       const userId = authService.getCurrentUserId();
       if (userId) {
         gameScoreService.addScore(userId, 'speedGame', points);

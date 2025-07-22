@@ -3,6 +3,7 @@ import { Word } from '../../types';
 import { wordTracker } from '../../data/wordTracker';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 interface TimedMatchingGameProps {
   words: Word[];
@@ -89,10 +90,7 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
           setScore(prev => prev + 10);
           setMatchedPairs(prev => prev + 1);
           // Anında puan ekle
-          const userId = authService.getCurrentUserId();
-          if (userId) {
-            gameScoreService.addScore(userId, 'timedMatching', 10);
-          }
+          awardPoints('timedMatching', 10, unit);
           if (matchedPairs + 1 === totalPairs) {
             // Oyun bitti, skoru kaydet
             try {

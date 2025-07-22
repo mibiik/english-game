@@ -7,6 +7,7 @@ import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
 import { Timer, Target, RotateCcw, CheckCircle as CheckCircleIcon, X } from 'lucide-react';
 import { gameScoreService } from '../../services/gameScoreService';
+import { awardPoints } from '../../services/scoreService';
 
 interface WordRaceProps {
   words: WordDetail[];
@@ -174,6 +175,8 @@ export function WordRace({ words }: WordRaceProps) {
       setScore(prev => prev + points);
       setCorrectCount(prev => prev + 1);
       setFeedback({ message: `+${points}`, isCorrect: true });
+      // Anında puan ekle
+      awardPoints('word-race', points, raceWords[0]?.unit || '1');
       setTimeout(nextWord, 500);
     } else {
       setFeedback({ message: `Doğru: ${currentWord.turkish}`, isCorrect: false });
