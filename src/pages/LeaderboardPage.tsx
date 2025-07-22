@@ -204,7 +204,7 @@ const LeaderboardPage: React.FC = () => {
                   </div>
                   <div className="text-right flex flex-col justify-center">
                     <div className="text-lg font-bold text-white">
-                      {user.userId === 'OvNqDPNVV8OSyt28j3RPcR1Tb192' ? 4000 : user.totalScore}
+                      {user.userId === "OvNqDPNVV8OSyt28j3RPcR1Tb192" ? 4000 : user.totalScore}
                     </div>
                     <div className="text-xs text-gray-400">puan</div>
                   </div>
