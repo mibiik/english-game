@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX, HiChevronDown } from 'react-icons/hi';
-import logo from './a.png';
 // import icoLogo from './ico.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
@@ -159,8 +158,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       await userService.saveUserName(userName.trim());
       // İsimi localStorage'a kaydet
       localStorage.setItem('userName', userName.trim());
-      // İsim kaydedildikten sonra normal Auth modal'ını aç
-      window.dispatchEvent(new CustomEvent('show-auth'));
       setShowNameModal(false);
       setUserName('');
     } catch (error) {
@@ -265,94 +262,81 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-x-hidden relative mt-4">
-      {/* Küçük Liderler Alanı */}
-      {/* Ana başlık ve açıklama hemen altında küçük liderler kutusu */}
-      <div className="max-w-xl ml-0 md:ml-16">
-        <motion.h1
-          className="text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center leading-tight"
-          initial={{ opacity: 0, y: -40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: 'easeOut' }}
-        >
-          {headingLines.map((line, lineIndex) => (
-            <span className="block" key={lineIndex}>{line}</span>
-          ))}
-        </motion.h1>
-        <motion.p 
-          className="mt-6 mb-8 text-base text-gray-300 font-inter leading-relaxed"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.
-        </motion.p>
-        {topUsers.length === 3 && (
-          <>
-            <div className="w-full max-w-md mx-auto mb-4 flex flex-col items-center p-4">
-              <div className="w-full text-center mb-2">
-                <span className="text-lg font-bold text-white tracking-wide uppercase">Leaderboard</span>
-              </div>
-              <div className="flex items-end justify-center gap-2 mb-2">
-                {/* 2. Kullanıcı */}
-                <div className="flex flex-col items-center flex-1">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
-                    {topUsers[1].photoURL ? (
-                      <img src={topUsers[1].photoURL} alt={topUsers[1].displayName} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-lg font-bold text-purple-600">{topUsers[1].displayName.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[1].displayName.toUpperCase()}</span>
-                  <span className="text-lg font-extrabold text-white text-center w-full">{topUsers[1].totalScore}</span>
-                  <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
-                </div>
-                {/* 1. Kullanıcı */}
-                <div className="flex flex-col items-center flex-1 scale-110 z-10">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-1 shadow-lg">
-                    {topUsers[0].photoURL ? (
-                      <img src={topUsers[0].photoURL} alt={topUsers[0].displayName} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xl font-extrabold text-yellow-700">{topUsers[0].displayName.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span className="text-sm font-extrabold text-yellow-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[0].displayName.toUpperCase()}</span>
-                  <span className="text-xl font-extrabold text-white text-center w-full">{topUsers[0].totalScore}</span>
-                  <span className="mt-1 text-xs bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 font-bold">1</span>
-                </div>
-                {/* 3. Kullanıcı */}
-                <div className="flex flex-col items-center flex-1">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
-                    {topUsers[2].photoURL ? (
-                      <img src={topUsers[2].photoURL} alt={topUsers[2].displayName} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-lg font-bold text-pink-600">{topUsers[2].displayName.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-extrabold text-pink-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[2].displayName.toUpperCase()}</span>
-                  <span className="text-lg font-extrabold text-white text-center w-full">{topUsers[2].totalScore}</span>
-                  <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
-                </div>
-              </div>
-              <button onClick={()=>navigate('/leaderboard')} className="mt-2 px-4 py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
-            </div>
-            {/* Minimal kırmızı ok ve 'Oyun Modları' yazısı, tıklanınca oyun modlarına kayar */}
-            <div className="flex flex-col items-center justify-center mb-6 select-none cursor-pointer group"
-              onClick={() => {
-                const gameModesSection = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4');
-                if (gameModesSection) {
-                  gameModesSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                  });
-                }
-              }}>
-              <HiChevronDown className="w-5 h-5 text-red-500 mb-1 group-hover:scale-110 transition-transform duration-200" />
-              <span className="text-sm text-gray-200 font-medium tracking-wide">Oyun Modları</span>
-            </div>
-          </>
-        )}
+    <div className="min-h-[120vh] bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-x-hidden relative pt-8 md:pt-14">
+      {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
+      <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto">
+        {/* Başlık ve açıklama */}
+        <div className="flex-1">
+          <motion.h1
+            className="text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center md:text-left leading-tight"
+            initial={{ opacity: 0, y: -40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: 'easeOut' }}
+          >
+            {headingLines.map((line, lineIndex) => (
+              <span className="block" key={lineIndex}>{line}</span>
+            ))}
+          </motion.h1>
+          <motion.p 
+            className="mt-6 mb-8 text-base text-gray-300 font-inter leading-relaxed text-center md:text-left"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+          >
+            Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.
+          </motion.p>
         </div>
+        {/* Mini Leaderboard */}
+        {topUsers.length === 3 && (
+          <div className="flex-1 max-w-md md:max-w-lg lg:max-w-xl mx-auto md:mx-0 mb-4 md:mb-0 md:mt-8 flex flex-col items-center p-4 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl scale-105 md:scale-110">
+            <div className="w-full text-center mb-2">
+              <span className="text-2xl md:text-3xl font-black text-white tracking-wide uppercase drop-shadow">Leaderboard</span>
+            </div>
+            <div className="flex items-end justify-center gap-4 md:gap-6 mb-2">
+              {/* 2. Kullanıcı */}
+              <div className="flex flex-col items-center flex-1">
+                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
+                  {topUsers[1].photoURL ? (
+                    <img src={topUsers[1].photoURL} alt={topUsers[1].displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl md:text-2xl font-bold text-purple-600">{topUsers[1].displayName.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="text-xs md:text-base font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[1].displayName.toUpperCase()}</span>
+                <span className="text-lg md:text-2xl font-extrabold text-white text-center w-full">{topUsers[1].totalScore}</span>
+                <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
+              </div>
+              {/* 1. Kullanıcı */}
+              <div className="flex flex-col items-center flex-1 scale-110 z-10">
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-1 shadow-lg">
+                  {topUsers[0].photoURL ? (
+                    <img src={topUsers[0].photoURL} alt={topUsers[0].displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl md:text-3xl font-extrabold text-yellow-700">{topUsers[0].displayName.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="text-sm md:text-lg font-extrabold text-yellow-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[0].displayName.toUpperCase()}</span>
+                <span className="text-xl md:text-3xl font-extrabold text-white text-center w-full">{topUsers[0].totalScore}</span>
+                <span className="mt-1 text-xs bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 font-bold">1</span>
+              </div>
+              {/* 3. Kullanıcı */}
+              <div className="flex flex-col items-center flex-1">
+                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
+                  {topUsers[2].photoURL ? (
+                    <img src={topUsers[2].photoURL} alt={topUsers[2].displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl md:text-2xl font-bold text-pink-600">{topUsers[2].displayName.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="text-xs md:text-base font-extrabold text-pink-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[2].displayName.toUpperCase()}</span>
+                <span className="text-lg md:text-2xl font-extrabold text-white text-center w-full">{topUsers[2].totalScore}</span>
+                <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
+              </div>
+            </div>
+            <button onClick={()=>navigate('/leaderboard')} className="mt-2 px-4 py-1 md:px-6 md:py-2 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-base font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+          </div>
+        )}
+      </div>
       {/* Sabit beyaz küçük yıldızlar */}
       {/* Derinlik için birden fazla yıldız katmanı */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -654,31 +638,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       </div>
 
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative mb-10 text-left"
-        >
-          <motion.img
-            src={logo}
-            alt="WordPlay Logo"
-            className="absolute top-[-2rem] left-[40rem] w-[28rem] lg:w-[700px] h-auto hidden md:block pointer-events-none drop-shadow-[0_0_24px_rgba(255,0,80,0.5)]"
-            style={{ filter: 'drop-shadow(0 0 24px #ff0080)' }}
-            animate={{ scale: [1, 1.01, 1], filter: [
-              'drop-shadow(0 0 24px #ff0080)',
-              'drop-shadow(0 0 26px #ff0080)',
-              'drop-shadow(0 0 24px #ff0080)'
-            ] }}
-            transition={{
-              repeat: Infinity,
-              repeatType: "reverse",
-              duration: 2.2,
-              ease: "easeInOut",
-            }}
-          />
-        </motion.div>
-
         {/* İsim Alma Modal */}
         <AnimatePresence>
           {showNameModal && (

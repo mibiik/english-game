@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown, Search, MessageCircle, Users, Settings, LogOut, Trophy } from 'lucide-react';
-import logo from '../pages/a.png';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
 
@@ -250,85 +249,78 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 bg-black border-b border-gray-800 transition-all duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
+      <nav className={`fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
         style={{ height: location.pathname === '/' && showAnnouncement ? '168px' : '128px' }}>
         {/* Ana Navbar */}
-        <div className="h-32 flex items-center">
+        <div className="h-32 flex items-center bg-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="flex items-center justify-between">
-            
-            <div className="flex-shrink-0 flex items-center relative">
-              <Link to="/home" onClick={() => { setIsMenuOpen(false); setIsBottomSheetOpen(false); }}>
-                <img src={logo} alt="Logo" className="h-20 md:h-28 w-auto" />
-              </Link>
-
-              {/* Mobilde seçim butonu */}
-              <button
-                className="ml-2 md:ml-4 md:hidden px-5 py-4 rounded-xl bg-gray-800 text-lg font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
-                onClick={() => setIsBottomSheetOpen(true)}
-                aria-label="Kurs ve Ünite Seçimi"
-              >
-                {currentLevel === 'foundation' ? 'Found' : currentLevel === 'pre-intermediate' ? 'Pre-Int' : currentLevel === 'intermediate' ? 'Int' : 'Up-Int'} | {currentUnit}
-              </button>
-            </div>
-
-            {/* Desktop: Center Filters & Right Icons */}
-            <div className="hidden md:flex flex-grow items-center justify-center">
-              <UnitSelector 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-            </div>
-            <div className="hidden md:flex items-center space-x-5">
-              <motion.button
-                onClick={() => navigate('/leaderboard')}
-                className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                title="Liderlik Tablosu"
-                aria-label="Liderlik Tablosu"
-              >
-                <Trophy className="w-6 h-6" />
-              </motion.button>
-              <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
-                <User className="w-6 h-6" />
-              </motion.button>
-            </div>
-            
-            {/* Mobile: Profile Button Only */}
-            <div className="md:hidden flex items-center">
-              <motion.button
-                onClick={() => navigate('/leaderboard')}
-                className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                title="Liderlik Tablosu"
-                aria-label="Liderlik Tablosu"
-              >
-                <Trophy className="w-7 h-7" />
-              </motion.button>
-              <motion.button 
-                onClick={handleProfileClick} 
-                className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.95 }} 
-                title="Profil"
-              >
-                <User className="w-7 h-7" />
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </div>
-        
-        {/* Duyuru Şeridi - Sadece ana sayfada göster */}
+              <div className="flex-shrink-0 flex items-center relative">
+                <Link to="/home" onClick={() => { setIsMenuOpen(false); setIsBottomSheetOpen(false); }} className="flex items-center">
+                  <img src="/a.png" alt="ELC Wordplay Logo" className="h-16 md:h-24 w-auto mr-2 select-none" draggable="false" />
+                </Link>
+                {/* Mobilde seçim butonu */}
+                <button
+                  className="ml-2 md:ml-4 md:hidden px-5 py-4 rounded-xl bg-gray-800 text-lg font-bold text-gray-100 border border-gray-700 shadow hover:bg-gray-700 transition-colors"
+                  onClick={() => setIsBottomSheetOpen(true)}
+                  aria-label="Kurs ve Ünite Seçimi"
+                >
+                  {currentLevel === 'foundation' ? 'Found' : currentLevel === 'pre-intermediate' ? 'Pre-Int' : currentLevel === 'intermediate' ? 'Int' : 'Up-Int'} | {currentUnit}
+                </button>
+              </div>
+              {/* Desktop: Center Filters & Right Icons */}
+              <div className="hidden md:flex flex-grow items-center justify-center">
+                <UnitSelector 
+                  currentUnit={currentUnit}
+                  setCurrentUnit={setCurrentUnit}
+                  currentLevel={currentLevel}
+                  setCurrentLevel={setCurrentLevel}
+                />
+              </div>
+              <div className="hidden md:flex items-center space-x-5">
+                <motion.button
+                  onClick={() => navigate('/leaderboard')}
+                  className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Liderlik Tablosu"
+                  aria-label="Liderlik Tablosu"
+                >
+                  <Trophy className="w-6 h-6" />
+                </motion.button>
+                <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
+                  <User className="w-6 h-6" />
+                </motion.button>
+              </div>
+              {/* Mobile: Profile Button Only */}
+              <div className="md:hidden flex items-center">
+                <motion.button
+                  onClick={() => navigate('/leaderboard')}
+                  className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Liderlik Tablosu"
+                  aria-label="Liderlik Tablosu"
+                >
+                  <Trophy className="w-7 h-7" />
+                </motion.button>
+                <motion.button 
+                  onClick={handleProfileClick} 
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
+                  whileHover={{ scale: 1.1 }} 
+                  whileTap={{ scale: 0.95 }} 
+                  title="Profil"
+                >
+                  <User className="w-7 h-7" />
+                </motion.button>
+              </div>
+            </div> {/* .flex items-center justify-between */}
+          </div> {/* .max-w-7xl mx-auto ... */}
+        </div> {/* .h-32 flex items-center */}
         {showAnnouncement && location.pathname === '/' && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-600 text-white h-10 shadow-xl border-t border-orange-400/30">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-white h-10 shadow-xl border-t border-orange-400/30">
             {/* Subtle glow efekti */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-            
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
               <div className="flex items-center justify-center h-full relative">
                 <div className="flex items-center gap-3">
@@ -347,146 +339,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
             </div>
-            
             {/* Minimal alt çizgi */}
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-300/50 to-transparent"></div>
           </div>
         )}
       </nav>
 
-      {/* Mobile Menu Panel */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            className="fixed top-0 right-0 h-full w-80 bg-gray-900/95 backdrop-blur-xl z-50 border-l border-gray-800 shadow-2xl"
-          >
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-800">
-                <h2 className="text-xl font-bold text-white">Menü</h2>
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              {/* Menu Items */}
-              <div className="flex-1 p-6 space-y-4">
-                <Link
-                  to="/home"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
-                >
-                  <Home className="w-5 h-5 text-blue-400" />
-                  <span>Ana Sayfa</span>
-                </Link>
-
-                <Link
-                  to="/discover"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
-                >
-                  <Search className="w-5 h-5 text-green-400" />
-                  <span>Keşfet</span>
-                </Link>
-
-                <Link
-                  to="/messages"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
-                >
-                  <MessageCircle className="w-5 h-5 text-purple-400" />
-                  <span>Mesajlar</span>
-                </Link>
-
-                <Link
-                  to="/users"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
-                >
-                  <Users className="w-5 h-5 text-orange-400" />
-                  <span>Kullanıcılar</span>
-                </Link>
-
-                <Link
-                  to="/leaderboard"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 shadow-xl border-2 border-yellow-200/60 active:scale-95 transition-all duration-200 text-white font-extrabold text-lg relative overflow-hidden group"
-                  style={{ boxShadow: '0 4px 24px 0 rgba(255,200,0,0.18)' }}
-                >
-                  <span className="relative flex items-center justify-center">
-                    <Trophy className="w-7 h-7 md:w-6 md:h-6 text-yellow-200 drop-shadow-lg animate-spin-slow group-active:scale-110 transition-transform duration-200" />
-                    <span className="absolute -top-2 -right-2 w-3 h-3 bg-pink-400 rounded-full animate-pulse shadow-lg" />
-                  </span>
-                  <span className="tracking-wide drop-shadow-lg">Liderlik</span>
-                </Link>
-
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
-                >
-                  <User className="w-5 h-5 text-cyan-400" />
-                  <span>Profil</span>
-                </Link>
-
-                <button
-                  onClick={() => setIsBottomSheetOpen(true)}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-colors text-white"
-                >
-                  <Settings className="w-5 h-5 text-yellow-400" />
-                  <span>Ayarlar</span>
-                </button>
-              </div>
-
-              {/* Footer */}
-              <div className="p-6 border-t border-gray-800">
-                {authService.isAuthenticated() ? (
-                  <button
-                    onClick={async () => {
-                      await authService.logout();
-                      setIsMenuOpen(false);
-                      navigate('/home');
-                    }}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-red-600/20 hover:bg-red-600/30 transition-colors text-red-400"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span>Çıkış Yap</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onShowAuth();
-                    }}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 transition-colors text-blue-400"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>Giriş Yap</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Bottom Sheet Panel */}
-      <BottomSheet
-        open={isBottomSheetOpen}
-        onClose={() => setIsBottomSheetOpen(false)}
-        currentLevel={currentLevel}
-        setCurrentLevel={setCurrentLevel}
-        currentUnit={currentUnit}
-        setCurrentUnit={setCurrentUnit}
-      />
-    </>
-  );
+    <BottomSheet
+      open={isBottomSheetOpen}
+      onClose={() => setIsBottomSheetOpen(false)}
+      currentLevel={currentLevel}
+      setCurrentLevel={setCurrentLevel}
+      currentUnit={currentUnit}
+      setCurrentUnit={setCurrentUnit}
+    />
+  </>
+);
 };
 
 const LevelDisplay: React.FC<{ level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' }> = ({ level }) => {
