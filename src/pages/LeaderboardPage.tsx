@@ -200,7 +200,7 @@ const LeaderboardPage: React.FC = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate text-pink-500">{user.displayName} <span className="ml-1">❤️</span></div>
+                    <div className="font-semibold truncate text-pink-500"><span className="mr-1">❤️</span>{user.displayName}<span className="ml-1">❤️</span></div>
                   </div>
                   <div className="text-right flex flex-col justify-center">
                     <div className="text-lg font-bold text-white">{user.totalScore}</div>
