@@ -5,6 +5,7 @@ import { aiService } from '../../services/aiService';
 import { WordDetail } from '../../data/words';
 import { Button } from '../ui/button';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 // --- TYPE DEFINITIONS ---
 interface WordFormsGameProps {
@@ -134,7 +135,14 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     const correct = userAnswer.trim().toLowerCase() === currentQuestion.correctAnswer.toLowerCase();
     
     setIsCorrect(correct);
-    if (correct) setScore(prev => prev + 1);
+    if (correct) {
+      setScore(prev => prev + 1);
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'wordForms', 1);
+      }
+    }
     setStatus('answered');
   };
 

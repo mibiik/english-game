@@ -5,6 +5,7 @@ import { CheckCircle, X, RotateCcw, Sparkles, ArrowRight, Brain, Flame, Trophy }
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 interface DefinitionToWordGameProps {
   words: WordDetail[];
@@ -250,6 +251,11 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
         setMaxStreak(current => Math.max(current, newStreak));
         return newStreak;
       });
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'definitionToWord', 1);
+      }
     } else {
       setStreak(0);
     }

@@ -30,6 +30,7 @@ import PlayerQuizFlow from './pages/PlayerQuizFlow';
 import DiscoverPage from './pages/DiscoverPage';
 import MessagesPage from './pages/MessagesPage';
 import { authService } from './services/authService';
+import LeaderboardPage from './pages/LeaderboardPage';
 
 // Korumalı Route bileşeni
 const ProtectedRoute: React.FC<{ 
@@ -477,6 +478,22 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             />
             <div className="pt-32">
               <MessagesPage />
+            </div>
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/leaderboard" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated}>
+          <>
+            <Navbar 
+              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+              currentUnit={currentUnit}
+              setCurrentUnit={setCurrentUnit}
+              currentLevel={currentLevel}
+              setCurrentLevel={setCurrentLevel}
+            />
+            <div className="pt-32">
+              <LeaderboardPage />
             </div>
           </>
         </ProtectedRoute>

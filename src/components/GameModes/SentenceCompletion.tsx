@@ -5,6 +5,7 @@ import { Trophy, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
 import { gameScoreService } from '../../services/gameScoreService';
 import { WordDetail } from '../../data/words';
+import { authService } from '../../services/authService';
 
 interface SentenceCompletionProps {
   words: WordDetail[];
@@ -82,6 +83,11 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
 
     if (option === questions[currentIndex].correctAnswer) {
       setScore(prev => prev + 1);
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'sentence-completion', 1);
+      }
     }
 
     setTimeout(() => {

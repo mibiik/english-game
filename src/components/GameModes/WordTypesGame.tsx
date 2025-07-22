@@ -4,6 +4,7 @@ import { gameScoreService } from '../../services/gameScoreService';
 import { useAuth } from '../../services/authService';
 import { wordTypes, WordType } from '../../data/wordTypes';
 import { Type, CheckCircle, XCircle } from 'lucide-react';
+import { authService } from '../../services/authService';
 
 interface WordTypesGameProps {
   words: Word[];
@@ -41,6 +42,11 @@ const WordTypesGame: React.FC<WordTypesGameProps> = ({ words, unit, onGameComple
     if (isCorrect) {
       setScore(score + 10);
       setFeedback('Doğru! 🎉');
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'wordTypes', 10);
+      }
     } else {
       setFeedback('Yanlış.');
     }

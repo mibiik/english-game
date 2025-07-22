@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown, Search, MessageCircle, Users, Settings, LogOut } from 'lucide-react';
+import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown, Search, MessageCircle, Users, Settings, LogOut, Trophy } from 'lucide-react';
 import logo from '../pages/a.png';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
@@ -282,6 +282,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div className="hidden md:flex items-center space-x-5">
+              <motion.button
+                onClick={() => navigate('/leaderboard')}
+                className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                title="Liderlik Tablosu"
+                aria-label="Liderlik Tablosu"
+              >
+                <Trophy className="w-6 h-6" />
+              </motion.button>
               <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                 <User className="w-6 h-6" />
               </motion.button>
@@ -289,6 +299,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             
             {/* Mobile: Profile Button Only */}
             <div className="md:hidden flex items-center">
+              <motion.button
+                onClick={() => navigate('/leaderboard')}
+                className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                title="Liderlik Tablosu"
+                aria-label="Liderlik Tablosu"
+              >
+                <Trophy className="w-7 h-7" />
+              </motion.button>
               <motion.button 
                 onClick={handleProfileClick} 
                 className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
@@ -391,6 +411,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Users className="w-5 h-5 text-orange-400" />
                   <span>Kullanıcılar</span>
+                </Link>
+
+                <Link
+                  to="/leaderboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 shadow-xl border-2 border-yellow-200/60 active:scale-95 transition-all duration-200 text-white font-extrabold text-lg relative overflow-hidden group"
+                  style={{ boxShadow: '0 4px 24px 0 rgba(255,200,0,0.18)' }}
+                >
+                  <span className="relative flex items-center justify-center">
+                    <Trophy className="w-7 h-7 md:w-6 md:h-6 text-yellow-200 drop-shadow-lg animate-spin-slow group-active:scale-110 transition-transform duration-200" />
+                    <span className="absolute -top-2 -right-2 w-3 h-3 bg-pink-400 rounded-full animate-pulse shadow-lg" />
+                  </span>
+                  <span className="tracking-wide drop-shadow-lg">Liderlik</span>
                 </Link>
 
                 <Link

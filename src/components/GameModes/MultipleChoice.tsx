@@ -4,6 +4,7 @@ import { WordDetail } from '../../data/words';
 import { learningStatsTracker } from '../../data/learningStats';
 import { gameScoreService } from '../../services/gameScoreService';
 import { updateWordDifficulty } from '../../data/difficultWords';
+import { authService } from '../../services/authService';
 
 interface MultipleChoiceProps {
   words: WordDetail[];
@@ -137,6 +138,11 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
       setScore(prev => prev + 1);
       setStreak(prev => prev + 1);
       learningStatsTracker.recordWordLearned(currentWord);
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'multiple-choice', 1);
+      }
     } else {
       setStreak(0);
     }

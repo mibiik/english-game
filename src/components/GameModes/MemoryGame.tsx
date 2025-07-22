@@ -4,6 +4,7 @@ import { Brain } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
 import { useAuth } from '../../services/authService';
+import { authService } from '../../services/authService';
 
 interface MemoryGameProps {
   words: WordDetail[];

@@ -1,127 +1,96 @@
-<<<<<<< HEAD
-import React from 'react';
-import { User, Mail, Edit, LogOut, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { User, LogOut, Settings, Trophy, Loader2 } from 'lucide-react';
 import { authService } from '../services/authService';
+import { gameScoreService, GameMode } from '../services/gameScoreService';
 
-interface UserProfileProps {
-  onClose: () => void;
-}
+const gameModeNames: Record<GameMode, string> = {
+  'matching': 'Eşleştirme',
+  'sentence-completion': 'Boşluk Doldurma',
+  'multiple-choice': 'Çoktan Seçmeli',
+  'flashcard': 'Kelime Kartları',
+  'speaking': 'Konuşma',
+  'word-race': 'Kelime Yarışı',
+  'wordTypes': 'Kelime Tipleri',
+  'wordForms': 'Kelime Formları',
+  'vocabulary': 'Kelime Bilgisi',
+  'timedMatching': 'Zamanlı Eşleştirme',
+  'speedGame': 'Hız Oyunu',
+  'quizGame': 'Quiz',
+  'prepositionMastery': 'Preposition',
+  'paraphraseChallenge': 'Paraphrase',
+  'difficultWords': 'Zor Kelimeler',
+  'definitionToWord': 'Tanımdan Kelime'
+};
 
-export function UserProfile({ onClose }: UserProfileProps) {
-  const user = authService.getCurrentUser();
-=======
-import React, { useState } from 'react';
-import { User, LogOut, Settings } from 'lucide-react';
-import { authService } from '../services/authService';
+export function UserProfile() {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-interface UserProfileProps {
-  user: any;
-}
-
-export function UserProfile({ user }: UserProfileProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
->>>>>>> d1fe0b1 (İlk yükleme)
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      const userId = authService.getCurrentUserId();
+      if (!userId) return;
+      const userProfile = await gameScoreService.getUserProfile(userId);
+      setProfile(userProfile);
+      setLoading(false);
+    };
+    fetchProfile();
+  }, []);
 
   const handleLogout = async () => {
     try {
       await authService.logout();
-<<<<<<< HEAD
-      onClose();
-    } catch (err) {
-      console.error('Error occurred while logging out:', err);
-=======
+      window.location.reload();
     } catch (error) {
       console.error('Çıkış yapılırken hata oluştu:', error);
->>>>>>> d1fe0b1 (İlk yükleme)
     }
   };
 
+  if (loading || !profile) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8">
+        <Loader2 className="w-10 h-10 animate-spin text-purple-500 mb-4" />
+        <p>Profil yükleniyor...</p>
+      </div>
+    );
+  }
+
   return (
-<<<<<<< HEAD
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100 relative">
-      <button 
-        onClick={onClose}
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-      >
-        <X className="w-5 h-5" />
-      </button>
-      
-      <div className="text-center mb-6">
-        <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100 max-w-lg mx-auto">
+      <div className="flex flex-col items-center mb-6">
+        <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mb-4">
           <User className="w-10 h-10 text-purple-600" />
         </div>
-        <h3 className="text-2xl font-bold text-purple-800 mb-1">{user?.displayName || 'User'}</h3>
-        <p className="text-gray-500">{user?.email}</p>
+        <h3 className="text-2xl font-bold text-purple-800 mb-1">{profile.displayName || 'Kullanıcı'}</h3>
+        <p className="text-gray-500">{profile.email}</p>
       </div>
-
-      <div className="space-y-4 mb-6">
-        <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-          <Mail className="w-5 h-5 text-gray-500 mr-3" />
-          <span className="text-gray-700">{user?.email}</span>
+      <div className="mb-6">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Trophy className="w-7 h-7 text-yellow-500" />
+          <span className="text-3xl font-extrabold text-purple-700">{profile.totalScore}</span>
         </div>
-        
-        <button className="w-full flex items-center p-3 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors">
-          <Edit className="w-5 h-5 mr-3" />
-          <span>Edit Profile</span>
-        </button>
+        <div className="text-center text-gray-500 text-sm mb-2">Genel Toplam Puan</div>
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          {Object.entries(profile.scores).map(([mode, score]) => (
+            <div key={mode} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+              <span className="font-medium text-gray-700">{gameModeNames[mode as GameMode] || mode}</span>
+              <span className="ml-auto font-bold text-purple-700">{score}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between text-sm text-gray-500 mt-4">
+          <span>Oynanan Oyun: <b>{profile.gamesPlayed}</b></span>
+          <span>Son Oynama: <b>{profile.lastPlayed ? new Date(profile.lastPlayed).toLocaleDateString() : '-'}</b></span>
+        </div>
       </div>
-
-      <button 
+      <button
         onClick={handleLogout}
-        className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+        className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors mt-4"
       >
         <LogOut className="w-5 h-5 mr-2" />
-        <span>Log Out</span>
+        <span>Çıkış Yap</span>
       </button>
-=======
-    <div className="relative">
-      <button
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
-      >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white">
-          {user?.photoURL ? (
-            <img src={user.photoURL} alt="Profile" className="w-full h-full rounded-full" />
-          ) : (
-            <User className="w-4 h-4" />
-          )}
-        </div>
-        <span className="font-medium">{user?.displayName || 'Kullanıcı'}</span>
-      </button>
-
-      {isMenuOpen && (
-        <div className="absolute right-0 mt-2 w-48 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-purple-100 dark:border-purple-800">
-          <div className="px-4 py-2 border-b border-purple-100 dark:border-purple-800">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Giriş yapıldı</p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 truncate">{user?.email}</p>
-          </div>
-          
-          <div className="py-1">
-            <button
-              onClick={() => {
-                // TODO: Profil ayarları
-                setIsMenuOpen(false);
-              }}
-              className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/30"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Ayarlar</span>
-            </button>
-            
-            <button
-              onClick={() => {
-                handleLogout();
-                setIsMenuOpen(false);
-              }}
-              className="flex items-center gap-2 w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Çıkış Yap</span>
-            </button>
-          </div>
-        </div>
-      )}
->>>>>>> d1fe0b1 (İlk yükleme)
     </div>
   );
 }

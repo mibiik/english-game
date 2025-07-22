@@ -9,6 +9,10 @@ import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '..
 import { gameStateManager } from '../lib/utils';
 import { userService } from '../services/userService';
 import { authService } from '../services/authService';
+import LeaderboardPage from '../components/Leaderboard';
+import { Trophy } from 'lucide-react';
+import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'firebase/firestore';
+import app from '../config/firebase';
 
 export interface Word {
   english: string;
@@ -92,6 +96,9 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  // Liderlik verisi
+  const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
 
   useEffect(() => {
     // Kullanıcının oturum durumunu kontrol et
@@ -119,6 +126,23 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       window.removeEventListener('auth-closed', handleAuthClose);
       clearInterval(interval);
     };
+  }, []);
+
+  useEffect(() => {
+    const db = getFirestore(app);
+    const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const fetched = querySnapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          displayName: d.displayName || '',
+          photoURL: d.photoURL || undefined,
+          totalScore: d.totalScore || 0,
+        };
+      });
+      setTopUsers(fetched.slice(0, 3));
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleClearGameStates = () => {
@@ -242,6 +266,56 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-x-hidden relative">
+      {/* Küçük Liderler Alanı */}
+      {topUsers.length === 3 && (
+        <div className="w-full max-w-md mx-auto mt-6 mb-8 flex flex-col items-center bg-black/40 rounded-2xl shadow-lg p-4 border border-gray-800">
+          <div className="w-full text-center mb-2">
+            <span className="text-lg font-bold text-white tracking-wide uppercase">Leaderboard</span>
+          </div>
+          <div className="flex items-end justify-center gap-2 mb-2">
+            {/* 2. Kullanıcı */}
+            <div className="flex flex-col items-center flex-1">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
+                {topUsers[1].photoURL ? (
+                  <img src={topUsers[1].photoURL} alt={topUsers[1].displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg font-bold text-purple-600">{topUsers[1].displayName.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <span className="text-xs font-bold text-purple-300 text-center w-full">{topUsers[1].displayName}</span>
+              <span className="text-xs text-purple-400 font-mono">{topUsers[1].totalScore}</span>
+              <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
+            </div>
+            {/* 1. Kullanıcı */}
+            <div className="flex flex-col items-center flex-1 scale-110 z-10">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-1 shadow-lg">
+                {topUsers[0].photoURL ? (
+                  <img src={topUsers[0].photoURL} alt={topUsers[0].displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-extrabold text-yellow-700">{topUsers[0].displayName.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <span className="text-sm font-extrabold text-yellow-300 text-center w-full">{topUsers[0].displayName}</span>
+              <span className="text-xs text-yellow-700 font-mono">{topUsers[0].totalScore}</span>
+              <span className="mt-1 text-xs bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 font-bold">1</span>
+            </div>
+            {/* 3. Kullanıcı */}
+            <div className="flex flex-col items-center flex-1">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
+                {topUsers[2].photoURL ? (
+                  <img src={topUsers[2].photoURL} alt={topUsers[2].displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg font-bold text-pink-600">{topUsers[2].displayName.charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <span className="text-xs font-bold text-pink-300 text-center w-full">{topUsers[2].displayName}</span>
+              <span className="text-xs text-pink-400 font-mono">{topUsers[2].totalScore}</span>
+              <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
+            </div>
+          </div>
+          <button onClick={()=>navigate('/leaderboard')} className="mt-2 px-4 py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+        </div>
+      )}
       {/* Sabit beyaz küçük yıldızlar */}
       {/* Derinlik için birden fazla yıldız katmanı */}
       <div className="absolute inset-0 z-0 pointer-events-none">

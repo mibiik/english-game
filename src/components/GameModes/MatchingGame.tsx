@@ -4,6 +4,7 @@ import { learningStatsTracker } from '../../data/learningStats';
 import { Star, Trophy, Medal, ArrowRight, CheckCircle, Target, Zap, Flame, Award, Sparkles, Crown } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 interface GameWord extends WordDetail {
   type: 'english' | 'turkish';
@@ -199,6 +200,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         setScore(prev => prev + 10 + bonusPoints);
         setMotivationalMessage(getMotivationalMessage(newCombo, newStreak));
         checkAchievements(newCombo, newStreak, score + 10 + bonusPoints);
+        // Anında puan ekle
+        const userId = authService.getCurrentUserId();
+        if (userId) {
+          gameScoreService.addScore(userId, 'matching', 10 + bonusPoints);
+        }
         setSelectedEnglish(null);
         setSelectedTurkish(null);
         setIsChecking(false);

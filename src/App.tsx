@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { AppRoutes } from './Routes';
 import { Auth } from './components/Auth';
-import { Leaderboard } from './components/Leaderboard';
+import Leaderboard from './components/Leaderboard';
 import { Analytics } from '@vercel/analytics/react';
 import { authService } from './services/authService';
 import ProfilePage from './pages/ProfilePage';
@@ -22,7 +22,6 @@ const foundationWords: WordDetail[] = foundationWordsRaw;
 
 function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -181,14 +180,11 @@ function AppContent() {
       setAuthMode(event.detail?.mode || 'register');
       setShowAuth(true);
     };
-    const handleShowLeaderboard = () => setShowLeaderboard(true);
 
     window.addEventListener('show-auth', handleShowAuth);
-    window.addEventListener('show-leaderboard', handleShowLeaderboard);
 
     return () => {
       window.removeEventListener('show-auth', handleShowAuth);
-      window.removeEventListener('show-leaderboard', handleShowLeaderboard);
     };
   }, []);
 
@@ -217,7 +213,6 @@ function AppContent() {
         // Auth modal kapandığında event gönder
         window.dispatchEvent(new CustomEvent('auth-closed'));
       }} userName={userName || undefined} isLogin={authMode === 'login'} />}
-      {showLeaderboard && <Leaderboard onClose={() => setShowLeaderboard(false)} />}
     </div>
   );
 }

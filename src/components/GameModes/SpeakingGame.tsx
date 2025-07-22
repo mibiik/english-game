@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, Volume2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 declare global {
   interface Window {
@@ -98,6 +99,11 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
         setStreak(newStreak);
         setBestStreak(Math.max(bestStreak, newStreak));
         setFeedback('Harika! Doğru telaffuz!');
+        // Anında puan ekle
+        const userId = authService.getCurrentUserId();
+        if (userId) {
+          gameScoreService.addScore(userId, 'speaking', 10);
+        }
         setTimeout(nextWord, 2000);
       } else {
         setIsCorrect(false);

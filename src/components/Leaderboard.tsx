@@ -1,140 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, User, Star, Layout, Book, Shuffle, PenTool, AlertTriangle, Mic, Type, Zap, Brain, Volume2, X } from 'lucide-react';
-import { GameMode, GameScore, gameScoreService } from '../services/gameScoreService';
-import { UnitSelector } from './UnitSelector';
+import React, { useEffect, useState } from 'react';
+import { Trophy, User, Crown, Medal, Award } from 'lucide-react';
+import { collection, getDocs, getFirestore, orderBy, query } from 'firebase/firestore';
+import app from '../config/firebase';
 
-interface LeaderboardProps {
-  onClose: () => void;
+interface UserProfile {
+  userId: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  totalScore: number;
 }
 
-const gameModeIcons: Record<GameMode, React.ReactNode> = {
-  'matching': <Layout className="w-5 h-5" />,
-  'sentence-completion': <PenTool className="w-5 h-5" />,
-  'multiple-choice': <Book className="w-5 h-5" />,
-  'flashcard': <Shuffle className="w-5 h-5" />,
-  'speaking': <Mic className="w-5 h-5" />,
-  'word-race': <Zap className="w-5 h-5" />,
-  'wordTypes': <Type className="w-5 h-5" />
-};
-
-const gameModeNames: Record<GameMode, string> = {
-  'matching': 'Eşleştirme',
-  'sentence-completion': 'Boşluk Doldurma',
-  'multiple-choice': 'Çoktan Seçmeli',
-  'flashcard': 'Kelime Kartları',
-  'speaking': 'Konuşma',
-  'word-race': 'Kelime Yarışı',
-  'wordTypes': 'Kelime Tipleri'
-};
-
-export function Leaderboard({ onClose }: LeaderboardProps) {
-  const [selectedGameMode, setSelectedGameMode] = useState<GameMode>('matching');
-  const [selectedUnit, setSelectedUnit] = useState('1');
-  const [scores, setScores] = useState<GameScore[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function LeaderboardPage() {
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadScores();
-  }, [selectedGameMode, selectedUnit]);
+    const fetchLeaderboard = async () => {
+      setLoading(true);
+      try {
+        const db = getFirestore(app);
+        const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const fetchedUsers: UserProfile[] = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            userId: doc.id,
+            displayName: data.displayName || '',
+            email: data.email || '',
+            photoURL: data.photoURL || undefined,
+            totalScore: data.totalScore || 0,
+          };
+        });
+        setUsers(fetchedUsers);
+      } catch (error) {
+        setUsers([]);
+      }
+      setLoading(false);
+    };
+    fetchLeaderboard();
+  }, []);
 
-  const loadScores = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const leaderboardData = await gameScoreService.getLeaderboard(selectedGameMode, selectedUnit);
-      setScores(leaderboardData);
-    } catch (err) {
-      console.error('Liderlik tablosu yüklenirken hata oluştu:', err);
-      setError('Liderlik tablosu yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+        <div className="flex flex-col items-center gap-4">
+          <Trophy className="w-16 h-16 text-indigo-400 animate-bounce" />
+          <div className="text-xl text-gray-700 font-semibold">Yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-lg border border-purple-100 relative max-w-2xl w-full">
-      <button 
-        onClick={onClose}
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      <div className="flex items-center gap-3 mb-6">
-        <Trophy className="w-8 h-8 text-yellow-500" />
-        <h2 className="text-2xl font-bold text-purple-800">Liderlik Tablosu</h2>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 flex flex-col items-center py-8 px-2">
+      {/* Başlık */}
+      <div className="w-full max-w-2xl mx-auto text-center mb-8">
+        <div className="flex flex-col items-center gap-2">
+          <Trophy className="w-10 h-10 text-indigo-500" />
+          <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Liderlik Tablosu</h1>
+          <p className="text-gray-500 text-sm">En yüksek puanlı oyuncular</p>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-6">
-        {Object.entries(gameModeIcons).map(([mode, icon]) => (
-          <button
-            key={mode}
-            onClick={() => setSelectedGameMode(mode as GameMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedGameMode === mode
-                ? 'bg-purple-100 text-purple-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {icon}
-            <span>{gameModeNames[mode as GameMode]}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-6">
-        {Array.from({ length: 8 }, (_, i) => (i + 1).toString()).map((unit) => (
-          <button
-            key={unit}
-            onClick={() => setSelectedUnit(unit)}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              selectedUnit === unit
-                ? 'bg-purple-100 text-purple-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Ünite {unit}
-          </button>
-        ))}
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
-        </div>
-      ) : error ? (
-        <div className="text-center text-red-500 py-8">
-          <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
-          {error}
-        </div>
-      ) : scores.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
-          Bu oyun modu için henüz skor bulunmamaktadır.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {scores.map((score, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
-            >
-              <div className="flex-shrink-0 w-8 text-center font-bold text-purple-700">
-                #{index + 1}
+      {/* İlk 3 Kullanıcı */}
+      {users.length >= 3 && (
+        <div className="flex flex-col md:flex-row gap-6 justify-center items-end mb-10 w-full max-w-3xl">
+          {/* 2. */}
+          <div className="flex-1 flex flex-col items-center bg-white rounded-xl shadow p-4 border border-gray-100">
+            <div className="relative mb-2">
+              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                {users[1].photoURL ? (
+                  <img src={users[1].photoURL} alt={users[1].displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-gray-400" />
+                )}
               </div>
-              <div className="flex-grow">
-                <div className="font-medium">{score.displayName}</div>
-                <div className="text-sm text-gray-500">
-                  {new Date(score.timestamp).toLocaleDateString()}
-                </div>
-              </div>
-              <div className="flex-shrink-0 font-bold text-purple-700">
-                {score.score} puan
-              </div>
+              <span className="absolute -top-2 -right-2 bg-gray-400 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">2</span>
             </div>
-          ))}
+            <Medal className="w-5 h-5 text-gray-400 mb-1" />
+            <div className="font-semibold text-gray-800">{users[1].displayName}</div>
+            <div className="text-lg font-bold text-gray-600">{users[1].totalScore}</div>
+          </div>
+          {/* 1. */}
+          <div className="flex-1 flex flex-col items-center bg-gradient-to-br from-yellow-300 to-orange-400 rounded-xl shadow-lg p-6 border-2 border-yellow-200 scale-110 z-10">
+            <div className="relative mb-2">
+              <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-yellow-200">
+                {users[0].photoURL ? (
+                  <img src={users[0].photoURL} alt={users[0].displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10 text-yellow-500" />
+                )}
+              </div>
+              <span className="absolute -top-3 -right-3 bg-yellow-400 text-white w-9 h-9 rounded-full flex items-center justify-center text-base font-bold">1</span>
+            </div>
+            <Crown className="w-7 h-7 text-yellow-500 mb-1" />
+            <div className="font-bold text-gray-900 text-lg">{users[0].displayName}</div>
+            <div className="text-2xl font-bold text-yellow-700">{users[0].totalScore}</div>
+          </div>
+          {/* 3. */}
+          <div className="flex-1 flex flex-col items-center bg-white rounded-xl shadow p-4 border border-gray-100">
+            <div className="relative mb-2">
+              <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden">
+                {users[2].photoURL ? (
+                  <img src={users[2].photoURL} alt={users[2].displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-8 h-8 text-orange-400" />
+                )}
+              </div>
+              <span className="absolute -top-2 -right-2 bg-orange-400 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+            </div>
+            <Award className="w-5 h-5 text-orange-400 mb-1" />
+            <div className="font-semibold text-gray-800">{users[2].displayName}</div>
+            <div className="text-lg font-bold text-orange-600">{users[2].totalScore}</div>
+          </div>
         </div>
       )}
+
+      {/* Tüm Sıralama */}
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-3">
+          <h2 className="text-lg font-semibold text-white text-center">Tüm Sıralama</h2>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {users.length === 0 ? (
+            <div className="text-center py-10">
+              <Trophy className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p className="text-gray-500">Henüz skor bulunmamaktadır.</p>
+            </div>
+          ) : (
+            users.map((user, index) => (
+              <div key={user.userId} className={`flex items-center gap-4 px-4 py-3 ${index < 3 ? 'bg-gray-50' : ''}`}>
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <span className="font-semibold text-indigo-600 text-xs">#{index + 1}</span>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-5 h-5 text-gray-400" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">{user.displayName}</div>
+                  <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-base font-bold text-indigo-600">{user.totalScore}</div>
+                  <div className="text-xs text-gray-400">puan</div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

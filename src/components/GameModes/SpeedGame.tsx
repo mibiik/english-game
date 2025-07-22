@@ -10,6 +10,7 @@ import { learningStatsTracker } from '../../data/learningStats';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { CheckCircle as CheckCircleIcon, X, Timer, Trophy, Target, RefreshCw, Clock as ClockIcon } from 'lucide-react';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 interface SpeedGameProps {
   words: WordDetail[];
@@ -318,7 +319,11 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
       setCombo(prev => prev + 1);
       setTimeLeft(prev => Math.min(MAX_TIME, prev + TIME_BONUS_PER_CORRECT));
       setFeedback({ type: 'correct', message: `+${points} Puan! +${TIME_BONUS_PER_CORRECT}sn` });
-      
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'speedGame', points);
+      }
       setTimeout(generateNewWord, 500);
     } else {
       // Sistem yanlış diyor - AI'ya sor
@@ -336,6 +341,11 @@ export function SpeedGame({ words, unit }: SpeedGameProps) {
           setCombo(prev => prev + 1);
           setTimeLeft(prev => Math.min(MAX_TIME, prev + TIME_BONUS_PER_CORRECT));
           setFeedback({ type: 'ai-correct', message: `AI Onayladı! +${points} Puan! 🤖` });
+          // Anında puan ekle
+          const userId = authService.getCurrentUserId();
+          if (userId) {
+            gameScoreService.addScore(userId, 'speedGame', points);
+          }
         } else {
           // AI de yanlış diyor
           setCombo(0);

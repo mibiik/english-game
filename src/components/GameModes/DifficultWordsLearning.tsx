@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { aiService } from '../../services/aiService';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 interface DifficultWordsLearningProps {
   words: WordDetail[];
@@ -199,6 +200,11 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
     }
 
     if (correct) {
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'difficultWordsLearning', 1);
+      }
       const currentStage = wordProgress.spacedRepetition.stage;
       let nextStage: SpacedRepetitionStage;
       let nextReviewTime: number;

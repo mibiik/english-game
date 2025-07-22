@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../../data/words';
+import { Word } from '../../types';
 import { wordTracker } from '../../data/wordTracker';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 interface TimedMatchingGameProps {
   words: Word[];
@@ -20,10 +21,10 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
 
   const initializeGame = () => {
     wordTracker.initializeUnit(words, unit);
-    const gameWords = wordTracker.getWordsForUnit(words, unit).slice(0, 8); // Get 8 words for 16 cards
+    const gameWords = wordTracker.getUnseenWords(words, unit).slice(0, 8); // Get 8 words for 16 cards
     setTotalPairs(gameWords.length);
 
-    const cardPairs = gameWords.flatMap(word => [
+    const cardPairs = gameWords.flatMap((word: Word) => [
       { word, isFlipped: false, isMatched: false, type: 'english' as const },
       { word, isFlipped: false, isMatched: false, type: 'turkish' as const }
     ]);
@@ -75,7 +76,7 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
       const secondCard = cards[index];
 
       if (
-        firstCard.word.english === secondCard.word.english &&
+        firstCard.word.en === secondCard.word.en &&
         firstCard.type !== secondCard.type
       ) {
         // Match found
@@ -87,7 +88,11 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
           setSelectedCards([]);
           setScore(prev => prev + 10);
           setMatchedPairs(prev => prev + 1);
-
+          // Anında puan ekle
+          const userId = authService.getCurrentUserId();
+          if (userId) {
+            gameScoreService.addScore(userId, 'timedMatching', 10);
+          }
           if (matchedPairs + 1 === totalPairs) {
             // Oyun bitti, skoru kaydet
             try {
@@ -155,8 +160,8 @@ export function TimedMatchingGame({ words, unit }: TimedMatchingGameProps) {
               <span className="text-sm sm:text-base font-medium">
                 {card.isFlipped || card.isMatched
                   ? card.type === 'english'
-                    ? card.word.english
-                    : card.word.turkish
+                    ? card.word.en
+                    : card.word.tr
                   : '?'}
               </span>
             </button>

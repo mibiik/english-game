@@ -6,6 +6,7 @@ import { gameStateManager } from '../../lib/utils';
 import { gameScoreService } from '../../services/gameScoreService';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
+import { authService } from '../../services/authService';
 
 interface FlashCardProps {
   words: WordDetail[];
@@ -98,6 +99,11 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
       });
     } else {
       setScore(score + 1);
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'flashcard', 1);
+      }
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1000);
       // Eğer tekrar modundaysa ve biliyorum dediyse, tekrar listesinden çıkar

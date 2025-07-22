@@ -5,6 +5,7 @@ import { definitionCacheService } from '../../services/definitionCacheService';
 import { WordDetail } from '../../data/words';
 import { RefreshCw, CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 interface ParaphraseChallengeProps {
   words: WordDetail[];
@@ -119,7 +120,12 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
       
       setTotalAttempts(prev => prev + 1);
       if (result.correct) {
-        setScore(prev => prev + 1);
+        setScore(prev => prev + 10);
+        // Anında puan ekle
+        const userId = authService.getCurrentUserId();
+        if (userId) {
+          gameScoreService.addScore(userId, 'paraphraseChallenge', 10);
+        }
       }
     } catch (error) {
       console.error('API error:', error);

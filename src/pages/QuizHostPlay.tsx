@@ -21,7 +21,6 @@ const QuizHostPlay = () => {
     const [session, setSession] = useState<LiveQuizSession | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [timer, setTimer] = useState(20);
-    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     useEffect(() => {
         if (!roomCode) {
@@ -64,11 +63,6 @@ const QuizHostPlay = () => {
         } else {
             await liveQuizService.endQuiz(roomCode);
         }
-    };
-
-    const handleShowLeaderboard = () => {
-        setShowLeaderboard(true);
-        setTimeout(() => setShowLeaderboard(false), 3000);
     };
     
     if (!session) return (
@@ -153,13 +147,6 @@ const QuizHostPlay = () => {
                 
                 <div className="flex gap-2">
                     <Button 
-                        onClick={handleShowLeaderboard}
-                        className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0"
-                    >
-                        <Star className="w-4 h-4 mr-2" />
-                        Liderlik
-                    </Button>
-                    <Button 
                         onClick={handleNext} 
                         className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
                     >
@@ -233,38 +220,6 @@ const QuizHostPlay = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Liderlik Tablosu Overlay */}
-            {showLeaderboard && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white/95 backdrop-blur-lg rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
-                        <h3 className="text-3xl font-bold text-center mb-6 text-gray-800">Liderlik Tablosu</h3>
-                        <div className="space-y-3">
-                            {Object.values(session.players)
-                                .sort((a, b) => b.score - a.score)
-                                .slice(0, 5)
-                                .map((player, index) => (
-                                    <div key={player.id} className="flex justify-between items-center bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                                index === 0 ? 'bg-yellow-400' :
-                                                index === 1 ? 'bg-gray-300' :
-                                                index === 2 ? 'bg-yellow-700' :
-                                                'bg-purple-400'
-                                            } text-white`}>
-                                                {index + 1}
-                                            </div>
-                                            <span className="font-semibold text-gray-800">{player.nickname}</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-bold text-gray-800">{player.score}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

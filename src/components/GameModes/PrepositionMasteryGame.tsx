@@ -5,6 +5,7 @@ import { PrepositionExercise } from '../../types';
 import { aiService } from '../../services/aiService';
 import { prepositionsByLevel, Preposition } from '../../data/prepositions';
 import { gameScoreService } from '../../services/gameScoreService';
+import { authService } from '../../services/authService';
 
 type GameState = 'menu' | 'loading' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
@@ -78,6 +79,11 @@ export const PrepositionMasteryGame: React.FC = () => {
     setSelectedAnswer(option);
     if (option === exercises[currentQuestionIndex]?.correctAnswer) {
       setScore(prev => prev + 1);
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'prepositionMastery', 1);
+      }
     }
   };
 

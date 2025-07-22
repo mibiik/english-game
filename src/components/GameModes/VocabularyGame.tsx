@@ -4,6 +4,7 @@ import { generateSentences } from '../../services/openRouterService';
 import { Word } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
 import { userAnalyticsService } from '../../services/userAnalyticsService';
+import { authService } from '../../services/authService';
 
 type VocabularyGameProps = {
   words: Word[];
@@ -54,6 +55,11 @@ export const VocabularyGameComponent: React.FC<VocabularyGameProps> = ({ words, 
         score: prev!.score + 1
       }));
       setFeedback('Doğru! 🎉');
+      // Anında puan ekle
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'vocabulary', 1);
+      }
     } else {
       setFeedback(`Yanlış. Doğru cevap: ${currentWord}`);
     }
