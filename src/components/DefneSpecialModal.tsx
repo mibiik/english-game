@@ -10,7 +10,7 @@ const DefneSpecialModal: React.FC<DefneSpecialModalProps> = ({ onClose }) => {
       <div className="bg-white rounded-2xl p-8 shadow-2xl min-w-[320px] max-w-[90vw] relative border-2 border-pink-400">
         <button onClick={onClose} className="absolute top-3 right-3 text-pink-400 text-2xl font-bold hover:text-pink-600">×</button>
         <div className="flex flex-col items-center gap-3">
-          <img src="/assets/ordekbakimi2.jpg" alt="Ördek" className="w-32 h-32 object-cover rounded-full border-4 border-pink-200 shadow mb-2" />
+          <img src="/assets/aaaaaaaadwü/ordekbakimi2.jpg" alt="Ördek" className="w-32 h-32 object-cover rounded-full border-4 border-pink-200 shadow mb-2" />
           <div className="text-4xl">👑</div>
           <h2 className="text-2xl font-bold text-pink-600 text-center">EŞLEŞTİRME OYUNUN KRALÇİESİ GELDİ</h2>
           <p className="text-pink-700 text-center font-bold">DEFNE ÖZZ TAM BİR VİRTÜOZ </p>
