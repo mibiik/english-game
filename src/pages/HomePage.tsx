@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX, HiChevronDown, HiMinus, HiChevronUp } from 'react-icons/hi';
+import { FaCheckCircle } from 'react-icons/fa';
 // import icoLogo from './ico.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
@@ -429,6 +430,10 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             </span>
             Destek Ol
           </a>
+          {/* Shopier onay satırı - masaüstü */}
+          <div className="flex items-center justify-center mt-2">
+            <span className="text-black font-normal italic text-xs font-sans flex items-center">Shopier tarafından onaylanmıştır <img src="/assets/aaaaaaaadwü/shield_9623201.png" alt="onaylı" className="ml-1 w-4 h-4 inline-block align-middle" /></span>
+          </div>
           <div className="text-sm text-green-800 mt-3">(Destek olanlara uygulama içinde {ProBadge})</div>
         </div>
       </div>
@@ -436,7 +441,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       <div className="block md:hidden w-full max-w-2xl mx-auto mt-6 mb-8">
         <div className="bg-green-100 border border-green-400 rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
           <div className="text-red-600 text-xl font-extrabold mb-2">ÜCRETSİZ <span className="text-green-900 font-black">AMA</span></div>
-          <div className="text-green-900 mb-3 text-base">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/><span className="inline-block bg-green-600 text-white font-bold px-3 py-1 rounded-full ml-1">PRO</span> rozetiyle destekçimiz olabilirsin.</div>
+          <div className="text-green-900 mb-3 text-base">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/>{ProBadge} ile bize destek olabilirsin.</div>
           <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-700 text-white font-extrabold py-4 px-12 rounded-full shadow-2xl transition text-2xl mt-4 animate-bounce-slow animate-pulse-bright">
             <span className="mr-3 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'2em', height:'2em'}}>
               <svg fill="#fff" stroke="#fff" width="1.7em" height="1.7em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg">
@@ -444,6 +449,10 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             </span>
             Destek Ol
           </a>
+          {/* Shopier onay satırı - mobil */}
+          <div className="flex items-center justify-center mt-2">
+            <span className="text-black font-normal italic text-xs font-sans flex items-center">Shopier tarafından onaylanmıştır <img src="/assets/aaaaaaaadwü/shield_9623201.png" alt="onaylı" className="ml-1 w-4 h-4 inline-block align-middle" /></span>
+          </div>
           <div className="text-xs text-green-800 mt-2">(Destek olanlara uygulama içinde {ProBadge})</div>
         </div>
       </div>
