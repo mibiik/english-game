@@ -187,7 +187,11 @@ const LeaderboardPage: React.FC = () => {
             users.map((user, index) => (
               user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' ? (
                 <li key={user.userId} className="flex items-center gap-4 px-4 py-4 my-2 bg-gradient-to-r from-pink-400 via-pink-200 to-pink-100 border-2 border-pink-400 rounded-xl shadow-lg relative">
-                  <div className="absolute -top-3 left-4 z-20 text-3xl select-none">🌟</div>
+                  <div className="absolute -top-3 left-4 z-20 select-none">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="#ec4899" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/>
+                    </svg>
+                  </div>
                   <div className="w-12 h-12 rounded-full bg-white border-2 border-pink-300 flex items-center justify-center overflow-hidden shadow">
                     {user.photoURL ? (
                       <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
