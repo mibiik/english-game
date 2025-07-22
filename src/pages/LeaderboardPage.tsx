@@ -241,6 +241,13 @@ const LeaderboardPage: React.FC = () => {
           )}
         </ul>
       </div>
+      <div className="w-full max-w-3xl mx-auto mt-8 mb-8">
+        <div className="bg-pink-50 border border-pink-200 rounded-xl shadow p-5 flex flex-col items-center text-center">
+          <div className="text-pink-600 text-lg font-bold mb-2">Bu yıl uygulama ücretsizdir.</div>
+          <div className="text-gray-700 mb-3">Destek olmak isterseniz, uygulamanın geliştirilmesi ve yayında tutulması için katkıda bulunabilirsiniz.<br/>Destek olanlara <span className="inline-block bg-yellow-300 text-yellow-900 font-bold px-2 py-1 rounded ml-1">PRO</span> rozeti verilecektir.</div>
+          <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-lg shadow transition">Destek Ol</a>
+        </div>
+      </div>
     </div>
   );
 };

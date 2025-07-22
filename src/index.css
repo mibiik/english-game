@@ -70,6 +70,13 @@
   animation: slide-up 0.4s ease-out forwards;
 }
 
+@keyframes pulse-bright {
+  0%, 100% { filter: brightness(1) scale(1); }
+  50% { filter: brightness(1.25) scale(1.08); }
+}
+.animate-pulse-bright {
+  animation: pulse-bright 1.2s infinite;
+}
 
 
 @layer base {
