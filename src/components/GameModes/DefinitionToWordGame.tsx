@@ -253,7 +253,7 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
         return newStreak;
       });
       // Anında puan ekle
-      awardPoints('definitionToWord', 10, unit);
+      awardPoints('definitionToWord', 1, unit);
     } else {
       setStreak(0);
     }

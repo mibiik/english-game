@@ -1,0 +1,1 @@
+import { awardPoints } from '../../services/scoreService';

@@ -6,6 +6,7 @@ import { aiService } from '../../services/aiService';
 import { prepositionsByLevel, Preposition } from '../../data/prepositions';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 type GameState = 'menu' | 'loading' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
@@ -83,6 +84,7 @@ export const PrepositionMasteryGame: React.FC = () => {
       const userId = authService.getCurrentUserId();
       if (userId) {
         gameScoreService.addScore(userId, 'prepositionMastery', 1);
+        awardPoints('preposition', 10, 'unit');
       }
     }
   };

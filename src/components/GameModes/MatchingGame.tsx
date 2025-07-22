@@ -5,6 +5,7 @@ import { Star, Trophy, Medal, ArrowRight, CheckCircle, Target, Zap, Flame, Award
 import { WordDetail } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 interface GameWord extends WordDetail {
   type: 'english' | 'turkish';
@@ -200,11 +201,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         setScore(prev => prev + 10 + bonusPoints);
         setMotivationalMessage(getMotivationalMessage(newCombo, newStreak));
         checkAchievements(newCombo, newStreak, score + 10 + bonusPoints);
-        // Anında puan ekle
-        const userId = authService.getCurrentUserId();
-        if (userId) {
-          gameScoreService.addScore(userId, 'matching', 10 + bonusPoints);
-        }
+        // Her doğru eşleşmede 10 puan ekle
+        awardPoints('matching', 1, unit);
         setSelectedEnglish(null);
         setSelectedTurkish(null);
         setIsChecking(false);

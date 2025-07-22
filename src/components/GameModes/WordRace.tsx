@@ -171,12 +171,12 @@ export function WordRace({ words }: WordRaceProps) {
     const isCorrect = answer === currentWord.turkish.toLowerCase();
 
     if (isCorrect) {
-      const points = 10 + Math.floor(timeLeft / 15);
+      const points = 1 + Math.floor(timeLeft / 15);
       setScore(prev => prev + points);
       setCorrectCount(prev => prev + 1);
       setFeedback({ message: `+${points}`, isCorrect: true });
       // Anında puan ekle
-      awardPoints('word-race', 10, raceWords[0]?.unit || '1');
+      awardPoints('word-race', 2, raceWords[0]?.unit || '1');
       setTimeout(nextWord, 500);
     } else {
       setFeedback({ message: `Doğru: ${currentWord.turkish}`, isCorrect: false });

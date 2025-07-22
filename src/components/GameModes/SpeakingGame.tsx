@@ -3,6 +3,7 @@ import { Mic, Volume2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
+import { awardPoints } from '../../services/scoreService';
 
 declare global {
   interface Window {
@@ -104,6 +105,7 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
         if (userId) {
           gameScoreService.addScore(userId, 'speaking', 10);
         }
+        awardPoints('speaking', 1, currentWord.unit);
         setTimeout(nextWord, 2000);
       } else {
         setIsCorrect(false);

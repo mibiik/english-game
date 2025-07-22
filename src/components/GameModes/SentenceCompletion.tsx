@@ -85,7 +85,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     if (option === questions[currentIndex].correctAnswer) {
       setScore(prev => prev + 1);
       // Anında puan ekle
-      awardPoints('sentence-completion', 10, words[0]?.unit || '1');
+      awardPoints('sentence-completion', 1, words[0]?.unit || '1');
     }
 
     setTimeout(() => {
