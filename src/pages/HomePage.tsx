@@ -261,6 +261,16 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     visible: { y: 0, opacity: 1 },
   };
 
+  // PRO rozeti SVG
+  const ProBadge = (
+    <span className="inline-block align-middle ml-1" style={{verticalAlign:'middle'}}>
+      <svg width="2em" height="2em" viewBox="0 0 40 40" style={{display:'inline-block'}}>
+        <circle cx="20" cy="20" r="18" fill="#22c55e" />
+        <polygon points="20,8 23,17 32,17 25,22 27,31 20,26 13,31 15,22 8,17 17,17" fill="#fff" />
+      </svg>
+    </span>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative pt-8 md:pt-14">
       {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
@@ -284,7 +294,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             transition={{ duration: 0.5, delay: 0.8 }}
           >
             Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
-            <span className="block mt-2 text-sm text-red-300 font-semibold">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
+            <span className="block mt-2 text-sm text-gray-400 font-semibold opacity-60">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
           </motion.p>
         </div>
         {/* Mini Leaderboard */}
@@ -384,7 +394,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       <div className="hidden md:block w-full max-w-5xl mx-auto mt-8 mb-8">
         <div className="bg-green-100 border border-green-400 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center">
           <div className="text-red-600 text-2xl font-extrabold mb-3">ÜCRETSİZ <span className="text-green-900 font-black">AMA</span></div>
-          <div className="text-green-900 mb-4 text-lg">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/><span className="inline-block bg-green-600 text-white font-bold px-4 py-2 rounded-full ml-1 text-lg">PRO</span> rozetiyle bize destek olabilirsin.</div>
+          <div className="text-green-900 mb-4 text-lg">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/>{ProBadge} ile bize destek olabilirsin.</div>
           <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-700 text-white font-extrabold py-5 px-16 rounded-full shadow-2xl transition text-2xl mt-4 animate-bounce-slow animate-pulse-bright">
             <span className="mr-3 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'2em', height:'2em', position:'relative'}}>
               <svg fill="#fff" stroke="#fff" width="1.7em" height="1.7em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg" style={{position:'relative', zIndex:1}}>
@@ -395,15 +405,10 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                   <path d="m496.33 285.16c-3.1758-3.4258-9.0938-5.4922-15.289-0.074219-1.6367 1.4375-3.0742 2.9219-4.4844 4.3828l-10.328 10.68c-4.5859 4.7344-4.5859 4.7344-9.6992 10l-11.109 11.461-1.8125-1.8125c-1.8633-1.8633-3.6289-3.7031-5.4141-5.5664l-0.42969-0.42969c-1.5859-1.6641-3.1992-3.3008-4.8125-4.9375-2.7969-2.8477-5.8203-4.3086-8.9414-4.3086-1.9414 0-4.8359 0.57812-7.5586 3.3516-1.7383 1.7617-6.8281 8.1875 1.082 16.449 4.7109 4.9375 9.4727 9.8242 14.207 14.711l4.3086 4.457c1.9141 1.9648 4.6367 4.2812 8.793 4.6094l0.27734 0.023438h0.27734c5.0898-0.050782 8.0625-3.2734 9.8242-5.2148 0.22656-0.25 0.45312-0.50391 0.67969-0.73047l16.879-17.434c4.6602-4.7852 7.5312-7.7578 20.73-21.41 0.75391-0.78125 1.5117-1.5859 2.2656-2.3945 4.6328-4.9805 4.8594-11.203 0.55469-15.812z"></path>
                 </g></g>
               </svg>
-              {/* Sevinç efekti: altın parıltı ve yıldız */}
-              <svg width="1.2em" height="1.2em" viewBox="0 0 32 32" style={{position:'absolute', left:'50%', bottom:'-0.7em', transform:'translateX(-50%)'}}>
-                <circle cx="16" cy="16" r="10" fill="#FFD700" opacity="0.7" />
-                <polygon points="16,6 18,14 26,14 19,18 21,26 16,21 11,26 13,18 6,14 14,14" fill="#fff176" />
-              </svg>
             </span>
             Destek Ol
           </a>
-          <div className="text-sm text-green-800 mt-3">(Destek olanlara uygulama içinde <span className="font-bold bg-green-600 text-white rounded-full px-3 py-1">PRO</span> rozeti verilecektir)</div>
+          <div className="text-sm text-green-800 mt-3">(Destek olanlara uygulama içinde {ProBadge})</div>
         </div>
       </div>
       {/* Mobil için destek kutusu (eski yeri) */}
@@ -418,7 +423,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             </span>
             Destek Ol
           </a>
-          <div className="text-xs text-green-800 mt-2">(Destek olanlara uygulama içinde <span className="font-bold bg-green-600 text-white rounded-full px-2 py-1">PRO</span> rozeti verilecektir)</div>
+          <div className="text-xs text-green-800 mt-2">(Destek olanlara uygulama içinde {ProBadge})</div>
         </div>
       </div>
       {/* Sabit beyaz küçük yıldızlar */}
