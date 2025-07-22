@@ -202,7 +202,6 @@ const LeaderboardPage: React.FC = () => {
                   <div className="flex-1 min-w-0 flex flex-col items-start">
                     <div className="flex items-center gap-2">
                       <span className="text-xl font-bold text-pink-700">★ {user.displayName} ★</span>
-                      <span className="px-2 py-1 bg-pink-400 text-white text-xs font-semibold rounded shadow">Özel</span>
                     </div>
                     <div className="text-sm text-gray-700 font-semibold mt-1">{user.email}</div>
                   </div>
