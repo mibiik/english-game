@@ -12,6 +12,7 @@ import LeaderboardPage from '../components/Leaderboard';
 import { Trophy } from 'lucide-react';
 import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'firebase/firestore';
 import app from '../config/firebase';
+import SupportModal from '../components/SupportModal';
 
 export interface Word {
   english: string;
@@ -98,6 +99,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   const [showLeaderboard, setShowLeaderboard] = useState(true); // leaderboard açık/kapalı
   // Liderlik verisi
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
+  const [showSupportModal, setShowSupportModal] = React.useState(false);
 
   useEffect(() => {
     // Kullanıcının oturum durumunu kontrol et
@@ -142,6 +144,25 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       setTopUsers(fetched.slice(0, 5)); // Artık ilk 5 kullanıcıyı alıyoruz
     });
     return () => unsubscribe();
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      const key = 'supportModalShownCount';
+      let count = 0;
+      const stored = localStorage.getItem(key);
+      if (stored !== null && !isNaN(parseInt(stored, 10))) {
+        count = parseInt(stored, 10);
+      }
+      if (count < 3) {
+        setShowSupportModal(true);
+        localStorage.setItem(key, (count + 1).toString());
+      } else {
+        setShowSupportModal(false);
+      }
+    } catch (e) {
+      setShowSupportModal(false);
+    }
   }, []);
 
   const handleClearGameStates = () => {
@@ -771,6 +792,10 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             </motion.div>
           )}
         </AnimatePresence>
+
+        {showSupportModal && (
+          <SupportModal onClose={() => setShowSupportModal(false)} ProBadge={ProBadge} />
+        )}
 
         {/* Oyun Modları Görseldeki Bordo-Siyah Kartlar */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-12 mt-4">

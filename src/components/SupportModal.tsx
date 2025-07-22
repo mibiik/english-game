@@ -8,7 +8,7 @@ interface SupportModalProps {
 const SupportModal: React.FC<SupportModalProps> = ({ onClose, ProBadge }) => {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-green-100 border border-green-400 rounded-2xl shadow-2xl p-8 min-w-[320px] max-w-[90vw] relative flex flex-col items-center text-center">
+      <div className="bg-green-100 border border-green-400 rounded-2xl shadow-2xl p-8 min-w-[320px] max-w-[90vw] relative flex flex-col items-center text-center" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-green-400 text-2xl font-bold hover:text-green-600">×</button>
         <div className="mb-4">
           <span className="mr-3 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'2em', height:'2em', position:'relative'}}>
