@@ -107,6 +107,8 @@ const ProfilePage: React.FC = () => {
   const [showAddInfoForm, setShowAddInfoForm] = useState(false); // Ek bilgi formu görünürlüğü
   const [newInfo, setNewInfo] = useState({ title: '', value: '' }); // Yeni eklenecek bilgi
   const [loading, setLoading] = useState(true); // Yükleme durumu
+  const [badges, setBadges] = useState<string[]>([]); // Rozetler
+  const [isFirstSupporter, setIsFirstSupporter] = useState(false); // İlk destekçi mi?
 
   // Kullanıcı oturum açmamışsa yönlendirme
   useEffect(() => {
@@ -148,6 +150,19 @@ const ProfilePage: React.FC = () => {
       loadUserData();
     }
   }, [user]); // Sadece user değiştiğinde çalışır
+
+  // Kullanıcı Firestore'dan geldiğinde rozet ve destekçi kontrolü
+  useEffect(() => {
+    if (!user) return;
+    const fetchBadges = async () => {
+      const userData = await userService.getUser(user.uid);
+      if (userData) {
+        setBadges(userData.badges || []);
+        setIsFirstSupporter(!!userData.isFirstSupporter);
+      }
+    };
+    fetchBadges();
+  }, [user]);
 
   // Profil fotoğrafını localStorage'dan yükleme
   useEffect(() => {
@@ -420,6 +435,17 @@ const ProfilePage: React.FC = () => {
           {/* Kullanıcı Bilgileri */}
           <div className="mt-16 sm:mt-20 text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
+              {/* Rozet ve yıldız gösterimi */}
+              {badges.includes('bağışçı') && (
+                <span className="inline-flex items-center px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold mr-2">
+                  <Star className="w-4 h-4 mr-1 text-yellow-500" /> Bağışçı
+                </span>
+              )}
+              {isFirstSupporter && (
+                <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold mr-2">
+                  <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
+                </span>
+              )}
               {isEditingName ? (
                 <input
                   type="text"

@@ -13,6 +13,7 @@ import { Trophy } from 'lucide-react';
 import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'firebase/firestore';
 import app from '../config/firebase';
 import SupportModal from '../components/SupportModal';
+import FeedbackButton from '../components/FeedbackButton';
 
 export interface Word {
   english: string;
@@ -302,6 +303,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative pt-8 md:pt-14">
+      <FeedbackButton />
       {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
       <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-0 md:pt-1">
         {/* Başlık ve açıklama */}

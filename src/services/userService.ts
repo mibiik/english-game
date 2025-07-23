@@ -20,6 +20,8 @@ export interface User {
   updatedAt: Date;
   isPremium?: boolean;
   premiumUntil?: string;
+  badges?: string[]; // Kullanıcıya atanmış rozetler
+  isFirstSupporter?: boolean; // İlk destekçi mi?
 }
 
 class UserService {
@@ -333,6 +335,18 @@ class UserService {
     } catch (error) {
       console.error('Kullanıcı profil fotoğrafı güncellenirken hata:', error);
     }
+  }
+
+  // Görkem'e bağışçı rozeti ve ilk destekçi yıldızını ekle
+  public async setGorkemSupporterBadge(): Promise<void> {
+    const userId = 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1';
+    const updateData = {
+      badges: ['bağışçı'],
+      isFirstSupporter: true,
+      updatedAt: new Date()
+    };
+    await updateDoc(doc(db, this.usersCollection, userId), updateData);
+    await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
   }
 }
 
