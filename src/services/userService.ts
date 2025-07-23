@@ -320,6 +320,20 @@ class UserService {
       console.error("Emir'in puanı güncellenirken hata:", error);
     }
   }
+
+  // Kullanıcı profil fotoğrafını güncelle (Google ile girişte veya değişiklikte)
+  public async updateUserPhoto(userId: string, photoURL: string): Promise<void> {
+    try {
+      const updateData = {
+        photoURL,
+        updatedAt: new Date()
+      };
+      await updateDoc(doc(db, this.usersCollection, userId), updateData);
+      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
+    } catch (error) {
+      console.error('Kullanıcı profil fotoğrafı güncellenirken hata:', error);
+    }
+  }
 }
 
 export const userService = new UserService(); 

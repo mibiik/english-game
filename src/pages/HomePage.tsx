@@ -413,7 +413,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                     </ul>
                   </div>
                 )}
-                <button onClick={()=>navigate('/')} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+                <button onClick={()=>navigate('/leaderboard')} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
               </>
             )}
           </div>

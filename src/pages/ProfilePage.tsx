@@ -14,13 +14,17 @@ import {
   ArrowLeft,
   Plus,
   X,
-  Edit2 // Eğer düzenleme özelliği eklerseniz kullanabilirsiniz
+  Edit2, // Eğer düzenleme özelliği eklerseniz kullanabilirsiniz
+  BookOpen, // Yeni eklenen ikon
+  Puzzle, // Yeni eklenen ikon
+  Megaphone // Yeni eklenen ikon
 } from 'lucide-react';
 import { authService } from '../services/authService';
 import { gameScoreService, GameMode } from '../services/gameScoreService';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserAnalytics } from '../components/UserAnalytics';
+import { userService } from '../services/userService'; // Yeni eklenen import
 
 // Oyun modları için isim ve ikon haritaları
 const gameModeNames: Record<GameMode, string> = {
@@ -30,7 +34,16 @@ const gameModeNames: Record<GameMode, string> = {
   'flashcard': 'Kelime Kartları',
   'speaking': 'Konuşma',
   'word-race': 'Kelime Yarışı',
-  'wordTypes': 'Kelime Tipleri'
+  'wordTypes': 'Kelime Tipleri',
+  'wordForms': 'Kelime Formları',
+  'vocabulary': 'Kelime Hazinesi',
+  'timedMatching': 'Zamanlı Eşleştirme',
+  'speedGame': 'Hız Oyunu',
+  'quizGame': 'Quiz Oyunu',
+  'prepositionMastery': 'Preposition',
+  'paraphraseChallenge': 'Paraphrase',
+  'difficultWords': 'Zor Kelimeler',
+  'definitionToWord': 'Tanımdan Kelime'
 };
 
 const gameModeIcons: Record<GameMode, React.ReactNode> = {
@@ -40,7 +53,16 @@ const gameModeIcons: Record<GameMode, React.ReactNode> = {
   'flashcard': <Star className="w-5 h-5 text-yellow-500" />,
   'speaking': <Crown className="w-5 h-5 text-pink-500" />,
   'word-race': <Zap className="w-5 h-5 text-indigo-500" />, // Aynı ikon, farklı renk
-  'wordTypes': <Type className="w-5 h-5 text-teal-500" />
+  'wordTypes': <Type className="w-5 h-5 text-teal-500" />,
+  'wordForms': <Type className="w-5 h-5 text-orange-500" />,
+  'vocabulary': <BookOpen className="w-5 h-5 text-green-500" />,
+  'timedMatching': <Zap className="w-5 h-5 text-red-500" />,
+  'speedGame': <Zap className="w-5 h-5 text-yellow-600" />,
+  'quizGame': <Trophy className="w-5 h-5 text-blue-400" />,
+  'prepositionMastery': <Puzzle className="w-5 h-5 text-purple-700" />,
+  'paraphraseChallenge': <Megaphone className="w-5 h-5 text-pink-700" />,
+  'difficultWords': <Star className="w-5 h-5 text-red-700" />,
+  'definitionToWord': <BookOpen className="w-5 h-5 text-blue-700" />
 };
 
 // IMGBB API anahtarınızı buraya ekleyin. Güvenlik için ortam değişkeni kullanmak daha iyidir.
@@ -52,20 +74,30 @@ const ProfilePage: React.FC = () => {
 
   // State'ler
   const [totalScore, setTotalScore] = useState(0);
-  const [scores, setScores] = useState<Record<GameMode, number>>({ // Oyun modlarına göre skorları tutar
+  const [scores, setScores] = useState<Record<GameMode, number>>({
     'matching': 0,
     'sentence-completion': 0,
     'multiple-choice': 0,
     'flashcard': 0,
     'speaking': 0,
     'word-race': 0,
-    'wordTypes': 0
+    'wordTypes': 0,
+    'wordForms': 0,
+    'vocabulary': 0,
+    'timedMatching': 0,
+    'speedGame': 0,
+    'quizGame': 0,
+    'prepositionMastery': 0,
+    'paraphraseChallenge': 0,
+    'difficultWords': 0,
+    'definitionToWord': 0
   });
   const [userStats, setUserStats] = useState<{ gamesPlayed: number; lastPlayed: Date | null }>({
     gamesPlayed: 0,
     lastPlayed: null
   });
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null); // Profil fotoğrafı URL'si
+  const [photoHistory, setPhotoHistory] = useState<string[]>([]); // Geçmiş fotoğraflar
   const [bgImage, setBgImage] = useState<string | null>(null); // Arka plan görseli URL'si
   const [uploading, setUploading] = useState(false); // Fotoğraf yükleme durumu
   const [uploadError, setUploadError] = useState<string | null>(null); // Fotoğraf yükleme hatası
@@ -121,6 +153,9 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const savedPhoto = localStorage.getItem(`profilePhoto_${user?.uid}`); // Kullanıcı bazlı kaydetme
     if (savedPhoto) setProfilePhoto(savedPhoto);
+    // Geçmiş fotoğrafları yükle
+    const savedHistory = localStorage.getItem(`profilePhotoHistory_${user?.uid}`);
+    if (savedHistory) setPhotoHistory(JSON.parse(savedHistory));
   }, [user?.uid]);
 
   // Çıkış yapma fonksiyonu
@@ -194,8 +229,16 @@ const ProfilePage: React.FC = () => {
         const uploadedUrl = data.data.url;
         setProfilePhoto(uploadedUrl);
         localStorage.setItem(`profilePhoto_${user?.uid}`, uploadedUrl); // Kullanıcı bazlı kaydet
-        // Profil fotoğrafını kullanıcı bilgilerine de yansıtmak isteyebilirsiniz
-        // await authService.updateProfile({ photoURL: uploadedUrl });
+        // Geçmiş fotoğraflara ekle
+        setPhotoHistory((prev) => {
+          const updated = [uploadedUrl, ...prev.filter(p => p !== uploadedUrl)].slice(0, 10); // Son 10 fotoğraf
+          localStorage.setItem(`profilePhotoHistory_${user?.uid}`, JSON.stringify(updated));
+          return updated;
+        });
+        // Firestore'da da güncelle
+        if (user?.uid) {
+          await userService.updateUserPhoto(user.uid, uploadedUrl);
+        }
       } else {
         throw new Error(data.error?.message || 'Bilinmeyen bir API hatası oluştu.');
       }
