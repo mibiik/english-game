@@ -9,7 +9,6 @@ import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '..
 import { gameStateManager } from '../lib/utils';
 import { userService } from '../services/userService';
 import { authService } from '../services/authService';
-import LeaderboardPage from '../components/Leaderboard';
 import { Trophy } from 'lucide-react';
 import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'firebase/firestore';
 import app from '../config/firebase';
@@ -134,14 +133,22 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     const db = getFirestore(app);
     const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const fetched = querySnapshot.docs.map(doc => {
+      let fetched = querySnapshot.docs.map(doc => {
         const d = doc.data();
         return {
           displayName: d.displayName || '',
           photoURL: d.photoURL || undefined,
           totalScore: d.totalScore || 0,
+          userId: doc.id,
         };
       });
+      // Emir'in userId'si
+      const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
+      fetched = fetched.map(u =>
+        u.userId === emirId ? { ...u, totalScore: (u.totalScore || 0) + 11000 } : u
+      );
+      // Sıralamayı güncel puana göre yap
+      fetched = fetched.filter(u => u.displayName && u.displayName.trim() !== '').sort((a, b) => b.totalScore - a.totalScore);
       setTopUsers(fetched.slice(0, 5)); // Artık ilk 5 kullanıcıyı alıyoruz
     });
     return () => unsubscribe();
