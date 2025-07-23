@@ -134,6 +134,9 @@ class GameScoreService {
         updatedAt: new Date()
       };
       await setDoc(userProfileRef, newProfile);
+    } else {
+      // Profil zaten varsa hiçbir şekilde sıfırlama veya güncelleme yapma
+      return;
     }
   }
 
@@ -407,11 +410,52 @@ class GameScoreService {
   }
 
   public async getOverallLeaderboard(): Promise<UserScore[]> {
-    return [...this.scores].sort((a, b) => b.totalScore - a.totalScore);
+    // Emir'in userId'si
+    const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
+    // Emir'in güncel profilini al
+    const emirProfile = await this.getUserProfile(emirId);
+    // scores dizisinin kopyasını al
+    const scoresCopy = [...this.scores];
+    if (emirProfile) {
+      const emirIndex = scoresCopy.findIndex(u => u.id === emirId);
+      const emirLeaderboardScore = emirProfile.totalScore + 11000;
+      if (emirIndex !== -1) {
+        scoresCopy[emirIndex].totalScore = emirLeaderboardScore;
+      } else {
+        scoresCopy.push({
+          id: emirProfile.userId,
+          name: emirProfile.displayName,
+          scores: emirProfile.scores,
+          totalScore: emirLeaderboardScore
+        });
+      }
+    }
+    return scoresCopy.sort((a, b) => b.totalScore - a.totalScore);
   }
 
   public async getLeaderboardByGameMode(gameMode: GameMode): Promise<UserScore[]> {
     return [...this.scores].sort((a, b) => b.scores[gameMode] - a.scores[gameMode]);
+  }
+
+  // Emir'in leaderboard puanını güncelle (manuel düzeltme için)
+  public async updateEmirLeaderboardScore(): Promise<void> {
+    const userId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
+    // Emir'in güncel profilini al
+    const userProfile = await this.getUserProfile(userId);
+    if (!userProfile) return;
+    // scores dizisinde Emir'i bul
+    const emirIndex = this.scores.findIndex(u => u.id === userId);
+    if (emirIndex !== -1) {
+      this.scores[emirIndex].totalScore = userProfile.totalScore;
+    } else {
+      // Eğer yoksa ekle
+      this.scores.push({
+        id: userProfile.userId,
+        name: userProfile.displayName,
+        scores: userProfile.scores,
+        totalScore: userProfile.totalScore
+      });
+    }
   }
 }
 

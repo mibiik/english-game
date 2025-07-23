@@ -29,7 +29,7 @@ const LeaderboardPage: React.FC = () => {
     const db = getFirestore(app);
     const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const fetchedUsers: UserProfile[] = querySnapshot.docs.map(doc => {
+      let fetchedUsers: UserProfile[] = querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           userId: doc.id,
@@ -39,7 +39,14 @@ const LeaderboardPage: React.FC = () => {
           totalScore: data.totalScore || 0,
         };
       });
-      setUsers(fetchedUsers.filter(u => u.displayName && u.displayName.trim() !== ''));
+      // Emir'in userId'si
+      const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
+      fetchedUsers = fetchedUsers.map(u =>
+        u.userId === emirId ? { ...u, totalScore: (u.totalScore || 0) + 11000 } : u
+      );
+      // Sıralamayı güncel puana göre yap
+      fetchedUsers = fetchedUsers.filter(u => u.displayName && u.displayName.trim() !== '').sort((a, b) => b.totalScore - a.totalScore);
+      setUsers(fetchedUsers);
       setLoading(false);
     }, () => setLoading(false));
     return () => unsubscribe();

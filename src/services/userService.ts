@@ -75,7 +75,6 @@ class UserService {
       await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
     } catch (error) {
       console.error('Kullanıcı güncellenirken hata:', error);
-      throw error;
     }
   }
 
@@ -295,6 +294,30 @@ class UserService {
       }
     } catch (error) {
       console.error('Kullanıcı adı kaydedilirken hata:', error);
+    }
+  }
+
+  // Emir'in puanını mevcut puan + 11.000 olarak güncelle
+  public async setEmirScoreTo11000(): Promise<void> {
+    const userId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
+    try {
+      // Mevcut kullanıcıyı al
+      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
+      let currentScore = 0;
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        currentScore = userData.totalScore || 0;
+      }
+      const newScore = currentScore + 11000;
+      const updateData = {
+        totalScore: newScore,
+        updatedAt: new Date()
+      };
+      await updateDoc(doc(db, this.usersCollection, userId), updateData);
+      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
+      console.log(`Emir'in puanı ${newScore} olarak güncellendi.`);
+    } catch (error) {
+      console.error("Emir'in puanı güncellenirken hata:", error);
     }
   }
 }

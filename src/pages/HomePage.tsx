@@ -406,7 +406,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                     </ul>
                   </div>
                 )}
-                <button onClick={()=>navigate('/leaderboard')} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+                <button onClick={()=>navigate('/')} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
               </>
             )}
           </div>
@@ -859,6 +859,13 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </div>
       </main>
       {/* Sabit sağ alt köşede, dikkat çekmeyen bir şekilde */}
+      {/* Footer: iletişim, destek, hakkımızda, SSS */}
+      <div className="w-full text-center py-6 mt-12 text-xs text-gray-400">
+        <a href="/iletisim" className="mx-2 hover:underline">İletişim</a>|
+        <a href="/destek" className="mx-2 hover:underline">Destek</a>|
+        <a href="/hakkimizda" className="mx-2 hover:underline">Hakkımızda</a>|
+        <a href="/sss" className="mx-2 hover:underline">Sıkça Sorulan Sorular</a>
+      </div>
       <div className="fixed bottom-2 right-3 z-50 pointer-events-none select-none">
         <span className="text-xs text-gray-400 dark:text-gray-600 tracking-wide opacity-70">made by Miraç Birlik</span>
       </div>
