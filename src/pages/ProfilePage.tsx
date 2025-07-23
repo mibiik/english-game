@@ -174,6 +174,8 @@ const ProfilePage: React.FC = () => {
     if (!user) return;
     try {
         await authService.updateProfile({ displayName: editedName });
+        // Firestore'da da güncelle
+        await userService.updateUser(user.uid, { displayName: editedName });
       setIsEditingName(false);
       // Başarı mesajı gösterilebilir.
     } catch (err) {
