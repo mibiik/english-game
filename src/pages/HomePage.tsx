@@ -851,8 +851,8 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         <a href="/hakkimizda" className="mx-2 hover:underline">Hakkımızda</a>|
         <a href="/sss" className="mx-2 hover:underline">Sıkça Sorulan Sorular</a>
       </div>
-      <div className="fixed bottom-2 right-3 z-50 pointer-events-none select-none">
-        <span className="text-xs text-gray-400 dark:text-gray-600 tracking-wide opacity-70">made by Miraç Birlik</span>
+      <div className="fixed bottom-2 right-3 z-50 pointer-events-auto select-none">
+        <FeedbackButton />
       </div>
     </div>
   );
