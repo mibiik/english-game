@@ -14,6 +14,7 @@ import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'f
 import app from '../config/firebase';
 import SupportModal from '../components/SupportModal';
 import FeedbackButton from '../components/FeedbackButton';
+import AdSense from '../components/AdSense';
 
 export interface Word {
   english: string;
@@ -318,6 +319,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </div>
         {/* Mini Leaderboard */}
         {topUsers.length >= 3 && (
+          <>
           <div className="flex-1 max-w-md md:max-w-lg lg:max-w-xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-0 flex flex-col items-center p-4 md:p-2 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl scale-105 md:scale-110 relative md:py-2">
             {/* Küçült butonu sadece masaüstünde */}
             <button
@@ -407,6 +409,8 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               </>
             )}
           </div>
+          <div className="w-full flex justify-center my-4"><AdSense /></div>
+          </>
         )}
       </div>
       {/* Masaüstü için destek kutusu (başlık ve leaderboarddan sonra, oyun modlarının üstünde) */}
@@ -800,6 +804,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </AnimatePresence>
 
         {/* Oyun Modları Görseldeki Bordo-Siyah Kartlar */}
+        <div className="w-full flex justify-center my-4"><AdSense /></div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-12 mt-4">
           {gameModes.map((mode, idx) => {
             // Her karta çok hafif farklı bir transparan pastel renk
