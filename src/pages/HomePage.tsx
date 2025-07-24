@@ -834,7 +834,20 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               <Link to={mode.link} key={mode.id} className={`relative group rounded-xl overflow-hidden shadow-lg border-2 border-white/10 bg-black/30 bg-gradient-to-br ${pastelBg} flex flex-col backdrop-blur-md transition-all duration-200 hover:scale-105 cursor-pointer p-2 md:p-3`}>
                 {/* Başlık kartın en üstünde */}
                 <div className="w-full flex justify-center pt-2 pb-2 z-30">
-                  <span className="text-3xl md:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                  <span
+                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
+                    style={{
+                      letterSpacing: '0.01em',
+                      fontWeight: 700,
+                      width: '100%',
+                      display: 'block',
+                      fontSize: 'clamp(1.1rem, 4vw, 2.5rem)',
+                      lineHeight: 1.1,
+                      textOverflow: 'unset',
+                      whiteSpace: 'normal',
+                      overflow: 'visible',
+                    }}
+                  >
                     {mode.title}
                   </span>
                 </div>
