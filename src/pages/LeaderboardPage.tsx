@@ -87,7 +87,7 @@ const LeaderboardPage: React.FC = () => {
               <span className="font-extrabold text-lg text-black">Defne</span>
             </div>
           </div>
-          <div className="text-sm text-green-700 font-extrabold mt-3 mb-2">EKİBE KAHVELER BENDEN 89,90₺</div>
+          <div className="text-sm text-green-700 font-extrabold mt-3 mb-2">EKİBE KAHVELER BENDEN ☕        49,90₺</div>
           <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-700 text-white font-extrabold py-3 px-6 rounded-full shadow-2xl transition text-lg mt-2 animate-bounce-slow animate-pulse-bright">
             <span className="mr-3 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'1.7em', height:'1.7em', position:'relative'}}>
               <svg fill="#fff" stroke="#fff" width="1.5em" height="1.5em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg" style={{position:'relative', zIndex:1}}>
