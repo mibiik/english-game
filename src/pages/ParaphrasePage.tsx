@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, RefreshCw, ChevronLeft, ChevronRight, Lightbulb, Send, ArrowLeft, Target, CheckCircle, XCircle, Trophy, Sparkles, MessageCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { aiService } from '../services/aiService';
-import AdSense from '../components/AdSense';
 
 interface ParaphraseAttempt {
   type: 'parenthetical' | 'reporting' | 'according';
@@ -552,7 +551,6 @@ const ParaphrasePage: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="w-full flex justify-center my-4"><AdSense /></div>
     </div>
   );
 };
