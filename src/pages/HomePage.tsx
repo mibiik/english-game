@@ -14,6 +14,7 @@ import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'f
 import app from '../config/firebase';
 import SupportModal from '../components/SupportModal';
 import FeedbackButton from '../components/FeedbackButton';
+import AdSense from '../components/AdSense';
 
 export interface Word {
   english: string;

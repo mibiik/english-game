@@ -6,6 +6,7 @@ import { LiveQuizSession } from '../types';
 import { Loader2 } from 'lucide-react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { liveQuizService } from '../services/liveQuizService';
+import AdSense from '../components/AdSense';
 
 const PlayerLobby = () => {
     return (
@@ -173,6 +174,7 @@ const PlayerQuizFlow = () => {
                         <h2 className="text-5xl font-bold">Oyun Bitti!</h2>
                         <p className="text-3xl mt-4">Skorun: {myFinalScore}</p>
                         <p className="text-3xl mt-2">Sıralaman: {myRank > 0 ? myRank : 'N/A'}</p>
+                        <div className="w-full flex justify-center my-4"><AdSense /></div>
                     </div>
                 )
             default:

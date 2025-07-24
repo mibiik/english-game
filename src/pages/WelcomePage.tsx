@@ -16,6 +16,8 @@ import {
   Trophy
 } from 'lucide-react';
 import logo from './ico.png';
+import AdSense from '../components/AdSense';
+// import SubscribeButton from '../components/SubscribeButton';
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -237,6 +239,7 @@ export const WelcomePage: React.FC = () => {
             <div className="text-gray-300 font-bold text-base">Pratik</div>
           </div>
         </motion.div>
+        <div className="w-full flex justify-center my-4"><AdSense /></div>
       </div>
 
       {/* Floating Elements */}
