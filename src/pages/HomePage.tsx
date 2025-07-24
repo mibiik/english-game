@@ -840,15 +840,14 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                 {/* Başlık kartın en üstünde */}
                 <div className="w-full flex justify-center pt-2 pb-2 z-30">
                   <span
-                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
+                    className="font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
                     style={{
                       letterSpacing: '0.01em',
                       fontWeight: 700,
                       width: '100%',
                       display: 'block',
-                      fontSize: 'clamp(1.1rem, 4vw, 2.5rem)',
+                      fontSize: 'clamp(1.3rem, 5vw, 2rem)',
                       lineHeight: 1.1,
-                      textOverflow: 'unset',
                       whiteSpace: 'normal',
                       overflow: 'visible',
                     }}
