@@ -36,6 +36,7 @@ import Destek from './pages/Destek';
 import Hakkimizda from './pages/Hakkimizda';
 import Sss from './pages/Sss';
 import AdminPanel from './pages/AdminPanel';
+import GrammarGamePage from './pages/GrammarGamePage';
 // import SubscriptionInfo from './pages/SubscriptionInfo';
 // import { getAuth } from 'firebase/auth';
 // import { userService } from './services/userService';
@@ -369,6 +370,22 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             />
             <div className="pt-32">
               <GameWrapperWithParams component={LearningMode} />
+            </div>
+          </>
+        </ProtectedRoute>
+      } />
+      <Route path="/grammar-game" element={
+        <ProtectedRoute isAuthenticated={isAuthenticated}>
+          <>
+            <Navbar 
+              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+              currentUnit={currentUnit}
+              setCurrentUnit={setCurrentUnit}
+              currentLevel={currentLevel}
+              setCurrentLevel={setCurrentLevel}
+            />
+            <div className="pt-32">
+              <GrammarGamePage />
             </div>
           </>
         </ProtectedRoute>

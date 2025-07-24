@@ -377,17 +377,26 @@ class GameScoreService {
   }
 
   public async addScore(userId: string, gameMode: GameMode, score: number): Promise<void> {
-    const user = this.scores.find(u => u.id === userId);
-    if (user) {
-      user.scores[gameMode] += score;
-      user.totalScore += score;
-      this.gameResults.push({
-        userId,
-        gameMode,
-        score,
-        timestamp: Date.now()
-      });
-    }
+    // Firebase'den mevcut kullanıcı profilini al
+    const userProfileRef = doc(db, this.userProfilesCollection, userId);
+    const userProfileDoc = await getDoc(userProfileRef);
+
+    if (!userProfileDoc.exists()) return;
+
+    const userProfile = userProfileDoc.data() as UserProfile;
+    // Oyun moduna göre puanı güncelle
+    const newScores = { ...userProfile.scores };
+    newScores[gameMode] = (newScores[gameMode] || 0) + score;
+    const newTotalScore = Object.values(newScores).reduce((sum, s) => sum + s, 0);
+
+    // Firebase'de güncelle
+    await updateDoc(userProfileRef, {
+      scores: newScores,
+      totalScore: newTotalScore,
+      updatedAt: Timestamp.now(),
+      lastPlayed: Timestamp.now(),
+      gamesPlayed: (userProfile.gamesPlayed || 0) + 1
+    });
   }
 
   public async getGameModeLeaderboard(gameMode: GameMode, limit = 10): Promise<UserScore[]> {

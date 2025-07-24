@@ -76,6 +76,30 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   
   const [showDefneModal, setShowDefneModal] = useState(false);
 
+  // 1. State'lere zaman ekle:
+  const [timeLeft, setTimeLeft] = useState(36);
+  const [timerActive, setTimerActive] = useState(false);
+  const [timeBonus, setTimeBonus] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 1. State ekle:
+  const [penaltyMessage, setPenaltyMessage] = useState('');
+
+  // useState ve useEffect'ler ana MatchingGame fonksiyonunun başında olmalı:
+  useEffect(() => {
+    if (motivationalMessage) {
+      const t = setTimeout(() => setMotivationalMessage(''), 800);
+      return () => clearTimeout(t);
+    }
+  }, [motivationalMessage]);
+
+  useEffect(() => {
+    if (penaltyMessage) {
+      const t = setTimeout(() => setPenaltyMessage(''), 800);
+      return () => clearTimeout(t);
+    }
+  }, [penaltyMessage]);
+
   useEffect(() => {
     const userId = authService.getCurrentUserId();
     if (userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' || userId === 'e4GgpNWJMmcBj9YiXub0xFpEHCA3') {
@@ -168,6 +192,39 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     previousUnit.current = unit;
   }, [words, unit]);
 
+  // 2. Oyun başladığında timer başlat:
+  useEffect(() => {
+    if (gameWords.length > 0 && !showResult) {
+      setTimeLeft(36);
+      setTimerActive(true);
+    }
+  }, [gameWords.length, showResult]);
+
+  // 3. Timer useEffect:
+  useEffect(() => {
+    if (!timerActive) return;
+    if (timeLeft <= 0) {
+      setTimerActive(false);
+      setTimeBonus(0);
+      setShowResult(true);
+      return;
+    }
+    timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [timerActive, timeLeft]);
+
+  // 4. Round tamamlandığında kalan süreye göre bonus puan ekle:
+  useEffect(() => {
+    if (showResult && timeLeft > 0) {
+      const bonus = timeLeft * 2;
+      setTimeBonus(bonus);
+      setScore(s => s + bonus);
+    }
+  }, [showResult]);
+
+  // 5. Kartlara tıklama engeli:
+  const canClickCards = timerActive && !showResult && timeLeft > 0;
+
   // Ayrı useEffect ile oyunu başlat
   useEffect(() => {
     if (words.length > 0 && gameWords.length === 0 && !showResult) {
@@ -178,7 +235,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   // En başa kaydır
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  // 6. handleCardClick fonksiyonunda canClickCards kontrolü:
   const handleCardClick = (card: GameWord) => {
+    if (!canClickCards) return;
     if (isChecking || matchedPairs.includes(card.headword)) {
       return;
     }
@@ -196,6 +255,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     }
   };
   
+  // 1. Motivasyon mesajı sadece arka arkaya 3 veya 6 doğru eşleşmede gösterilsin:
   useEffect(() => {
     if (selectedEnglish && selectedTurkish) {
       setIsChecking(true);
@@ -205,27 +265,34 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         learningStatsTracker.recordWordLearned(selectedEnglish);
         const newCombo = combo + 1;
         const newStreak = streak + 1;
-        const bonusPoints = Math.min(newCombo * 2, 20); // Max 20 bonus
         setCombo(newCombo);
         setStreak(newStreak);
         const bonus = Math.min(newStreak, 5);
-        setScore(prev => prev + 1 + bonus); // Ekran skoru da bonuslu
-        setMotivationalMessage(getMotivationalMessage(newCombo, newStreak));
-        checkAchievements(newCombo, newStreak, score + 1 + bonus);
-        // Her doğru eşleşmede streak bonusu ekle
-        awardPoints('matching', 1 + bonus, unit);
+        setScore(prev => prev + 1 + bonus);
+        setMotivationalMessage('');
+        // Motivasyon mesajı sadece 3 veya 6 doğru üst üste olursa gösterilsin
+        if (newCombo === 3 || newCombo === 6) {
+          setMotivationalMessage('Süper gidiyorsun!');
+        }
+        setPenaltyMessage('');
         setSelectedEnglish(null);
         setSelectedTurkish(null);
         setIsChecking(false);
+        setTimeout(() => {
+          setMotivationalMessage('');
+        }, 700);
       } else {
-        setCombo(0); // Combo sıfırlanır
+        setCombo(0);
         setStreak(0);
         setMotivationalMessage('');
+        setScore(prev => prev - 10); // Skor negatif olabilir
+        setPenaltyMessage('-10 puan');
+        setSelectedEnglish(null);
+        setSelectedTurkish(null);
+        setIsChecking(false);
         setTimeout(() => {
-          setSelectedEnglish(null);
-          setSelectedTurkish(null);
-          setIsChecking(false);
-        }, 300);
+          setPenaltyMessage('');
+        }, 700);
       }
     }
   }, [selectedEnglish, selectedTurkish, combo, streak, score]);
@@ -261,12 +328,21 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     }
   }, [matchedPairs, gameWords, unitProgress, score, unit]);
 
+  useEffect(() => {
+    if (showResult) {
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        gameScoreService.addScore(userId, 'matching', score);
+      }
+    }
+  }, [showResult]);
+
   // Motivasyonlu mesajlar
   const getMotivationalMessage = (combo: number, streak: number) => {
-    if (combo >= 5) return "🔥 Muhteşem! Combo yapıyorsun!";
-    if (combo >= 3) return "⚡ Harika gidiyorsun!";
-    if (streak >= 10) return "🚀 İnanılmaz streak!";
-    if (streak >= 5) return "💪 Süper performans!";
+    if (combo >= 5) return "Süper gidiyorsun!";
+    if (combo >= 3) return "Harika!";
+    if (streak >= 10) return "Mükemmel!";
+    if (streak >= 5) return "Çok iyi!";
     return "";
   };
 
@@ -554,8 +630,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         <div className="w-full max-w-6xl mx-auto relative">
           {/* Motivasyonlu Mesaj */}
           {motivationalMessage && (
-            <div className="text-center mb-4">
-              <div className="inline-block bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-2 rounded-full font-bold shadow-lg animate-pulse">
+            <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+              <div className="bg-white/90 text-blue-700 text-3xl font-extrabold rounded-2xl px-10 py-6 shadow-xl border-2 border-blue-200 animate-fade-in-out">
                 {motivationalMessage}
               </div>
             </div>
@@ -626,6 +702,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
                     theme === 'pink' ? 'text-pink-600' :
                     'text-gray-400'
                   }`}>{completedWords}/{totalUnitWords}</div>
+                  <div className="text-2xl font-bold text-red-500">{timeLeft}s</div>
                   <div className={`w-16 bg-gray-200 rounded-full h-1.5 ${
                     theme === 'blue' ? 'bg-blue-100' :
                     theme === 'pink' ? 'bg-pink-100' :
@@ -681,6 +758,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           </div>
         </div>
       </div>
+      {penaltyMessage && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-red-600/90 text-white text-3xl font-extrabold rounded-2xl px-10 py-6 shadow-xl border-2 border-red-200 animate-fade-in-out">
+            {penaltyMessage}
+          </div>
+        </div>
+      )}
     </>
   );
 }

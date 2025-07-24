@@ -190,6 +190,14 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
     { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
     { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    {
+      id: 'grammar-game',
+      title: 'Gramer Oyunu',
+      icon: <HiBookOpen className="w-8 h-8 text-indigo-500" />,
+      link: '/grammar-game',
+      color: 'from-indigo-500 to-blue-500',
+      shadow: 'shadow-indigo-500/30',
+    },
   ];
 
   const headingLines = [
