@@ -44,12 +44,12 @@ const FeedbackButton: React.FC = () => {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed z-50 bottom-8 right-8 bg-gradient-to-br from-red-700 to-red-900 hover:from-red-800 hover:to-red-950 text-white p-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-red-400"
+        className="fixed z-50 bottom-6 sm:bottom-8 right-4 sm:right-8 bg-gradient-to-br from-red-700 to-red-900 hover:from-red-800 hover:to-red-950 text-white p-2 sm:p-4 rounded-full shadow-lg flex items-center justify-center gap-1 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-red-400"
         style={{ boxShadow: '0 4px 24px #7f1d1d80' }}
         title="Geri Bildirim Gönder"
       >
-        <MessageCircle size={28} />
-        <span className="ml-2 font-semibold text-base tracking-tight hidden sm:inline">Feedback</span>
+        <span className="mr-1 font-normal text-sm sm:font-semibold sm:text-base tracking-tight">Feedback</span>
+        <MessageCircle size={20} className="sm:w-7 sm:h-7 w-5 h-5" />
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
