@@ -27,6 +27,10 @@ const LeaderboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo(0, 0); // Sayfa açılınca en üste git
+  }, []);
+
+  useEffect(() => {
     setLoading(true);
     const db = getFirestore(app);
     const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
