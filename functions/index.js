@@ -10,6 +10,8 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 admin.initializeApp();
 
 // API anahtarlarını buraya ekle
@@ -99,4 +101,38 @@ exports.iyzicoCallback = functions.https.onRequest(async (req, res) => {
     }, { merge: true });
   }
   res.status(200).send("OK");
+});
+
+// Geri bildirim kaydetme fonksiyonu
+exports.saveFeedback = functions.https.onRequest(async (req, res) => {
+  if (req.method !== "POST") {
+    return res.status(405).send("Sadece POST isteği kabul edilir.");
+  }
+  const { name, feedback } = req.body;
+  if (!feedback || typeof feedback !== "string") {
+    return res.status(400).send("Geri bildirim zorunludur.");
+  }
+  const feedbackData = {
+    name: name || "",
+    feedback,
+    date: new Date().toISOString(),
+    ip: req.headers["x-forwarded-for"] || req.connection.remoteAddress || "",
+  };
+  const feedbacksPath = path.join(__dirname, "../src/data/feedbacks.json");
+  let feedbacks = [];
+  try {
+    if (fs.existsSync(feedbacksPath)) {
+      const file = fs.readFileSync(feedbacksPath, "utf8");
+      feedbacks = JSON.parse(file);
+    }
+  } catch (e) {
+    feedbacks = [];
+  }
+  feedbacks.push(feedbackData);
+  try {
+    fs.writeFileSync(feedbacksPath, JSON.stringify(feedbacks, null, 2), "utf8");
+    res.status(200).send({ success: true });
+  } catch (e) {
+    res.status(500).send("Dosyaya yazılamadı.");
+  }
 });

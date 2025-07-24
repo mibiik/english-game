@@ -35,6 +35,7 @@ import Iletisim from './pages/Iletisim';
 import Destek from './pages/Destek';
 import Hakkimizda from './pages/Hakkimizda';
 import Sss from './pages/Sss';
+import AdminPanel from './pages/AdminPanel';
 // import SubscriptionInfo from './pages/SubscriptionInfo';
 // import { getAuth } from 'firebase/auth';
 // import { userService } from './services/userService';
@@ -504,6 +505,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           </>
         </ProtectedRoute>
       } />
+      <Route path="/admin" element={<AdminPanel />} />
       <Route path="/iletisim" element={<Iletisim />} />
       <Route path="/destek" element={<Destek />} />
       <Route path="/hakkimizda" element={<Hakkimizda />} />
