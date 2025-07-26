@@ -32,7 +32,6 @@ export interface GameScore {
 export interface UserScore {
   id: string;
   name: string;
-  scores: Record<GameMode, number>;
   totalScore: number;
 }
 
@@ -40,7 +39,6 @@ export interface UserProfile {
   userId: string;
   displayName: string;
   email: string;
-  scores: Record<GameMode, number>;
   totalScore: number;
   gamesPlayed: number;
   lastPlayed: Date;
@@ -68,24 +66,6 @@ class GameScoreService {
       {
         id: '1',
         name: 'Kullanıcı 1',
-        scores: {
-          'matching': 300,
-          'multiple-choice': 250,
-          'flashcard': 200,
-          'speaking': 80,
-          'word-race': 70,
-          'sentence-completion': 60,
-          'wordTypes': 50,
-          'wordForms': 0,
-          'vocabulary': 0,
-          'timedMatching': 0,
-          'speedGame': 0,
-          'quizGame': 0,
-          'prepositionMastery': 0,
-          'paraphraseChallenge': 0,
-          'difficultWords': 0,
-          'definitionToWord': 0
-        },
         totalScore: 1260
       }
     ];
@@ -109,24 +89,6 @@ class GameScoreService {
         userId,
         displayName,
         email,
-        scores: {
-          'matching': 0,
-          'sentence-completion': 0,
-          'multiple-choice': 0,
-          'flashcard': 0,
-          'speaking': 0,
-          'word-race': 0,
-          'wordTypes': 0,
-          'wordForms': 0,
-          'vocabulary': 0,
-          'timedMatching': 0,
-          'speedGame': 0,
-          'quizGame': 0,
-          'prepositionMastery': 0,
-          'paraphraseChallenge': 0,
-          'difficultWords': 0,
-          'definitionToWord': 0
-        },
         totalScore: 0,
         gamesPlayed: 0,
         lastPlayed: new Date(),
@@ -184,16 +146,6 @@ class GameScoreService {
 
     // Kullanıcı profilini oluştur
     await this.createOrUpdateUserProfile(userId, displayName, user.email || '');
-
-    // Kullanıcının ilk skorunu oluştur
-    await addDoc(collection(db, this.collectionName), {
-      userId,
-      displayName,
-      gameMode: 'matching',
-      score: 0,
-      unit: '1',
-      timestamp: Timestamp.now()
-    });
   }
 
   public async saveScore(gameMode: GameMode, score: number, unit: string): Promise<void> {
@@ -222,12 +174,8 @@ class GameScoreService {
       });
 
       // Kullanıcı profilini güncelle - mevcut puanı sıfırlama, yeni puanı ekle
-      const newScores = { ...userProfile.scores };
-      const currentScore = newScores[gameMode] || 0;
-      newScores[gameMode] = currentScore + score; // Mevcut puan + yeni puan
-      const newTotalScore = Object.values(newScores).reduce((sum, s) => sum + s, 0);
+      const newTotalScore = (userProfile.totalScore || 0) + score;
       await this.updateUserProfile(userId, {
-        scores: newScores,
         totalScore: newTotalScore,
         gamesPlayed: userProfile.gamesPlayed + 1,
         lastPlayed: new Date()
@@ -261,7 +209,7 @@ class GameScoreService {
 
     try {
       const userProfile = await this.getUserProfile(userId);
-      return userProfile?.scores[gameMode] || 0;
+      return userProfile?.totalScore || 0;
     } catch (error) {
       console.error('Kullanıcı yüksek skoru getirilirken hata:', error);
       return 0;
@@ -282,69 +230,18 @@ class GameScoreService {
   }
 
   // Kullanıcının tüm skorlarını getir
-  public async getUserAllScores(): Promise<Record<GameMode, number>> {
+  public async getUserAllScores(): Promise<number> {
     const userId = authService.getCurrentUserId();
     if (!userId) {
-      return {
-        'matching': 0,
-        'sentence-completion': 0,
-        'multiple-choice': 0,
-        'flashcard': 0,
-        'speaking': 0,
-        'word-race': 0,
-        'wordTypes': 0,
-        'wordForms': 0,
-        'vocabulary': 0,
-        'timedMatching': 0,
-        'speedGame': 0,
-        'quizGame': 0,
-        'prepositionMastery': 0,
-        'paraphraseChallenge': 0,
-        'difficultWords': 0,
-        'definitionToWord': 0
-      };
+      return 0;
     }
 
     try {
       const userProfile = await this.getUserProfile(userId);
-      return userProfile?.scores || {
-        'matching': 0,
-        'sentence-completion': 0,
-        'multiple-choice': 0,
-        'flashcard': 0,
-        'speaking': 0,
-        'word-race': 0,
-        'wordTypes': 0,
-        'wordForms': 0,
-        'vocabulary': 0,
-        'timedMatching': 0,
-        'speedGame': 0,
-        'quizGame': 0,
-        'prepositionMastery': 0,
-        'paraphraseChallenge': 0,
-        'difficultWords': 0,
-        'definitionToWord': 0
-      };
+      return userProfile?.totalScore || 0;
     } catch (error) {
       console.error('Kullanıcı skorları getirilirken hata:', error);
-      return {
-        'matching': 0,
-        'sentence-completion': 0,
-        'multiple-choice': 0,
-        'flashcard': 0,
-        'speaking': 0,
-        'word-race': 0,
-        'wordTypes': 0,
-        'wordForms': 0,
-        'vocabulary': 0,
-        'timedMatching': 0,
-        'speedGame': 0,
-        'quizGame': 0,
-        'prepositionMastery': 0,
-        'paraphraseChallenge': 0,
-        'difficultWords': 0,
-        'definitionToWord': 0
-      };
+      return 0;
     }
   }
 
@@ -367,7 +264,6 @@ class GameScoreService {
 
   public async addScore(userId: string, gameMode: GameMode, score: number): Promise<void> {
     console.log('🔥 addScore çağrıldı:', { userId, gameMode, score });
-    
     // Firebase'den mevcut kullanıcı profilini al
     const userProfileRef = doc(db, this.userProfilesCollection, userId);
     const userProfileDoc = await getDoc(userProfileRef);
@@ -378,36 +274,16 @@ class GameScoreService {
     }
 
     const userProfile = userProfileDoc.data() as UserProfile;
-    console.log('📊 Mevcut profil:', { 
-      currentScore: userProfile.scores[gameMode] || 0, 
-      totalScore: userProfile.totalScore 
-    });
-    
-    // Oyun moduna göre puanı güncelle
-    const newScores = { ...userProfile.scores };
-    const oldScore = newScores[gameMode] || 0;
-    newScores[gameMode] = oldScore + score;
-    const newTotalScore = Object.values(newScores).reduce((sum, s) => sum + s, 0);
+    const newTotalScore = (userProfile.totalScore || 0) + score;
 
-    console.log('📈 Yeni skorlar:', { 
-      gameMode, 
-      oldScore, 
-      addedScore: score, 
-      newScore: newScores[gameMode],
-      oldTotal: userProfile.totalScore,
-      newTotal: newTotalScore
-    });
-
-    // Firebase'de güncelle
+    // Sadece totalScore'u güncelle
     await updateDoc(userProfileRef, {
-      scores: newScores,
       totalScore: newTotalScore,
       updatedAt: Timestamp.now(),
       lastPlayed: Timestamp.now(),
       gamesPlayed: (userProfile.gamesPlayed || 0) + 1
     });
-    
-    console.log('✅ Firebase güncellendi');
+    console.log('✅ Sadece totalScore güncellendi:', newTotalScore);
   }
 
   public async getGameModeLeaderboard(gameMode: GameMode, limit = 10): Promise<UserScore[]> {
@@ -420,10 +296,6 @@ class GameScoreService {
       const user = this.scores.find(u => u.id === result.userId);
       return {
         ...user!,
-        scores: {
-          ...user!.scores,
-          [gameMode]: result.score
-        },
         totalScore: result.score
       };
     });
@@ -445,7 +317,6 @@ class GameScoreService {
         scoresCopy.push({
           id: emirProfile.userId,
           name: emirProfile.displayName,
-          scores: emirProfile.scores,
           totalScore: emirLeaderboardScore
         });
       }
@@ -454,7 +325,7 @@ class GameScoreService {
   }
 
   public async getLeaderboardByGameMode(gameMode: GameMode): Promise<UserScore[]> {
-    return [...this.scores].sort((a, b) => b.scores[gameMode] - a.scores[gameMode]);
+    return [...this.scores].sort((a, b) => b.totalScore - a.totalScore);
   }
 
   // Emir'in leaderboard puanını güncelle (manuel düzeltme için)
@@ -472,7 +343,6 @@ class GameScoreService {
       this.scores.push({
         id: userProfile.userId,
         name: userProfile.displayName,
-        scores: userProfile.scores,
         totalScore: userProfile.totalScore
       });
     }
