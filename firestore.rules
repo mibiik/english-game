@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /wordLists/{document} {
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || resource.data.isPublic == true);
+      allow write: if request.auth != null && (resource.data.userId == request.auth.uid || resource.id == request.auth.uid);
+    }
+    match /gameScores/{document} {
+      allow read: if true;
+      allow write: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    match /definitions/{document} {
+      allow read: if true; // Herkes definition okuyabilir
+      allow write: if request.auth != null; // Giriş yapmış herkes definition yazabilir
+    }
+    match /login_logs/{logId} {
+      // Sadece giriş yapmış kullanıcılar kendi adlarına log oluşturabilir.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Loglar oluşturulduktan sonra okunamaz, güncellenemez veya silinemez.
+      allow read, update, delete: if false;
+    }
+  }
+}

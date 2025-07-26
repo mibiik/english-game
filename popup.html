@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoFlirt AI</title>
+  <link rel="stylesheet" href="popup.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+        </svg>
+        <h1>AutoFlirt AI</h1>
+      </div>
+      <div id="platform-badge" class="platform-badge">Instagram</div>
+    </header>
+
+    <div id="loading-container" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Analyzing profile...</p>
+    </div>
+
+    <div id="error-container" class="error-container hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <p id="error-message">Please navigate to a social media profile</p>
+      <button id="retry-button" class="button">Retry</button>
+    </div>
+
+    <div id="content-container" class="content-container hidden">
+      <div class="profile-info">
+        <div class="profile-header">
+          <h2 id="profile-name">Profile Name</h2>
+          <p id="profile-username">@username</p>
+        </div>
+        <p id="profile-bio" class="profile-bio">Bio information will appear here...</p>
+        <div id="recent-messages" class="recent-messages hidden">
+          <h3>Recent Messages</h3>
+          <div id="messages-list" class="messages-list"></div>
+        </div>
+      </div>
+
+      <div class="settings-panel">
+        <div class="language-selector">
+          <label for="language">Message Language:</label>
+          <div class="select-wrapper">
+            <select id="language" class="language-select">
+              <option value="en">English</option>
+              <option value="tr">Türkçe</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+            <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="tone-selector">
+          <label for="tone">Message Tone:</label>
+          <div class="select-wrapper">
+            <select id="tone" class="tone-select">
+              <option value="flirty">Flirty</option>
+              <option value="friendly">Friendly</option>
+              <option value="professional">Professional</option>
+              <option value="funny">Funny</option>
+              <option value="creative">Creative</option>
+            </select>
+            <svg class="select-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+        
+        <button id="generate-button" class="button primary">Generate Messages</button>
+      </div>
+
+      <div id="messages-container" class="messages-container hidden">
+        <h3>Message Suggestions</h3>
+        <div id="suggestions-list" class="suggestions-list">
+          <!-- Message suggestions will be inserted here -->
+        </div>
+        <div class="button-row">
+          <button id="refresh-button" class="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+            New Suggestions
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Made with ❤️ by AutoFlirt AI</p>
+    </footer>
+  </div>
+
+  <script src="utils/storage.js"></script>
+  <script src="utils/api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
