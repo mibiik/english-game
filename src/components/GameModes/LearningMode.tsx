@@ -156,12 +156,20 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % wordsToDisplay.length);
     setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-  }, [wordsToDisplay.length]);
+    // Her kelime geçişinde 0.1 puan ekle
+    if (currentWord) {
+      awardPoints('learning-mode', 0.1, currentWord.unit || '1');
+    }
+  }, [wordsToDisplay.length, currentWord]);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + wordsToDisplay.length) % wordsToDisplay.length);
     setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-  }, [wordsToDisplay.length]);
+    // Her kelime geçişinde 0.1 puan ekle
+    if (currentWord) {
+      awardPoints('learning-mode', 0.1, currentWord.unit || '1');
+    }
+  }, [wordsToDisplay.length, currentWord]);
 
   const handleSpeak = useCallback((text: string) => {
     if ('speechSynthesis' in window) {
@@ -330,10 +338,10 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     };
   }, [definitionState.targetId, handleClosePopover]);
 
-  // Her kelime gösteriminde 1 puan ekle
+  // Her kelime gösteriminde 0.1 puan ekle
   useEffect(() => {
     if (currentWord && currentWord.headword) {
-      awardPoints('learning-mode', 1, currentWord.unit || '1');
+      awardPoints('learning-mode', 0.1, currentWord.unit || '1');
     }
     // eslint-disable-next-line
   }, [currentIndex]);
