@@ -812,7 +812,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                 {/* Başlık kartın en üstünde */}
                 <div className="w-full flex justify-center pt-2 pb-2 z-30">
                   <span
-                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
+                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0 flex items-center justify-center gap-2"
                     style={{
                       letterSpacing: '0.01em',
                       fontWeight: 700,
@@ -836,6 +836,9 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                     }}
                   >
                     {mode.title}
+                    {mode.id === 'matching' && (
+                      <span title="En Çok Oynanan" className="ml-1 align-middle text-yellow-400 text-xl md:text-2xl animate-bounce-slow">⭐</span>
+                    )}
                   </span>
                 </div>
                 {/* Güçlü transparan border */}
