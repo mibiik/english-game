@@ -3,7 +3,6 @@ import { WordDetail } from '../../data/words';
 import { definitionCacheService } from '../../services/definitionCacheService';
 import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles, Zap, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DifficultWordsLearning } from './DifficultWordsLearning';
 // Tüm kelimeler için import
 import { allWordsWithTranslations } from '../../data/allWords';
 import { newDetailedWords_part1 as foundationWords } from '../../data/word1';
@@ -111,7 +110,6 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   });
   
   const [showOnlyDifficult, setShowOnlyDifficult] = useState(false);
-  const [showAdvancedLearning, setShowAdvancedLearning] = useState(false);
   const [removedMessage, setRemovedMessage] = useState<string | null>(null);
   const [difficultWords, setDifficultWords] = useState<string[]>(() => {
     try {
@@ -421,17 +419,23 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     );
   }
 
-  if (showAdvancedLearning) {
-    // Tüm zorlandığı kelimeleri göster (sadece mevcut üniteden değil)
-    const difficultWordsData = allDetailedWords.filter(word => difficultWords.includes(word.headword));
+  if (showOnlyDifficult && totalDifficultWordsCount === 0) {
     return (
-      <DifficultWordsLearning 
-        words={difficultWordsData} 
-        onBack={() => setShowAdvancedLearning(false)}
-      />
+      <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`}>
+        <div className="w-full max-w-2xl mx-auto">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center">
+            <div className="flex items-center justify-center gap-2 text-blue-700">
+              <Lightbulb className="w-5 h-5" />
+              <span className="text-sm font-medium">
+                Henüz zorlandığınız kelime yok. Size rastgele kelimeler gösteriyoruz. 
+                Bir kelimeyi zor olarak işaretlemek için yıldız ikonuna tıklayın.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
-
 
 
   const progress = wordsToDisplay.length > 0 ? Math.round(((currentIndex + 1) / wordsToDisplay.length) * 100) : 0;
@@ -501,22 +505,6 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                 )}
             </button>
         </div>
-
-        {/* Gelişmiş Öğrenme Sistemi Butonu */}
-        {totalDifficultWordsCount > 0 && (
-          <div className="mb-4">
-            <button 
-              onClick={() => setShowAdvancedLearning(true)}
-              className={`w-full p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${themeClasses.button} flex items-center justify-center gap-2 shadow-lg`}
-            >
-              <Zap className="w-5 h-5" />
-              Gelişmiş Öğrenme Sistemi
-              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                {totalDifficultWordsCount} kelime
-              </span>
-            </button>
-          </div>
-        )}
 
         {/* Zorlandıklarım sekmesinde rastgele kelimeler gösterildiğinde bilgi mesajı */}
         {showOnlyDifficult && totalDifficultWordsCount === 0 && (
