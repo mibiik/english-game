@@ -418,13 +418,20 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'pink' ? 'bg-pink-400 border-pink-600' : 'bg-pink-300 border-pink-400'}`}
             title="Pembe Tema"
           />
-          <button
-            onClick={() => setInfiniteMode(!infiniteMode)}
-            className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold ${infiniteMode ? 'bg-green-500 border-green-600 text-white shadow-lg' : 'bg-red-300 border-red-400 text-red-700 hover:bg-red-400'}`}
-            title={infiniteMode ? "Süresiz Mod Açık - Süreyi Kapat" : "Süresiz Mod Kapalı - Süreyi Aç"}
-          >
-            {infiniteMode ? '∞' : '⏱️'}
-          </button>
+          {!infiniteMode && (
+            <button
+              onClick={() => setInfiniteMode(true)}
+              className="w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold bg-red-300 border-red-400 text-red-700 hover:bg-red-400"
+              title="Süreyi Kapat - Bir daha açılamaz!"
+            >
+              ⏱️
+            </button>
+          )}
+          {infiniteMode && (
+            <div className="w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-bold bg-green-500 border-green-600 text-white shadow-lg">
+              ∞
+            </div>
+          )}
         </div>
       </div>
     );
