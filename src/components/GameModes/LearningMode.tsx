@@ -156,20 +156,12 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % wordsToDisplay.length);
     setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-    // Her kelime geçişinde 0.1 puan ekle
-    if (currentWord) {
-      awardPoints('learning-mode', 0.1, currentWord.unit || '1');
-    }
-  }, [wordsToDisplay.length, currentWord]);
+  }, [wordsToDisplay.length]);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + wordsToDisplay.length) % wordsToDisplay.length);
     setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
-    // Her kelime geçişinde 0.1 puan ekle
-    if (currentWord) {
-      awardPoints('learning-mode', 0.1, currentWord.unit || '1');
-    }
-  }, [wordsToDisplay.length, currentWord]);
+  }, [wordsToDisplay.length]);
 
   const handleSpeak = useCallback((text: string) => {
     if ('speechSynthesis' in window) {
@@ -338,16 +330,12 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     };
   }, [definitionState.targetId, handleClosePopover]);
 
-  // Her kelime gösteriminde 0.1 puan ekle
+  // Component mount olduğunda 10 puan ver ve zor kelimeleri çek
   useEffect(() => {
-    if (currentWord && currentWord.headword) {
-      awardPoints('learning-mode', 0.1, currentWord.unit || '1');
-    }
-    // eslint-disable-next-line
-  }, [currentIndex]);
-
-  // Component mount olduğunda Firestore'dan zor kelimeleri çek
-  useEffect(() => {
+    // LearningMode'a girenlere 10 puan ver
+    awardPoints('learning-mode', 10, '1');
+    
+    // Firestore'dan zor kelimeleri çek
     const userId = authService.getCurrentUserId();
     if (userId) {
       userService.getDifficultWordsFromCloud(userId).then(cloudWords => {
