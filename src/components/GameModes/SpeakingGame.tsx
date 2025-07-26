@@ -62,10 +62,29 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
   };
 
   const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    window.speechSynthesis.speak(utterance);
+    if ('speechSynthesis' in window) {
+      const synth = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.8;
+      
+      // İngilizce bir voice seç
+      const voices = synth.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utterance.voice = enVoice;
+      
+      // Sesler yüklenmeden konuşma başlatılmasın
+      if (voices.length === 0) {
+        synth.onvoiceschanged = () => {
+          const voices2 = synth.getVoices();
+          const enVoice2 = voices2.find(v => v.lang.startsWith('en'));
+          if (enVoice2) utterance.voice = enVoice2;
+          synth.speak(utterance);
+        };
+      } else {
+        synth.speak(utterance);
+      }
+    }
   };
 
   const startListening = () => {

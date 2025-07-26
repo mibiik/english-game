@@ -167,9 +167,26 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
 
   const handleSpeak = useCallback((text: string) => {
     if ('speechSynthesis' in window) {
+      const synth = window.speechSynthesis;
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
-      window.speechSynthesis.speak(utterance);
+      
+      // İngilizce bir voice seç
+      const voices = synth.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utterance.voice = enVoice;
+      
+      // Sesler yüklenmeden konuşma başlatılmasın
+      if (voices.length === 0) {
+        synth.onvoiceschanged = () => {
+          const voices2 = synth.getVoices();
+          const enVoice2 = voices2.find(v => v.lang.startsWith('en'));
+          if (enVoice2) utterance.voice = enVoice2;
+          synth.speak(utterance);
+        };
+      } else {
+        synth.speak(utterance);
+      }
     }
   }, []);
 
