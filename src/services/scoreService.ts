@@ -15,7 +15,6 @@ export async function awardPoints(gameMode: string, points: number, unit?: strin
       userId,
       displayName: authService.getCurrentUser()?.displayName || 'Anonim',
       totalScore: points,
-      scores: { [gameMode]: points },
       lastPlayed: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -23,7 +22,6 @@ export async function awardPoints(gameMode: string, points: number, unit?: strin
   } else {
     // Mevcut kullanıcıya puan ekle
     await updateDoc(userProfileRef, {
-      [`scores.${gameMode}`]: increment(points),
       totalScore: increment(points),
       lastPlayed: new Date(),
       updatedAt: new Date(),
