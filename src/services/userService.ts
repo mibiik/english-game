@@ -323,6 +323,36 @@ class UserService {
     }
   }
 
+  // mbirlik24@ku.edu.tr kullanıcısının puanını 8000 yap
+  public async setMbirlikScoreTo8000(): Promise<void> {
+    try {
+      // Önce email ile kullanıcıyı bul
+      const usersQuery = query(collection(db, this.usersCollection), where('email', '==', 'mbirlik24@ku.edu.tr'));
+      const usersSnapshot = await getDocs(usersQuery);
+      
+      if (usersSnapshot.empty) {
+        console.error('mbirlik24@ku.edu.tr email adresli kullanıcı bulunamadı');
+        return;
+      }
+
+      const userDoc = usersSnapshot.docs[0];
+      const userId = userDoc.id;
+      const userData = userDoc.data() as User;
+      
+      const updateData = {
+        totalScore: 8000,
+        updatedAt: new Date()
+      };
+      
+      await updateDoc(doc(db, this.usersCollection, userId), updateData);
+      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
+      
+      console.log(`mbirlik24@ku.edu.tr kullanıcısının puanı 8000 olarak güncellendi.`);
+    } catch (error) {
+      console.error("mbirlik24@ku.edu.tr kullanıcısının puanı güncellenirken hata:", error);
+    }
+  }
+
   // Kullanıcı profil fotoğrafını güncelle (Google ile girişte veya değişiklikte)
   public async updateUserPhoto(userId: string, photoURL: string): Promise<void> {
     try {

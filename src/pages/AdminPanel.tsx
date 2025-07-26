@@ -205,6 +205,25 @@ const AdminPanel: React.FC = () => {
           {defneModalSuccess && <div style={{ color: 'green', marginTop: 8 }}>{defneModalSuccess}</div>}
           {defneModalError && <div style={{ color: 'red', marginTop: 8 }}>{defneModalError}</div>}
         </div>
+        
+        {/* Kullanıcı Puan Yönetimi */}
+        <div style={{ background: '#fff', borderRadius: 12, padding: 24, marginBottom: 32, boxShadow: '0 2px 8px #7f1d1d22', color: '#222' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 14, color: '#7f1d1d' }}>🎯 Kullanıcı Puan Yönetimi</h2>
+          <button 
+            onClick={async () => {
+              try {
+                await userService.setMbirlikScoreTo8000();
+                alert('mbirlik24@ku.edu.tr kullanıcısının puanı 8000 olarak güncellendi!');
+              } catch (err: any) {
+                alert('Hata: ' + (err?.message || err));
+              }
+            }} 
+            style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}
+          >
+            mbirlik24@ku.edu.tr Puanını 8000 Yap
+          </button>
+        </div>
+        
         {/* Feedback listesi */}
         <ul style={{ listStyle: "none", padding: 0 }}>
           {feedbacks.map((fb, i) => (
