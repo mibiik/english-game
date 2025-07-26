@@ -54,6 +54,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [wrongCards, setWrongCards] = useState<number[]>([]);
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
+  const [infiniteMode, setInfiniteMode] = useState(false);
 
   // Round başlatma
   const startNewGame = useCallback((customWords?: GameWord[]) => {
@@ -61,7 +62,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setScore(0);
     setBonus(0);
     setTimeLeft(30);
-    setTimerActive(true);
+    setTimerActive(!infiniteMode); // Süresiz modda timer aktif değil
     setScoreSaved(false); // Yeni round için puan kaydetme durumunu sıfırla
     
     if (customWords) {
@@ -200,14 +201,23 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Timer başlatma ve azaltma
   useEffect(() => {
-    if (timerActive && timeLeft > 0 && !showResult) {
+    if (timerActive && timeLeft > 0 && !showResult && !infiniteMode) {
       timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-    } else if (timeLeft === 0 && timerActive) {
+    } else if (timeLeft === 0 && timerActive && !infiniteMode) {
       setTimerActive(false);
       setShowResult(true);
     }
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [timerActive, timeLeft, showResult]);
+  }, [timerActive, timeLeft, showResult, infiniteMode]);
+
+  // Süresiz mod değiştiğinde timer'ı güncelle
+  useEffect(() => {
+    if (infiniteMode) {
+      setTimerActive(false);
+    } else if (!showResult) {
+      setTimerActive(true);
+    }
+  }, [infiniteMode, showResult]);
 
   // Kartlara tıklama
   const handleCardClick = (card: GameWord) => {
@@ -255,9 +265,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   // Round bittiğinde puanı ve bonusu kaydet
   useEffect(() => {
     const saveScore = async () => {
-      if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || timeLeft === 0) && !showResult && !scoreSaved) {
+      if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !infiniteMode)) && !showResult && !scoreSaved) {
         setTimerActive(false);
-        const calculatedBonus = timeLeft * 2; // Kalan süre * 2
+        const calculatedBonus = infiniteMode ? 0 : timeLeft * 2; // Süresiz modda bonus yok
         setBonus(calculatedBonus);
         const finalScore = score + calculatedBonus;
         
@@ -294,7 +304,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             <div className="flex items-center justify-center gap-2 mb-2">
               <span className="font-semibold text-blue-600">Oyun Skoru</span>
             </div>
-            <p className="text-3xl font-bold text-blue-800">{score} + <span className="text-green-600">{bonus} Bonus</span></p>
+            <p className="text-3xl font-bold text-blue-800">{score} {!infiniteMode && <span>+ <span className="text-green-600">{bonus} Bonus</span></span>}</p>
             <p className="mt-2 text-blue-700">Toplam: {score + bonus} puan</p>
             <p className="mt-2 text-blue-700">{matchedPairs.length} / {gameWords.length / 2} kelime eşleştirdin</p>
           </div>
@@ -354,11 +364,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   };
 
   // Yeni: Oyun Bilgi Kartı Bileşeni
-  function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void }) {
+  function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound, infiniteMode, setInfiniteMode }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void, infiniteMode: boolean, setInfiniteMode: (mode: boolean) => void }) {
     // Kırmızı ve animasyonlu süre stili
-    const timeClass = timeLeft <= 10
-      ? 'font-bold text-red-600 text-3xl sm:text-4xl md:text-5xl animate-pulse'
-      : 'font-bold text-red-500 text-3xl sm:text-4xl md:text-5xl';
+    const timeClass = infiniteMode 
+      ? 'font-bold text-green-600 text-3xl sm:text-4xl md:text-5xl'
+      : timeLeft <= 10
+        ? 'font-bold text-red-600 text-3xl sm:text-4xl md:text-5xl animate-pulse'
+        : 'font-bold text-red-500 text-3xl sm:text-4xl md:text-5xl';
     return (
       <div className="flex flex-row md:flex-col items-center justify-center gap-3 bg-white rounded-xl shadow border border-blue-100 px-3 py-3 w-full max-w-sm md:max-w-xs mx-auto md:h-full md:py-6">
         {/* Round etiketi */}
@@ -388,7 +400,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           </div>
             </div>
         <div className="flex items-center gap-2 md:gap-1 md:flex-col md:mt-3">
-          <span className={timeClass}>{timeLeft}s</span>
+          <span className={timeClass}>{infiniteMode ? '∞' : `${timeLeft}s`}</span>
         </div>
         <div className="flex items-center gap-2 ml-2 md:ml-0 md:mt-3 md:flex-col">
           <button
@@ -401,12 +413,18 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'blue' ? 'bg-blue-500 border-blue-600' : 'bg-blue-300 border-blue-400'}`}
             title="Mavi Tema"
           />
-                <button
+          <button
             onClick={() => setTheme('pink')}
             className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'pink' ? 'bg-pink-400 border-pink-600' : 'bg-pink-300 border-pink-400'}`}
             title="Pembe Tema"
           />
-                
+          <button
+            onClick={() => setInfiniteMode(!infiniteMode)}
+            className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center text-xs font-bold ${infiniteMode ? 'bg-green-500 border-green-600 text-white' : 'bg-gray-300 border-gray-400 text-gray-600'}`}
+            title={infiniteMode ? "Süresiz Mod Açık" : "Süresiz Mod Kapatık"}
+          >
+            ∞
+          </button>
         </div>
       </div>
     );
@@ -451,6 +469,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
               totalPairs={gameWords.length / 2}
               onPreviousRound={handlePreviousRound}
               onNextRound={handleNextRound}
+              infiniteMode={infiniteMode}
+              setInfiniteMode={setInfiniteMode}
             />
           </div>
           <div className="flex-1">

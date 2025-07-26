@@ -12,8 +12,8 @@ const DefneSpecialModal: React.FC<DefneSpecialModalProps> = ({ onClose }) => {
         <div className="flex flex-col items-center gap-3">
           <img src="/assets/aaaaaaaadwü/ordekbakimi2.jpg" alt="Ördek" className="w-32 h-32 object-cover rounded-full border-4 border-pink-200 shadow mb-2" />
           <div className="text-4xl">👑</div>
-          <h2 className="text-2xl font-bold text-pink-600 text-center">EŞLEŞTİRME OYUNUN KRALÇİESİ GELDİ</h2>
-          <p className="text-pink-700 text-center font-bold">DEFNE ÖZZ TAM BİR VİRTÜOZ </p>
+          <h2 className="text-2xl font-bold text-pink-600 text-center">EŞLEŞTİRME OYUNUN CADISI GELDİ</h2>
+          <p className="text-pink-700 text-center font-bold">AL SANA SÜRESİZ OYNA BAKALIM  </p>
         </div>
       </div>
     </div>
