@@ -341,36 +341,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </motion.button>
               </div>
               {/* Mobile: Profile Button Only */}
-              <div className="md:hidden flex items-center space-x-2">
+              <div className="md:hidden flex items-center space-x-1">
                 {userScore !== null && (
                   <button
                     onClick={() => navigate('/leaderboard')}
-                    className="flex items-center gap-1 text-yellow-400 hover:bg-yellow-500/10 rounded px-1 py-0.5 transition-colors"
-                    style={{ fontWeight: 500, fontSize: '13px', lineHeight: '1.1' }}
+                    className="flex items-center gap-0.5 text-yellow-400 hover:bg-yellow-500/10 rounded px-0.5 py-0.5 transition-colors"
+                    style={{ fontWeight: 500, fontSize: '11px', lineHeight: '1' }}
                     title="Toplam Puan (Liderlik Tablosu için tıkla)"
                   >
-                    <Trophy className="w-3.5 h-3.5" />
+                    <Trophy className="w-3 h-3" />
                     <span className="text-yellow-300">{userScore}</span>
                   </button>
                 )}
                 <motion.button
                   onClick={toggleSound}
-                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
                   aria-label={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
                 >
-                  {soundEnabled ? <Volume2 className="w-7 h-7" /> : <VolumeX className="w-7 h-7" />}
+                  {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
                 </motion.button>
                 <motion.button 
                   onClick={handleProfileClick} 
-                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
                   whileHover={{ scale: 1.1 }} 
                   whileTap={{ scale: 0.95 }} 
                   title="Profil"
                 >
-                  <User className="w-7 h-7" />
+                  <User className="w-5 h-5" />
                 </motion.button>
               </div>
             </div> {/* .flex items-center justify-between */}
