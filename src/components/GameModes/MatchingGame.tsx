@@ -343,10 +343,10 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     return (
       <div
         key={card.id}
-        className={`w-full h-24 sm:h-24 md:h-28 lg:h-32 flex items-center justify-center p-1.5 sm:p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-300 transform border-2 ${cardStateClasses}`}
+        className={`w-full h-20 sm:h-24 md:h-28 lg:h-32 flex items-center justify-center p-1 sm:p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-300 transform border-2 ${cardStateClasses}`}
         onClick={() => handleCardClick(card)}
       >
-        <h3 className="text-center text-base sm:text-base md:text-lg lg:text-xl font-semibold px-1 max-w-full break-words leading-tight">
+        <h3 className="text-center text-sm sm:text-base md:text-lg lg:text-xl font-semibold px-0.5 max-w-full break-words leading-tight">
           {card.type === 'english' ? card.headword : card.turkish}
         </h3>
       </div>
@@ -437,7 +437,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         {/* Mobilde yatay, masaüstünde dikey olarak ortada info kartı */}
         <div className="flex flex-col md:flex-row gap-4 items-stretch w-full">
           <div className="flex-1">
-              <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:gap-2">
+              <div className="grid grid-cols-3 gap-0.5 sm:gap-1.5 md:gap-2">
               {gameWords.filter(w => w.type === 'english').map(renderCard)}
             </div>
           </div>
@@ -454,7 +454,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             />
           </div>
           <div className="flex-1">
-              <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:gap-2">
+              <div className="grid grid-cols-3 gap-0.5 sm:gap-1.5 md:gap-2">
               {gameWords.filter(w => w.type === 'turkish').map(renderCard)}
               </div>
             </div>
