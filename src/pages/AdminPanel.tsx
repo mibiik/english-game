@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getFirestore, collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, setDoc } from "firebase/firestore";
 import app from '../config/firebase';
 import { sendMail } from '../services/emailService';
 import { userService } from '../services/userService';
@@ -35,6 +35,17 @@ const AdminPanel: React.FC = () => {
   const [freeMailSending, setFreeMailSending] = useState(false);
   const [freeMailSuccess, setFreeMailSuccess] = useState<string | null>(null);
   const [freeMailError, setFreeMailError] = useState<string | null>(null);
+  
+  // Defne Modal Yönetimi
+  const [defneModalContent, setDefneModalContent] = useState({
+    title: "EŞLEŞTİRME OYUNUN CADISI GELDİ",
+    message: "AL SANA SÜRESİZ OYNA BAKALIM",
+    imageUrl: "/assets/aaaaaaaadwü/ordekbakimi2.jpg",
+    isActive: true
+  });
+  const [defneModalLoading, setDefneModalLoading] = useState(false);
+  const [defneModalSuccess, setDefneModalSuccess] = useState<string | null>(null);
+  const [defneModalError, setDefneModalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -44,6 +55,31 @@ const AdminPanel: React.FC = () => {
       setFeedbacks(data);
     }, (err) => setError("Geri bildirimler yüklenemedi: " + err.message));
     return () => unsubscribe();
+  }, [isAuthenticated]);
+
+  // Defne Modal içeriğini yükle
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const fetchDefneContent = async () => {
+      try {
+        const defneDoc = doc(db, 'adminContent', 'defneModal');
+        const docSnap = await getDoc(defneDoc);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setDefneModalContent({
+            title: data.title || "EŞLEŞTİRME OYUNUN CADISI GELDİ",
+            message: data.message || "AL SANA SÜRESİZ OYNA BAKALIM",
+            imageUrl: data.imageUrl || "/assets/aaaaaaaadwü/ordekbakimi2.jpg",
+            isActive: data.isActive !== undefined ? data.isActive : true
+          });
+        }
+      } catch (error) {
+        console.error('Defne modal içeriği yüklenirken hata:', error);
+      }
+    };
+
+    fetchDefneContent();
   }, [isAuthenticated]);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -80,7 +116,7 @@ const AdminPanel: React.FC = () => {
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a1a1a 0%, #7f1d1d 100%)", padding: "40px 0" }}>
       <div style={{ maxWidth: 800, margin: "0 auto", padding: 32, background: "#2d0101", borderRadius: 18, boxShadow: "0 4px 32px #7f1d1d80" }}>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#fca5a5", marginBottom: 32, textAlign: "center", letterSpacing: 1 }}>Admin Paneli <span style={{ color: "#fff" }}>- Geri Bildirimler</span></h1>
+        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#fca5a5", marginBottom: 32, textAlign: "center", letterSpacing: 1 }}>Admin Paneli <span style={{ color: "#fff" }}>- Geri Bildirimler & İçerik Yönetimi</span></h1>
         {/* Serbest e-posta gönderme alanı */}
         <div style={{ background: '#fff', borderRadius: 12, padding: 24, marginBottom: 32, boxShadow: '0 2px 8px #7f1d1d22', color: '#222' }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 14, color: '#7f1d1d' }}>Serbest E-Posta Gönder</h2>
@@ -110,6 +146,64 @@ const AdminPanel: React.FC = () => {
           }} style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}>{freeMailSending ? 'Gönderiliyor...' : 'Gönder'}</button>
           {freeMailSuccess && <div style={{ color: 'green', marginTop: 8 }}>{freeMailSuccess}</div>}
           {freeMailError && <div style={{ color: 'red', marginTop: 8 }}>{freeMailError}</div>}
+        </div>
+        
+        {/* Defne Modal Yönetimi */}
+        <div style={{ background: '#fff', borderRadius: 12, padding: 24, marginBottom: 32, boxShadow: '0 2px 8px #7f1d1d22', color: '#222' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 14, color: '#7f1d1d' }}>👑 Defne Special Modal Yönetimi</h2>
+          <input 
+            type="text" 
+            value={defneModalContent.title} 
+            onChange={e => setDefneModalContent({...defneModalContent, title: e.target.value})} 
+            placeholder="Modal Başlığı" 
+            style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} 
+          />
+          <input 
+            type="text" 
+            value={defneModalContent.message} 
+            onChange={e => setDefneModalContent({...defneModalContent, message: e.target.value})} 
+            placeholder="Modal Mesajı" 
+            style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} 
+          />
+          <input 
+            type="text" 
+            value={defneModalContent.imageUrl} 
+            onChange={e => setDefneModalContent({...defneModalContent, imageUrl: e.target.value})} 
+            placeholder="Resim URL'si" 
+            style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} 
+          />
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
+              <input 
+                type="checkbox" 
+                checked={defneModalContent.isActive} 
+                onChange={e => setDefneModalContent({...defneModalContent, isActive: e.target.checked})} 
+                style={{ width: 16, height: 16 }}
+              />
+              Modal Aktif
+            </label>
+          </div>
+          <button 
+            disabled={defneModalLoading} 
+            onClick={async () => {
+              setDefneModalLoading(true);
+              setDefneModalSuccess(null);
+              setDefneModalError(null);
+              try {
+                const defneDoc = doc(db, 'adminContent', 'defneModal');
+                await setDoc(defneDoc, defneModalContent);
+                setDefneModalSuccess('Defne modal içeriği başarıyla güncellendi!');
+              } catch (err: any) {
+                setDefneModalError('Güncelleme başarısız: ' + (err?.message || err));
+              }
+              setDefneModalLoading(false);
+            }} 
+            style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}
+          >
+            {defneModalLoading ? 'Güncelleniyor...' : 'Defne Modal İçeriğini Güncelle'}
+          </button>
+          {defneModalSuccess && <div style={{ color: 'green', marginTop: 8 }}>{defneModalSuccess}</div>}
+          {defneModalError && <div style={{ color: 'red', marginTop: 8 }}>{defneModalError}</div>}
         </div>
         {/* Feedback listesi */}
         <ul style={{ listStyle: "none", padding: 0 }}>

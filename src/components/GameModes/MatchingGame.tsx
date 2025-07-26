@@ -5,6 +5,7 @@ import { gameScoreService } from '../../services/gameScoreService';
 import { authService } from '../../services/authService';
 import { AlarmClock, Target, Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { soundService } from '../../services/soundService';
+import DefneSpecialModal from '../DefneSpecialModal';
 
 interface GameWord extends WordDetail {
   type: 'english' | 'turkish';
@@ -55,6 +56,17 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
   const [infiniteMode, setInfiniteMode] = useState(false);
+  const [showDefneModal, setShowDefneModal] = useState(false);
+
+  // Kullanıcı ID'sini al
+  const userId = authService.getCurrentUserId();
+
+  // Oyun açılır açılmaz defne ise modalı göster
+  useEffect(() => {
+    if (userId === 'SHYestLnCWh6FFQ6H08iErDzAb12' || userId === 'uckYnXidETgbgd8sI6ehlgZQnT43') {
+      setShowDefneModal(true);
+    }
+  }, [userId]);
 
   // Round başlatma
   const startNewGame = useCallback((customWords?: GameWord[]) => {
@@ -210,10 +222,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [timerActive, timeLeft, showResult, infiniteMode]);
 
-  // Süresiz mod değiştiğinde timer'ı güncelle
+  // Süresiz mod değiştiğinde timer'ı güncelle ve bonusu sıfırla
   useEffect(() => {
     if (infiniteMode) {
       setTimerActive(false);
+      setBonus(0); // Süre kapatıldığında bonus sıfırlanır
     } else if (!showResult) {
       setTimerActive(true);
     }
@@ -434,6 +447,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           )}
         </div>
       </div>
+    );
+  }
+
+  // Defne Modal göster
+  if (showDefneModal) {
+    return (
+      <DefneSpecialModal onClose={() => setShowDefneModal(false)} />
     );
   }
 
