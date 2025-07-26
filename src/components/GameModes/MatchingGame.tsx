@@ -420,10 +420,10 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           />
           <button
             onClick={() => setInfiniteMode(!infiniteMode)}
-            className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center text-xs font-bold ${infiniteMode ? 'bg-green-500 border-green-600 text-white' : 'bg-gray-300 border-gray-400 text-gray-600'}`}
-            title={infiniteMode ? "Süresiz Mod Açık" : "Süresiz Mod Kapatık"}
+            className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold ${infiniteMode ? 'bg-green-500 border-green-600 text-white shadow-lg' : 'bg-red-300 border-red-400 text-red-700 hover:bg-red-400'}`}
+            title={infiniteMode ? "Süresiz Mod Açık - Süreyi Kapat" : "Süresiz Mod Kapalı - Süreyi Aç"}
           >
-            ∞
+            {infiniteMode ? '∞' : '⏱️'}
           </button>
         </div>
       </div>
