@@ -253,6 +253,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   useEffect(() => {
+    // Oyun sayfalarında scroll ile gizleme devre dışı
+    const gamePaths = [
+      '/matching', '/multiple-choice', '/sentence-completion', '/quiz', '/word-forms', '/definition-to-word', '/preposition-mastery', '/paraphrase', '/word-race', '/speaking', '/learning-mode', '/flashcard', '/grammar-game', '/essay-writing'
+    ];
+    const isGamePage = gamePaths.some(path => location.pathname.startsWith(path));
+    if (isGamePage) {
+      setIsHidden(false);
+      return;
+    }
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       if (currentScrollY > lastScrollY.current && currentScrollY > 40) {
@@ -264,7 +273,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   const handleMenuAction = (action: () => void) => {
     action();
