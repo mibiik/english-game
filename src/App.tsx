@@ -246,7 +246,7 @@ function AppContent() {
       setAuthMode(event.detail?.mode || 'register');
       // Sadece isAuthenticated kesin olarak false ise modal aç
       if (isAuthenticated === false) {
-        setShowAuth(true);
+      setShowAuth(true);
       } else {
         setShowAuth(false);
       }

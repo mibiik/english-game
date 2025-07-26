@@ -37,6 +37,7 @@ import Hakkimizda from './pages/Hakkimizda';
 import Sss from './pages/Sss';
 import AdminPanel from './pages/AdminPanel';
 import GrammarGamePage from './pages/GrammarGamePage';
+import AboutFounder from './pages/AboutFounder';
 // import SubscriptionInfo from './pages/SubscriptionInfo';
 // import { getAuth } from 'firebase/auth';
 // import { userService } from './services/userService';
@@ -527,6 +528,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
       <Route path="/destek" element={<Destek />} />
       <Route path="/hakkimizda" element={<Hakkimizda />} />
       <Route path="/sss" element={<Sss />} />
+      <Route path="/about-founder" element={<AboutFounder />} />
 
     </Routes>
   );

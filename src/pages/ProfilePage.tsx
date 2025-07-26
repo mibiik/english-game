@@ -442,7 +442,7 @@ const ProfilePage: React.FC = () => {
               )}
               {isFirstSupporter && (
                 <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold mr-2">
-                  <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
+                  <Star className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                 </span>
               )}
               {isEditingName ? (
@@ -456,7 +456,7 @@ const ProfilePage: React.FC = () => {
                   autoFocus
                 />
               ) : (
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                <h1 className="text-2xl sm:text-3xl font-bold text-pink-400">
                   {user?.displayName || 'Kullanıcı Adı Girilmedi'}
             </h1>
               )}

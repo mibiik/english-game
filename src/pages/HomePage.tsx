@@ -190,14 +190,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
     { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
     { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
     { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    {
-      id: 'grammar-game',
-      title: 'Gramer Oyunu',
-      icon: <HiBookOpen className="w-8 h-8 text-indigo-500" />,
-      link: '/grammar-game',
-      color: 'from-indigo-500 to-blue-500',
-      shadow: 'shadow-indigo-500/30',
-    },
   ];
 
   const headingLines = [
@@ -305,6 +297,14 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
             <span className="block mt-2 text-sm text-gray-400 font-semibold opacity-60">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
           </p>
+          <div className="flex justify-center md:justify-start mb-6">
+            <Link 
+              to="/about-founder" 
+              className="inline-flex items-center px-3 py-1.5 bg-white/5 backdrop-blur-sm hover:bg-white/10 text-white/70 hover:text-white/90 rounded-full text-xs font-medium transition-all duration-300 border border-white/10 hover:border-white/20"
+            >
+              About Founder
+            </Link>
+          </div>
         </div>
         {/* Mini Leaderboard */}
         {topUsers.length >= 3 && (
@@ -812,7 +812,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                 {/* Başlık kartın en üstünde */}
                 <div className="w-full flex justify-center pt-2 pb-2 z-30">
                   <span
-                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0 flex items-center justify-center gap-2"
+                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
                     style={{
                       letterSpacing: '0.01em',
                       fontWeight: 700,
@@ -836,9 +836,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                     }}
                   >
                     {mode.title}
-                    {mode.id === 'matching' && (
-                      <span title="En Çok Oynanan" className="ml-1 align-middle text-yellow-400 text-xl md:text-2xl animate-bounce-slow">⭐</span>
-                    )}
                   </span>
                 </div>
                 {/* Güçlü transparan border */}
@@ -853,12 +850,14 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         </div>
       </main>
       {/* Sabit sağ alt köşede, dikkat çekmeyen bir şekilde */}
-      {/* Footer: iletişim, destek, hakkımızda, SSS */}
-      <div className="w-full text-center py-6 mt-12 text-xs text-gray-400">
-        <a href="/iletisim" className="mx-2 hover:underline">İletişim</a>|
-        <a href="/destek" className="mx-2 hover:underline">Destek</a>|
-        <a href="/hakkimizda" className="mx-2 hover:underline">Hakkımızda</a>|
-        <a href="/sss" className="mx-2 hover:underline">Sıkça Sorulan Sorular</a>
+      {/* Footer: About Founder */}
+      <div className="w-full text-center py-8 mt-12">
+        <Link 
+          to="/about-founder" 
+          className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-white/20"
+        >
+          <span>About Founder</span>
+        </Link>
       </div>
       <div className="fixed bottom-2 right-3 z-50 pointer-events-auto select-none">
         <FeedbackButton />

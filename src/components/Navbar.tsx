@@ -218,11 +218,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('soundEnabled');
     return saved ? JSON.parse(saved) : true;
   });
+  const lastScrollY = useRef(0);
   const navigate = useNavigate();
   const location = useLocation();
   const [userScore, setUserScore] = useState<number | null>(() => {
@@ -251,9 +253,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   useEffect(() => {
-    // Scroll ile gizleme özelliği tamamen kaldırıldı - navbar her zaman görünür
-    // Navbar artık her zaman görünür durumda
-  }, [location.pathname]);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 40) {
+        setIsHidden(true); // aşağı kaydırınca gizle
+      } else {
+        setIsHidden(false); // yukarı kaydırınca göster
+      }
+      lastScrollY.current = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleMenuAction = (action: () => void) => {
     action();
@@ -275,7 +286,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300"
+      <nav className={`fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
         style={{ height: location.pathname === '/' && showAnnouncement ? '168px' : '128px' }}>
         {/* Ana Navbar */}
         <div className="h-32 flex items-center bg-black">
