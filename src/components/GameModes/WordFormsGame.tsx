@@ -140,11 +140,12 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     
     setIsCorrect(correct);
     if (correct) {
-      setScore(prev => prev + 2);
-      setScoreChange({ value: +2, key: Date.now() });
-      setStreak(prev => prev + 1);
       const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
-      awardPoints('wordForms', 2 + bonus, words[0]?.unit || '1');
+      const totalPoints = 2 + bonus;
+      setScore(prev => prev + totalPoints);
+      setScoreChange({ value: totalPoints, key: Date.now() });
+      setStreak(prev => prev + 1);
+      awardPoints('wordForms', totalPoints, words[0]?.unit || '1');
       soundService.playCorrect();
     } else {
       setScore(prev => prev - 2);

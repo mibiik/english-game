@@ -154,15 +154,16 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
     setShowFeedback(true);
 
     if (correct) {
-      setScore(prev => prev + 2);
-      setScoreChange({ value: +2, key: Date.now() });
+      const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
+      const totalPoints = 2 + bonus;
+      setScore(prev => prev + totalPoints);
+      setScoreChange({ value: totalPoints, key: Date.now() });
       setStreak(prev => {
         const newStreak = prev + 1;
         setMaxStreak(current => Math.max(current, newStreak));
         return newStreak;
       });
-      const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
-      awardPoints('definitionToWord', 2 + bonus, unit);
+      awardPoints('definitionToWord', totalPoints, unit);
       soundService.playCorrect();
     } else {
       setScore(prev => prev - 2);

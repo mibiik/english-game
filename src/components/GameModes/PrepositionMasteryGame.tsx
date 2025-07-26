@@ -82,17 +82,13 @@ export const PrepositionMasteryGame: React.FC = () => {
     if (selectedAnswer) return;
     setSelectedAnswer(option);
     if (option === exercises[currentQuestionIndex]?.correctAnswer) {
-      setScore(prev => prev + 2);
-      setScoreChange({ value: +2, key: Date.now() });
+      const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
+      const totalPoints = 2 + bonus;
+      setScore(prev => prev + totalPoints);
+      setScoreChange({ value: totalPoints, key: Date.now() });
+      setStreak(prev => prev + 1);
+      awardPoints('prepositionMastery', totalPoints, 'unit');
       soundService.playCorrect();
-      // Anında puan ekle
-      const userId = authService.getCurrentUserId();
-      if (userId) {
-        gameScoreService.addScore(userId, 'prepositionMastery', 2);
-        setStreak(prev => prev + 1);
-        const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
-        awardPoints('preposition', 2 + bonus, 'unit');
-      }
     } else {
       setScore(prev => prev - 2);
       setScoreChange({ value: -2, key: Date.now() });

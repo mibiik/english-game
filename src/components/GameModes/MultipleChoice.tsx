@@ -138,12 +138,13 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     updateWordDifficulty(currentWord, correct);
 
     if (correct) {
-      setScore(prev => prev + 2);
-      setScoreChange({ value: +2, key: Date.now() });
+      const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
+      const totalPoints = 2 + bonus;
+      setScore(prev => prev + totalPoints);
+      setScoreChange({ value: totalPoints, key: Date.now() });
       setStreak(prev => prev + 1);
       learningStatsTracker.recordWordLearned(currentWord);
-      const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
-      awardPoints('multiple-choice', 2 + bonus, currentWord.unit);
+      awardPoints('multiple-choice', totalPoints, currentWord.unit);
       soundService.playCorrect();
     } else {
       setScore(prev => prev - 2);

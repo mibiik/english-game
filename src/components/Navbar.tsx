@@ -5,6 +5,9 @@ import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
 import { soundService } from '../services/soundService';
+import { gameScoreService } from '../services/gameScoreService';
+import { db } from '../config/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 interface NavbarProps {
   onShowAuth: () => void;
@@ -224,7 +227,31 @@ export const Navbar: React.FC<NavbarProps> = ({
   const lastScrollY = useRef(0);
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const [userScore, setUserScore] = useState<number | null>(() => {
+    const stored = localStorage.getItem('userScore');
+    return stored ? Number(stored) : null;
+  });
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
+    if (authService.isAuthenticated()) {
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        const userProfileRef = doc(db, 'userProfiles', userId);
+        unsub = onSnapshot(userProfileRef, (docSnap) => {
+          const data = docSnap.data();
+          const score = data?.totalScore || 0;
+          setUserScore(score);
+          localStorage.setItem('userScore', String(score)); // localStorage'a yaz
+        });
+      }
+    } else {
+      setUserScore(null);
+      localStorage.removeItem('userScore');
+    }
+    return () => { unsub && unsub(); };
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -288,6 +315,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </div>
               <div className="hidden md:flex items-center space-x-5">
+                {userScore !== null && (
+                  <button
+                    onClick={() => navigate('/leaderboard')}
+                    className="flex items-center gap-1 text-yellow-400 hover:bg-yellow-500/10 rounded px-1 py-0.5 transition-colors"
+                    style={{ fontWeight: 500, fontSize: '15px', lineHeight: '1.1' }}
+                    title="Toplam Puan (Liderlik Tablosu için tıkla)"
+                  >
+                    <Trophy className="w-4 h-4" />
+                    <span className="text-yellow-300">{userScore}</span>
+                  </button>
+                )}
                 <motion.button
                   onClick={toggleSound}
                   className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -297,16 +335,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   aria-label={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
                 >
                   {soundEnabled ? <Volume2 className="w-7 h-7" /> : <VolumeX className="w-7 h-7" />}
-                </motion.button>
-                <motion.button
-                  onClick={() => navigate('/leaderboard')}
-                  className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  title="Liderlik Tablosu"
-                  aria-label="Liderlik Tablosu"
-                >
-                  <Trophy className="w-7 h-7" />
                 </motion.button>
                 <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                   <User className="w-7 h-7" />
@@ -314,6 +342,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               {/* Mobile: Profile Button Only */}
               <div className="md:hidden flex items-center space-x-2">
+                {userScore !== null && (
+                  <button
+                    onClick={() => navigate('/leaderboard')}
+                    className="flex items-center gap-1 text-yellow-400 hover:bg-yellow-500/10 rounded px-1 py-0.5 transition-colors"
+                    style={{ fontWeight: 500, fontSize: '13px', lineHeight: '1.1' }}
+                    title="Toplam Puan (Liderlik Tablosu için tıkla)"
+                  >
+                    <Trophy className="w-3.5 h-3.5" />
+                    <span className="text-yellow-300">{userScore}</span>
+                  </button>
+                )}
                 <motion.button
                   onClick={toggleSound}
                   className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -323,16 +362,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   aria-label={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
                 >
                   {soundEnabled ? <Volume2 className="w-7 h-7" /> : <VolumeX className="w-7 h-7" />}
-                </motion.button>
-                <motion.button
-                  onClick={() => navigate('/leaderboard')}
-                  className="p-2 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500/20 transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  title="Liderlik Tablosu"
-                  aria-label="Liderlik Tablosu"
-                >
-                  <Trophy className="w-7 h-7" />
                 </motion.button>
                 <motion.button 
                   onClick={handleProfileClick} 

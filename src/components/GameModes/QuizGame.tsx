@@ -68,11 +68,12 @@ export function QuizGame({ words, unit, onUnitComplete }: QuizGameProps) {
     setTotalQuestions(prev => prev + 1);
 
     if (correct) {
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      setBestStreak(prev => Math.max(prev, newStreak));
-      setScore(prev => prev + 2);
-      setScoreChange({ value: +2, key: Date.now() });
+      const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
+      const totalPoints = 2 + bonus;
+      setScore(prev => prev + totalPoints);
+      setScoreChange({ value: totalPoints, key: Date.now() });
+      setStreak(prev => prev + 1);
+      awardPoints('quiz', totalPoints, unit);
       soundService.playCorrect();
       // Anında puan ekle
       awardPoints('quizGame', 2, unit);
