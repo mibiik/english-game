@@ -359,7 +359,7 @@ const LeaderboardPage: React.FC = () => {
                         </div>
                       </div>
                     ) : user.displayName === 'Defne' ? (
-                      <div className="font-semibold truncate text-white flex items-center"><span className="mr-1">❤️</span>{user.displayName}<span className="ml-1">❤️</span>
+                      <div className="font-semibold truncate text-pink-400 flex items-center"><span className="mr-1">⭐</span>{user.displayName}<span className="ml-1">⭐</span>
                         <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold ml-2">
                           <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
