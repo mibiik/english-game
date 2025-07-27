@@ -50,7 +50,9 @@ const MobileMenu: React.FC<{
   userScore: number | null;
   isAdmin: boolean;
   onShowAuth: () => void;
-}> = ({ isOpen, onClose, currentLevel, setCurrentLevel, currentUnit, setCurrentUnit, userScore, isAdmin, onShowAuth }) => {
+  soundEnabled: boolean;
+  toggleSound: () => void;
+}> = ({ isOpen, onClose, currentLevel, setCurrentLevel, currentUnit, setCurrentUnit, userScore, isAdmin, onShowAuth, soundEnabled, toggleSound }) => {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState<'level' | 'unit' | null>(null);
 
@@ -236,6 +238,15 @@ const MobileMenu: React.FC<{
                   <span>{authService.isAuthenticated() ? 'Profil' : 'Giriş Yap'}</span>
                 </button>
 
+                {/* Sound Toggle - Mobile Only */}
+                <button
+                  onClick={toggleSound}
+                  className="w-full flex items-center gap-3 p-3 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors mb-2"
+                >
+                  {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                  <span>{soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}</span>
+                </button>
+
                 {authService.isAuthenticated() && (
                   <button
                     onClick={handleLogout}
@@ -413,7 +424,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Mobile Level/Unit Display - Clickable */}
               <button
                 onClick={() => setIsMenuOpen(true)}
-                className="md:hidden ml-3 px-3 py-1.5 rounded-lg bg-gray-800/30 hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50"
+                className="md:hidden ml- 20 px-3 py-1.5 rounded-lg bg-gray-800/30 hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50"
               >
                 <div className="text-sm font-semibold text-white">
                   {currentLevel === 'foundation' ? 'Fou' : 
@@ -424,7 +435,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Desktop Center - Unit Selector */}
-            <div className="hidden md:flex items-center justify-center flex-1">
+            <div className="hidden md:flex items-center justify-center flex-1 px-4">
               <UnitSelector 
                 currentUnit={currentUnit}
                 setCurrentUnit={setCurrentUnit}
@@ -457,22 +468,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <User className="w-5 h-5" />
               </motion.button>
 
-              {/* Sound Toggle */}
-              <motion.button
-                onClick={toggleSound}
-                className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              {/* Sound Toggle - Desktop Only */}
+              <motion.button 
+                onClick={toggleSound} 
+                className="hidden md:flex p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
+                whileHover={{ scale: 1.05 }} 
+                whileTap={{ scale: 0.95 }} 
                 title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
               >
                 {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </motion.button>
 
-              {/* Admin Panel */}
+
+
+              {/* Admin Panel - Desktop Only */}
               {isAdmin && (
                 <motion.button 
                   onClick={() => navigate('/admin')} 
-                  className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all duration-200" 
+                  className="hidden md:flex p-2 rounded-lg bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all duration-200" 
                   whileHover={{ scale: 1.05 }} 
                   whileTap={{ scale: 0.95 }} 
                   title="Admin Panel"
@@ -508,6 +521,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         userScore={userScore}
         isAdmin={isAdmin}
         onShowAuth={onShowAuth}
+        soundEnabled={soundEnabled}
+        toggleSound={toggleSound}
       />
 
       {/* Spacer for fixed navbar */}

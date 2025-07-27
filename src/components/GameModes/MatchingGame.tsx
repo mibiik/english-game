@@ -85,22 +85,18 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [wrongMessage, setWrongMessage] = useState('');
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [timerActive, setTimerActive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [timerActive, setTimerActive] = useState(true);
   const [bonus, setBonus] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const previousWords = useRef<WordDetail[]>([]);
   const previousUnit = useRef<string>('');
-  const BONUS_KATSAYISI = 2;
   const [currentRound, setCurrentRound] = useState(1);
   const [totalRounds, setTotalRounds] = useState(1);
   const [lastRoundWords, setLastRoundWords] = useState<GameWord[]>([]);
-  // State ekle:
   const [wrongCards, setWrongCards] = useState<number[]>([]);
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
-  const [infiniteMode, setInfiniteMode] = useState(false);
-  const [timerDisabled, setTimerDisabled] = useState(false); // Süre bir kere kapatıldı mı?
   const [showDefneModal, setShowDefneModal] = useState(false);
 
   // Kullanıcı ID'sini al
@@ -122,12 +118,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       currentUnitWords: words.filter(w => w.unit === unit).length 
     });
     
-    setTimerDisabled(false); // Her round başında sıfırla
     setShowResult(false);
     setScore(0);
     setBonus(0);
-    setTimeLeft(30);
-    setTimerActive(!infiniteMode && !timerDisabled); // Süresiz modda veya süre kapatıldıysa timer aktif değil
+    setTimeLeft(60);
+    setTimerActive(true);
     setScoreSaved(false); // Yeni round için puan kaydetme durumunu sıfırla
     
     if (customWords) {
@@ -186,18 +181,15 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setSelectedEnglish(null);
     setSelectedTurkish(null);
     setIsChecking(false);
-  }, [words, unit, infiniteMode, timerDisabled]);
+  }, [words, unit]);
 
   // Tekrar oyna fonksiyonu:
   const handleReplayRound = () => {
     setScoreSaved(false); // Tekrar oyna için puan kaydetme durumunu sıfırla
-    setTimerDisabled(false); // Her round başında sıfırla
-    setInfiniteMode(false); // Tekrar oynada süresiz modu sıfırla
     startNewGame(lastRoundWords);
   };
 
   const handlePreviousRound = () => {
-    setTimerDisabled(false); // Her round başında sıfırla
     const currentUnitWords = words.filter(word => word.unit === unit);
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
@@ -225,14 +217,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setIsChecking(false);
     setScore(0);
     setBonus(0);
-    setTimeLeft(30);
-    setTimerActive(!infiniteMode && !timerDisabled);
+    setTimeLeft(60);
+    setTimerActive(true);
     setScoreSaved(false);
     setShowResult(false); // Round bitiş ekranını kapat
   };
 
   const handleNextRound = () => {
-    setTimerDisabled(false); // Her round başında sıfırla
     const currentUnitWords = words.filter(word => word.unit === unit);
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
@@ -260,8 +251,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setIsChecking(false);
     setScore(0);
     setBonus(0);
-    setTimeLeft(30);
-    setTimerActive(!infiniteMode && !timerDisabled);
+    setTimeLeft(60);
+    setTimerActive(true);
     setScoreSaved(false);
     setShowResult(false); // Round bitiş ekranını kapat
   };
@@ -284,10 +275,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       setWrongCards([]);
       setScoreSaved(false);
       setScoreChange(null);
-      setInfiniteMode(false);
-      setTimerDisabled(false);
-      setTimeLeft(30);
-      setTimerActive(false);
+      setTimeLeft(60);
+      setTimerActive(true);
       setBonus(0);
     }
     
@@ -315,24 +304,14 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Timer başlatma ve azaltma
   useEffect(() => {
-    if (timerActive && timeLeft > 0 && !showResult && !infiniteMode) {
+    if (timerActive && timeLeft > 0 && !showResult) {
       timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-    } else if (timeLeft === 0 && timerActive && !infiniteMode) {
+    } else if (timeLeft === 0 && timerActive) {
       setTimerActive(false);
       setShowResult(true);
     }
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [timerActive, timeLeft, showResult, infiniteMode]);
-
-  // Süresiz mod değiştiğinde timer'ı güncelle ve bonusu sıfırla
-  useEffect(() => {
-    if (infiniteMode) {
-      setTimerActive(false);
-      setBonus(0); // Süre kapatıldığında bonus sıfırlanır
-    } else if (!showResult && !timerDisabled) {
-      setTimerActive(true);
-    }
-  }, [infiniteMode, showResult, timerDisabled]);
+  }, [timerActive, timeLeft, showResult]);
 
   // Kartlara tıklama
   const handleCardClick = (card: GameWord) => {
@@ -380,24 +359,22 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   // Round bittiğinde puanı ve bonusu kaydet
   useEffect(() => {
     const saveScore = async () => {
-      if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !infiniteMode)) && !showResult && !scoreSaved) {
+      if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || timeLeft === 0) && !showResult && !scoreSaved) {
         setTimerActive(false);
         
-        // Son round'da veya süre kapatıldıysa süre puanı verme
-        const isLastRound = currentRound === totalRounds;
-        const calculatedBonus = infiniteMode || isLastRound || timerDisabled ? 0 : timeLeft * 2; // Süresiz modda, son round'da veya süre kapatıldıysa bonus yok
+        // Süre bonusu hesapla - kalan sürenin yarısı kadar bonus
+        const calculatedBonus = Math.ceil(timeLeft / 2);
         setBonus(calculatedBonus);
         const finalScore = score + calculatedBonus;
         
         // Kullanıcı ID'sini al ve puanı topla
         const userId = authService.getCurrentUserId();
-        console.log('🔥 MatchingGame - Round bitti:', { userId, finalScore, score, calculatedBonus, currentRound, totalRounds, isLastRound });
+        console.log('🔥 MatchingGame - Round bitti:', { userId, finalScore, score, calculatedBonus, currentRound, totalRounds });
         if (userId) {
           try {
-            // Sadece addScore kullan, awardPoints'i kaldır
             await gameScoreService.addScore(userId, 'matching', finalScore);
             console.log('✅ Puan başarıyla eklendi:', finalScore);
-            setScoreSaved(true); // Puanın kaydedildiğini işaretle
+            setScoreSaved(true);
         } catch (error) {
             console.error('❌ Puan eklenirken hata:', error);
         }
@@ -415,20 +392,20 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   // Tasarım ve görsel yapı korunacak, sadece puan sistemi sadeleşecek
     if (showResult) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100" style={{ marginTop: '-160px' }}>
         <div className="text-center p-8 rounded-2xl shadow-2xl w-full max-w-lg border bg-white border-blue-200">
           <h2 className="text-4xl font-black mb-4 text-blue-600">Oyun Tamamlandı! 🎉</h2>
           <div className="p-4 rounded-xl mb-6 border bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
             <div className="flex items-center justify-center gap-2 mb-2">
               <span className="font-semibold text-blue-600">Oyun Skoru</span>
             </div>
-            <p className="text-3xl font-bold text-blue-800">{score} {!infiniteMode && currentRound !== totalRounds && !timerDisabled && <span>+ <span className="text-green-600">{bonus} Bonus</span></span>}</p>
+            <p className="text-3xl font-bold text-blue-800">{score} + <span className="text-green-600">{bonus} Bonus</span></p>
             <p className="mt-2 text-blue-700">Toplam: {score + bonus} puan</p>
             <p className="mt-2 text-blue-700">{matchedPairs.length} / {gameWords.length / 2} kelime eşleştirdin</p>
           </div>
           <button onClick={handleNextRound} className="w-full text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-200">Sonraki Round</button>
           <button onClick={handleReplayRound} className="w-full text-center rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-yellow-500 hover:to-yellow-700 transition-all duration-200 mt-4">Tekrar Oyna</button>
-          <button onClick={() => navigate('/')} className="w-full text-center rounded-xl bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-slate-500 hover:to-slate-600 transition-all duration-200 mt-4">Ana Menü</button>
+          <button onClick={() => navigate('/')} className="w-full text-center rounded-xl bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-slate-500 hover:to-slate-600 transition-all duration-200 mt-4">Git</button>
         </div>
     </div>
   );
@@ -471,7 +448,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     return (
       <div
         key={card.id}
-        className={`w-full h-20 sm:h-24 md:h-28 lg:h-32 flex items-center justify-center p-1 sm:p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-300 transform border-2 ${cardStateClasses}`}
+        className={`w-full h-20 sm:h-24 md:h-28 lg:h-32 flex items-center justify-center p-1 sm:p-2 md:p-3 rounded-2xl cursor-pointer transition-all duration-300 transform border-2 ${cardStateClasses}`}
         onClick={() => handleCardClick(card)}
       >
         <h3 className="text-center text-sm sm:text-base md:text-lg lg:text-xl font-semibold px-0.5 max-w-full break-words leading-tight">
@@ -482,26 +459,22 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   };
 
   // Yeni: Oyun Bilgi Kartı Bileşeni
-  function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound, infiniteMode, setInfiniteMode, timerDisabled, setTimerDisabled }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void, infiniteMode: boolean, setInfiniteMode: (mode: boolean) => void, timerDisabled: boolean, setTimerDisabled: (disabled: boolean) => void }) {
+  function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void }) {
     // Kırmızı ve animasyonlu süre stili
-    const timeClass = infiniteMode 
-      ? 'font-bold text-green-600 text-3xl sm:text-4xl md:text-5xl'
-      : timerDisabled
-        ? 'font-bold text-gray-500 text-3xl sm:text-4xl md:text-5xl'
-        : timeLeft <= 10
-          ? 'font-bold text-red-600 text-3xl sm:text-4xl md:text-5xl animate-pulse'
-          : 'font-bold text-red-500 text-3xl sm:text-4xl md:text-5xl';
+    const timeClass = timeLeft <= 10
+      ? 'font-bold text-red-600 text-2xl sm:text-3xl md:text-4xl lg:text-5xl animate-pulse'
+      : 'font-bold text-red-500 text-2xl sm:text-3xl md:text-4xl lg:text-5xl';
     return (
-      <div className="flex flex-row md:flex-col items-center justify-center gap-3 bg-white rounded-xl shadow border border-blue-100 px-3 py-3 w-full max-w-sm md:max-w-xs mx-auto md:h-full md:py-6">
+      <div className="relative flex flex-row md:flex-col items-center justify-center gap-2 md:gap-3 bg-white rounded-xl shadow border border-blue-100 px-3 py-2 md:py-3 w-full max-w-sm md:max-w-xs mx-auto md:h-full md:py-6">
         {/* Round etiketi */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10">
+        <div className="absolute -top-4 md:-top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-20">
           Ünite {unit}
             </div>
 
         <div className="flex-1 min-w-0 text-left md:w-full">
-          <div className="text-xl font-bold text-blue-800 truncate md:truncate">{matchedPairs.length} / {totalPairs}</div>
-          <div className="text-base text-blue-500 font-medium truncate md:truncate">Eşleştirme Oyunu</div>
-          <div className="flex items-center justify-start gap-2 mt-2">
+          <div className="text-lg sm:text-xl font-bold text-blue-800 truncate md:truncate">{matchedPairs.length} / {totalPairs}</div>
+          <div className="text-sm sm:text-base text-blue-500 font-medium truncate md:truncate">Eşleştirme Oyunu</div>
+          <div className="flex items-center justify-start gap-2 mt-1 sm:mt-2">
             <button
               onClick={onPreviousRound}
               className="p-1 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
@@ -509,7 +482,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-lg text-blue-600 font-medium">Round {currentRound}/{totalRounds}</span>
+            <span className="text-base sm:text-lg text-blue-600 font-medium">Round {currentRound}/{totalRounds}</span>
             <button
               onClick={onNextRound}
               className="p-1 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
@@ -521,13 +494,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             </div>
         <div className="flex items-center gap-2 md:gap-1 md:flex-col md:mt-3">
           <span className={timeClass}>
-  {infiniteMode
-    ? '∞'
-    : (!timerActive && timerDisabled)
-      ? 'Kapalı'
-      : `${timeLeft}s`
-  }
-</span>
+            {timeLeft}s
+          </span>
         </div>
         <div className="flex items-center gap-2 ml-2 md:ml-0 md:mt-3 md:flex-col">
           <button
@@ -545,37 +513,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'pink' ? 'bg-pink-400 border-pink-600' : 'bg-pink-300 border-pink-400'}`}
             title="Pembe Tema"
           />
-          {!infiniteMode && (
-            <button
-              onClick={() => {
-                setInfiniteMode(true);
-                setTimerActive(false);
-                setTimerDisabled(true); // Bir kere kapatınca bonus asla verilmez
-              }}
-              className="w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold bg-red-300 border-red-400 text-red-700 hover:bg-red-400"
-              title="Süreyi Kapat - Bu round için süre bonusu alamazsın!"
-            >
-              ⏱️
-            </button>
-          )}
-          {infiniteMode && (
-            <button
-              onClick={() => {
-                setInfiniteMode(false);
-                setTimerActive(true);
-                // timerDisabled bir kere true olduysa bir daha false yapılmaz
-              }}
-              className="w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold bg-green-500 border-green-600 text-white shadow-lg hover:bg-green-600"
-              title="Süreyi Aç (Puan alamazsın)"
-            >
-              ⏱️
-            </button>
-          )}
-          {timerDisabled && !infiniteMode && (
-            <div className="w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-bold bg-gray-500 border-gray-600 text-white shadow-lg">
-              ⏱️
-            </div>
-          )}
         </div>
       </div>
     );
@@ -594,7 +531,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         theme === 'blue' ? 'bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100' :
         theme === 'pink' ? 'bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100' :
         'bg-black text-white'
-      }`}>
+      }`} style={{ marginTop: '-160px' }}>
         <div className="w-full max-w-6xl mx-auto relative">
         {/* Yanlış eşleşme bildirimi */}
         {wrongMessage && (
@@ -611,7 +548,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   </div>
 )}
         {/* Mobilde yatay, masaüstünde dikey olarak ortada info kartı */}
-        <div className="flex flex-col md:flex-row gap-4 items-stretch w-full">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch w-full" style={{ marginTop: '-128px' }}>
           <div className="flex-1">
               <div className="grid grid-cols-3 gap-0.5 sm:gap-1.5 md:gap-2">
               {gameWords.filter(w => w.type === 'english').map(renderCard)}
@@ -627,10 +564,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
               totalPairs={gameWords.length / 2}
               onPreviousRound={handlePreviousRound}
               onNextRound={handleNextRound}
-              infiniteMode={infiniteMode}
-              setInfiniteMode={setInfiniteMode}
-              timerDisabled={timerDisabled}
-              setTimerDisabled={setTimerDisabled}
             />
           </div>
           <div className="flex-1">

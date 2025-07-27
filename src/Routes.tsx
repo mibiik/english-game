@@ -225,7 +225,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 currentLevel={currentLevel}
                 setCurrentLevel={setCurrentLevel}
               />
-              <div className="pt-32">
+              <div className="pt-40">
                 <MatchingGameWrapperWithParams />
               </div>
             </>

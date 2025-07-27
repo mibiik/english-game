@@ -147,6 +147,7 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
   const handleLevelSelect = (levelId: Level) => {
     setCurrentLevel(levelId);
     setCurrentUnit('1'); // Seviye değişince üniteyi 1'e sıfırla
+    onClose(); // Kur seçince paneli kapat
   };
 
   const handleUnitSelect = (unit: string) => {
