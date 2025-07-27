@@ -16,11 +16,14 @@ import {
   Trophy
 } from 'lucide-react';
 import logo from './ico.png';
+import { Auth } from '../components/Auth';
 // import SubscribeButton from '../components/SubscribeButton';
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   const features = [
     {
@@ -141,8 +144,8 @@ export const WelcomePage: React.FC = () => {
           >
             <motion.button
               onClick={() => {
-                const event = new CustomEvent('show-auth', { detail: { mode: 'register' } });
-                window.dispatchEvent(event);
+                setShowAuth(true);
+                setAuthMode('register');
               }}
               className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:via-red-800 hover:to-red-900 text-white px-8 py-4 rounded-xl font-black text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-2xl hover:shadow-red-500/25"
               whileHover={{ scale: 1.05, y: -3 }}
@@ -155,8 +158,8 @@ export const WelcomePage: React.FC = () => {
             
             <motion.button
               onClick={() => {
-                const event = new CustomEvent('show-auth', { detail: { mode: 'login' } });
-                window.dispatchEvent(event);
+                setShowAuth(true);
+                setAuthMode('login');
               }}
               className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 hover:from-green-700 hover:via-green-800 hover:to-green-900 text-white px-8 py-4 rounded-xl font-black text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-2xl hover:shadow-green-500/25"
               whileHover={{ scale: 1.05, y: -3 }}
@@ -239,7 +242,12 @@ export const WelcomePage: React.FC = () => {
           </div>
         </motion.div>
       </div>
-
+      {showAuth && (
+        <Auth
+          onClose={() => setShowAuth(false)}
+          isLogin={authMode === 'login'}
+        />
+      )}
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(20)].map((_, i) => (

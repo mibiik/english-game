@@ -89,6 +89,11 @@ const gameModeDescriptions: Record<string, string> = {
 };
 
 const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUnit, currentLevel }) => {
+  // Defensive check: Eğer props'lar eksikse yükleniyor göster
+  if (!filteredWords || !currentUnit || !currentLevel) {
+    return <div className="text-white text-center py-20">Yükleniyor...</div>;
+  }
+
   const unit = currentUnit;
   const level = currentLevel;
   const navigate = useNavigate();

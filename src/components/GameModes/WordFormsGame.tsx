@@ -64,12 +64,11 @@ const getSentenceParts = (sentence: string): [string, string] => {
 
 
 // --- MAIN COMPONENT ---
-const INITIAL_LOAD_COUNT = 5;
+const INITIAL_LOAD_COUNT = 10; // İlk 10 soru
 
 const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   const [status, setStatus] = useState<GameStatus>('loading');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isWaitingForMore, setIsWaitingForMore] = useState(false);
   const [questions, setQuestions] = useState<WordFormQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -101,14 +100,24 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
     const initialQuestions = await generateWordFormQuestions(initialWords);
 
     if (initialQuestions.length > 0) {
-      setQuestions(initialQuestions);
+      // İlk soruları da rastgele karıştır
+      const shuffledInitialQuestions = shuffleArray(initialQuestions);
+      setQuestions(shuffledInitialQuestions);
       setStatus('playing');
 
-      // Load the rest in the background
+      // Arka planda diğer soruları üret
       if (remainingWords.length > 0) {
         setIsLoadingMore(true);
         generateWordFormQuestions(remainingWords).then(additionalQuestions => {
-          setQuestions(prevQuestions => [...prevQuestions, ...additionalQuestions]);
+          // Ek soruları da rastgele karıştır ve mevcut sorularla birleştir
+          const shuffledAdditionalQuestions = shuffleArray(additionalQuestions);
+          setQuestions(prev => {
+            const allQuestions = [...prev, ...shuffledAdditionalQuestions];
+            return shuffleArray(allQuestions); // Tüm soruları tekrar karıştır
+          });
+          setIsLoadingMore(false);
+        }).catch(error => {
+          console.error("Background loading failed:", error);
           setIsLoadingMore(false);
         });
       }
@@ -158,49 +167,28 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   };
 
     const handleNextQuestion = () => {
-    const isLastLoadedQuestion = currentIndex === questions.length - 1;
-
-    if (!isLastLoadedQuestion) {
+    if (currentIndex < words.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setUserAnswer('');
       setIsCorrect(null);
       setStatus('playing');
-    } else { // On the last loaded question
-      if (isLoadingMore) {
-        setIsWaitingForMore(true);
-      } else {
-        // Oyun bitti, skoru kaydet
-        const unit = words[0]?.unit || '1';
-        try {
-          gameScoreService.saveScore('wordForms', score, unit);
-        } catch (error) {
-          console.error('Skor kaydedilirken hata:', error);
-        }
-        setStatus('completed');
+    } else {
+      // Oyun bitti, skoru kaydet
+      const unit = words[0]?.unit || '1';
+      try {
+        gameScoreService.saveScore('wordForms', score, unit);
+      } catch (error) {
+        console.error('Skor kaydedilirken hata:', error);
       }
+      setStatus('completed');
     }
   };
 
-  useEffect(() => {
-    // Automatically advance after questions have loaded if the user was waiting.
-    if (isWaitingForMore && !isLoadingMore) {
-      setIsWaitingForMore(false);
-      if (currentIndex < questions.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-        setUserAnswer('');
-        setIsCorrect(null);
-        setStatus('playing');
-      } else {
-        // This could happen if the remaining words failed to generate questions
-        setStatus('completed');
-      }
-    }
-  }, [isWaitingForMore, isLoadingMore, questions.length, currentIndex]);
+
 
   const handleRestart = () => {
     setCurrentIndex(0);
     setScore(0);
-    setIsWaitingForMore(false);
     loadQuestions();
   };
 
@@ -246,7 +234,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
             Your final score is
           </p>
           <p className="text-6xl font-bold text-blue-600 my-4">
-            {score} / {questions.length}
+            {score} / {words.length}
           </p>
                               <Button onClick={handleRestart} className="mt-6 bg-blue-600 hover:bg-blue-700 text-lg px-8 py-6">
             <RefreshCw className="mr-2 h-5 w-5" /> Play Again
@@ -349,7 +337,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                                                                                 <Button 
                       onClick={handleNextQuestion} 
                       className="mt-4 bg-gray-800 hover:bg-gray-900 text-lg px-10 py-6 min-w-[200px]"
-                      disabled={isWaitingForMore}
+
                     >
                       {currentIndex === questions.length - 1 && isLoadingMore ? (
                         <>
@@ -358,7 +346,7 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
                         </>
                       ) : (
                         <>
-                          {currentIndex < totalQuestions - 1 ? 'Next Question' : 'Finish'}
+                          {currentIndex < words.length - 1 ? 'Next Question' : 'Finish'}
                           <ArrowRight className="ml-2 h-5 w-5" />
                         </>
                       )}

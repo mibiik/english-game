@@ -148,403 +148,405 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
   isAuthenticated,
 }) => {
   return (
-    <Routes>
-      {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
-      <Route path="/" element={<HomeRedirect filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} setCurrentUnit={setCurrentUnit} setCurrentLevel={setCurrentLevel} isAuthenticated={isAuthenticated} />} />
-      <Route path="/home" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
-            </div>
-        </ProtectedRoute>
-      } />
-      <Route path="/profile" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <ProfilePage />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/paraphrase" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <ParaphrasePage />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/preposition-mastery" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <PrepositionMasteryGame />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/matching-game" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <MatchingGameWrapperWithParams />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/sentence-completion" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={SentenceCompletion} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/multiple-choice" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={MultipleChoice} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/flashcard" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={FlashCard} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/speaking" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={SpeakingGame} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/word-race" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={WordRace} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/memory-game" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={MemoryGame} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/word-forms" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={WordFormsGame} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/essay-writing" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={LearningMode} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/definition-to-word" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={DefinitionToWordGame} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/learning-mode" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GameWrapperWithParams component={LearningMode} />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/grammar-game" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <GrammarGamePage />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      
-      {/* Canlı Quiz Rotaları */}
-      <Route path="/live-quiz/create" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <CreateLiveQuiz />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/live-quiz/join" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <JoinQuiz />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/live-quiz/lobby/:roomCode" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <QuizLobby />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/live-quiz/play/host/:roomCode" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <QuizHostPlay />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/live-quiz/player-lobby/:roomCode" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <PlayerQuizFlow />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
+    <Suspense fallback={<LoadingSpinner />}>
+      <Routes>
+        {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
+        <Route path="/" element={<HomeRedirect filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} setCurrentUnit={setCurrentUnit} setCurrentLevel={setCurrentLevel} isAuthenticated={isAuthenticated} />} />
+        <Route path="/home" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+              </div>
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <ProfilePage />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/paraphrase" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <ParaphrasePage />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/preposition-mastery" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <PrepositionMasteryGame />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/matching-game" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <MatchingGameWrapperWithParams />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/sentence-completion" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={SentenceCompletion} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/multiple-choice" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={MultipleChoice} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/flashcard" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={FlashCard} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/speaking" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={SpeakingGame} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/word-race" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={WordRace} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/memory-game" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={MemoryGame} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/word-forms" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={WordFormsGame} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/essay-writing" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={LearningMode} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/definition-to-word" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={DefinitionToWordGame} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/learning-mode" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={LearningMode} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/grammar-game" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GrammarGamePage />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        
+        {/* Canlı Quiz Rotaları */}
+        <Route path="/live-quiz/create" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <CreateLiveQuiz />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/live-quiz/join" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <JoinQuiz />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/live-quiz/lobby/:roomCode" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <QuizLobby />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/live-quiz/play/host/:roomCode" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <QuizHostPlay />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/live-quiz/player-lobby/:roomCode" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <PlayerQuizFlow />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
 
-      {/* Keşfet ve Mesajlar Rotaları */}
-      <Route path="/discover" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <DiscoverPage />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/messages" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <MessagesPage />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/leaderboard" element={
-        <ProtectedRoute isAuthenticated={isAuthenticated}>
-          <>
-            <Navbar 
-              onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-              currentUnit={currentUnit}
-              setCurrentUnit={setCurrentUnit}
-              currentLevel={currentLevel}
-              setCurrentLevel={setCurrentLevel}
-            />
-            <div className="pt-32">
-              <LeaderboardPage />
-            </div>
-          </>
-        </ProtectedRoute>
-      } />
-      <Route path="/admin" element={<AdminPanel />} />
-      <Route path="/iletisim" element={<Iletisim />} />
-      <Route path="/destek" element={<Destek />} />
-      <Route path="/hakkimizda" element={<Hakkimizda />} />
-      <Route path="/sss" element={<Sss />} />
-      <Route path="/about-founder" element={<AboutFounder />} />
+        {/* Keşfet ve Mesajlar Rotaları */}
+        <Route path="/discover" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <DiscoverPage />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/messages" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <MessagesPage />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/leaderboard" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <LeaderboardPage />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/iletisim" element={<Iletisim />} />
+        <Route path="/destek" element={<Destek />} />
+        <Route path="/hakkimizda" element={<Hakkimizda />} />
+        <Route path="/sss" element={<Sss />} />
+        <Route path="/about-founder" element={<AboutFounder />} />
 
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };
 
