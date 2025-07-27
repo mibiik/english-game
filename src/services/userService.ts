@@ -209,12 +209,12 @@ class UserService {
   }
 
   // En iyi kullanıcıları getir
-  public async getTopUsers(limit: number = 10): Promise<User[]> {
+  public async getTopUsers(limitCount: number = 10): Promise<User[]> {
     try {
       const usersQuery = query(
         collection(db, this.usersCollection),
         orderBy('totalScore', 'desc'),
-        limit(limit)
+        limit(limitCount)
       );
       
       const querySnapshot = await getDocs(usersQuery);
@@ -403,6 +403,29 @@ class UserService {
     } catch (error) {
       console.error('Zor kelimeler buluttan alınırken hata:', error);
       return [];
+    }
+  }
+
+  // Belirtilen kullanıcıya 500 puan ekle
+  public async add500PointsToUser(userId: string): Promise<void> {
+    try {
+      // Mevcut kullanıcıyı al
+      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
+      let currentScore = 0;
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        currentScore = userData.totalScore || 0;
+      }
+      const newScore = currentScore + 500;
+      const updateData = {
+        totalScore: newScore,
+        updatedAt: new Date()
+      };
+      await updateDoc(doc(db, this.usersCollection, userId), updateData);
+      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
+      console.log(`${userId} kullanıcısına 500 puan eklendi. Yeni puan: ${newScore}`);
+    } catch (error) {
+      console.error(`${userId} kullanıcısına puan eklenirken hata:`, error);
     }
   }
 }

@@ -1,364 +1,179 @@
-import React, { useEffect, useState } from "react";
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, getDoc, setDoc } from "firebase/firestore";
-import app from '../config/firebase';
-import { sendMail } from '../services/emailService';
+import React, { useState, useEffect } from 'react';
 import { userService } from '../services/userService';
-import { puter } from '../services/puterService';
-
-const ADMIN_PASSWORD = "admin123";
-const db = getFirestore(app);
-
-const EMAILJS_SERVICE_ID = 'service_oczfg3h'; // Buraya kendi serviceId'ni gir
-const EMAILJS_TEMPLATE_ID = 'your_template_id'; // Buraya kendi templateId'ni gir
+import { User } from '../services/userService';
 
 const AdminPanel: React.FC = () => {
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
-  const [error, setError] = useState("");
-  const [password, setPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [mailModal, setMailModal] = useState<{ open: boolean, to: string, name: string, feedbackId: string } | null>(null);
-  const [mailSubject, setMailSubject] = useState('');
-  const [mailMessage, setMailMessage] = useState('');
-  const [mailSending, setMailSending] = useState(false);
-  const [mailSuccess, setMailSuccess] = useState<string | null>(null);
-  const [mailError, setMailError] = useState<string | null>(null);
-  const [userSearchResults, setUserSearchResults] = useState<any[]>([]);
-  const [userSearchLoading, setUserSearchLoading] = useState(false);
-  const [aiReply, setAiReply] = useState<string>('');
-  const [aiReplyLoading, setAiReplyLoading] = useState(false);
-  const [aiReplyError, setAiReplyError] = useState<string | null>(null);
-  const [aiReplyTarget, setAiReplyTarget] = useState<{ to: string, name: string, feedback: string } | null>(null);
-  // Serbest e-posta alanı
-  const [freeMailTo, setFreeMailTo] = useState('');
-  const [freeMailSubject, setFreeMailSubject] = useState('');
-  const [freeMailMessage, setFreeMailMessage] = useState('');
-  const [freeMailSending, setFreeMailSending] = useState(false);
-  const [freeMailSuccess, setFreeMailSuccess] = useState<string | null>(null);
-  const [freeMailError, setFreeMailError] = useState<string | null>(null);
-  
-  // Defne Modal Yönetimi
-  const [defneModalContent, setDefneModalContent] = useState({
-    title: "EŞLEŞTİRME OYUNUN CADISI GELDİ",
-    message: "AL SANA SÜRESİZ OYNA BAKALIM",
-    imageUrl: "/assets/aaaaaaaadwü/ordekbakimi2.jpg",
-    isActive: true
-  });
-  const [defneModalLoading, setDefneModalLoading] = useState(false);
-  const [defneModalSuccess, setDefneModalSuccess] = useState<string | null>(null);
-  const [defneModalError, setDefneModalError] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    const q = query(collection(db, "feedbacks"), orderBy("date", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setFeedbacks(data);
-    }, (err) => setError("Geri bildirimler yüklenemedi: " + err.message));
-    return () => unsubscribe();
-  }, [isAuthenticated]);
+    loadUsers();
+  }, []);
 
-  // Defne Modal içeriğini yükle
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    const fetchDefneContent = async () => {
-      try {
-        const defneDoc = doc(db, 'adminContent', 'defneModal');
-        const docSnap = await getDoc(defneDoc);
-        
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setDefneModalContent({
-            title: data.title || "EŞLEŞTİRME OYUNUN CADISI GELDİ",
-            message: data.message || "AL SANA SÜRESİZ OYNA BAKALIM",
-            imageUrl: data.imageUrl || "/assets/aaaaaaaadwü/ordekbakimi2.jpg",
-            isActive: data.isActive !== undefined ? data.isActive : true
-          });
-        }
-      } catch (error) {
-        console.error('Defne modal içeriği yüklenirken hata:', error);
-      }
-    };
-
-    fetchDefneContent();
-  }, [isAuthenticated]);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("Şifre yanlış!");
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const allUsers = await userService.getAllUsers();
+      setUsers(allUsers);
+    } catch (error) {
+      console.error('Kullanıcılar yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #1a1a1a 0%, #7f1d1d 100%)" }}>
-        <form onSubmit={handleLogin} style={{ background: "#2d0101", padding: 36, borderRadius: 16, boxShadow: "0 4px 32px #7f1d1d80", minWidth: 340 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: "#fca5a5", marginBottom: 24, textAlign: "center" }}>Admin Girişi</h2>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Şifre"
-            style={{ width: "100%", padding: 12, borderRadius: 8, border: "1px solid #7f1d1d", marginBottom: 16, fontSize: 16, background: '#3b0d0c', color: '#fff' }}
-          />
-          {error && <div style={{ color: "#f87171", marginBottom: 12, textAlign: "center" }}>{error}</div>}
-          <button type="submit" style={{ width: "100%", padding: 12, borderRadius: 8, background: "linear-gradient(90deg, #7f1d1d 0%, #b91c1c 100%)", color: "#fff", fontWeight: 700, fontSize: 16, border: "none", cursor: "pointer", boxShadow: "0 2px 8px #7f1d1d33" }}>
-            Giriş Yap
-          </button>
-        </form>
-      </div>
-    );
-  }
+  const add500PointsToUser = async (userId: string) => {
+    setLoading(true);
+    try {
+      await userService.add500PointsToUser(userId);
+      setMessage(`${userId} kullanıcısına 500 puan eklendi!`);
+      // Kullanıcı listesini yenile
+      await loadUsers();
+    } catch (error) {
+      setMessage('Puan eklenirken hata oluştu!');
+      console.error('Puan ekleme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setEmirScoreTo11000 = async () => {
+    setLoading(true);
+    try {
+      await userService.setEmirScoreTo11000();
+      setMessage('Emir\'in puanı 11.000 olarak ayarlandı!');
+      await loadUsers();
+    } catch (error) {
+      setMessage('Emir\'in puanı ayarlanırken hata oluştu!');
+      console.error('Emir puan hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setMbirlikScoreTo8000 = async () => {
+    setLoading(true);
+    try {
+      await userService.setMbirlikScoreTo8000();
+      setMessage('mbirlik24@ku.edu.tr kullanıcısının puanı 8.000 olarak ayarlandı!');
+      await loadUsers();
+    } catch (error) {
+      setMessage('mbirlik24@ku.edu.tr puanı ayarlanırken hata oluştu!');
+      console.error('mbirlik24@ku.edu.tr puan hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setGorkemSupporterBadge = async () => {
+    setLoading(true);
+    try {
+      await userService.setGorkemSupporterBadge();
+      setMessage('Görkem\'e bağışçı rozeti ve ilk destekçi yıldızı eklendi!');
+      await loadUsers();
+    } catch (error) {
+      setMessage('Görkem\'e rozet eklenirken hata oluştu!');
+      console.error('Görkem rozet hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a1a1a 0%, #7f1d1d 100%)", padding: "40px 0" }}>
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: 32, background: "#2d0101", borderRadius: 18, boxShadow: "0 4px 32px #7f1d1d80" }}>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#fca5a5", marginBottom: 32, textAlign: "center", letterSpacing: 1 }}>Admin Paneli <span style={{ color: "#fff" }}>- Geri Bildirimler & İçerik Yönetimi</span></h1>
-        {/* Serbest e-posta gönderme alanı */}
-        <div style={{ background: '#fff', borderRadius: 12, padding: 24, marginBottom: 32, boxShadow: '0 2px 8px #7f1d1d22', color: '#222' }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 14, color: '#7f1d1d' }}>Serbest E-Posta Gönder</h2>
-          <input type="email" value={freeMailTo} onChange={e => setFreeMailTo(e.target.value)} placeholder="Alıcı E-posta" style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} />
-          <input type="text" value={freeMailSubject} onChange={e => setFreeMailSubject(e.target.value)} placeholder="Konu" style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} />
-          <textarea value={freeMailMessage} onChange={e => setFreeMailMessage(e.target.value)} placeholder="Mesajınız" rows={4} style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} />
-          <button disabled={freeMailSending || !freeMailTo} onClick={async () => {
-            setFreeMailSending(true);
-            setFreeMailSuccess(null);
-            setFreeMailError(null);
-            try {
-              await sendMail({
-                serviceId: EMAILJS_SERVICE_ID,
-                templateId: EMAILJS_TEMPLATE_ID,
-                to_email: freeMailTo,
-                subject: freeMailSubject,
-                message: freeMailMessage
-              });
-              setFreeMailSuccess('Mail başarıyla gönderildi!');
-              setFreeMailTo('');
-              setFreeMailSubject('');
-              setFreeMailMessage('');
-            } catch (err) {
-              setFreeMailError('Mail gönderilemedi: ' + (err?.text || err?.message || err));
-            }
-            setFreeMailSending(false);
-          }} style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}>{freeMailSending ? 'Gönderiliyor...' : 'Gönder'}</button>
-          {freeMailSuccess && <div style={{ color: 'green', marginTop: 8 }}>{freeMailSuccess}</div>}
-          {freeMailError && <div style={{ color: 'red', marginTop: 8 }}>{freeMailError}</div>}
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-4">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-center">Admin Panel</h1>
         
-        {/* Defne Modal Yönetimi */}
-        <div style={{ background: '#fff', borderRadius: 12, padding: 24, marginBottom: 32, boxShadow: '0 2px 8px #7f1d1d22', color: '#222' }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 14, color: '#7f1d1d' }}>👑 Defne Special Modal Yönetimi</h2>
-          <input 
-            type="text" 
-            value={defneModalContent.title} 
-            onChange={e => setDefneModalContent({...defneModalContent, title: e.target.value})} 
-            placeholder="Modal Başlığı" 
-            style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} 
-          />
-          <input 
-            type="text" 
-            value={defneModalContent.message} 
-            onChange={e => setDefneModalContent({...defneModalContent, message: e.target.value})} 
-            placeholder="Modal Mesajı" 
-            style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} 
-          />
-          <input 
-            type="text" 
-            value={defneModalContent.imageUrl} 
-            onChange={e => setDefneModalContent({...defneModalContent, imageUrl: e.target.value})} 
-            placeholder="Resim URL'si" 
-            style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 10, fontSize: 15 }} 
-          />
-          <div style={{ marginBottom: 10 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
-              <input 
-                type="checkbox" 
-                checked={defneModalContent.isActive} 
-                onChange={e => setDefneModalContent({...defneModalContent, isActive: e.target.checked})} 
-                style={{ width: 16, height: 16 }}
-              />
-              Modal Aktif
-            </label>
-          </div>
-          <button 
-            disabled={defneModalLoading} 
-            onClick={async () => {
-              setDefneModalLoading(true);
-              setDefneModalSuccess(null);
-              setDefneModalError(null);
-              try {
-                const defneDoc = doc(db, 'adminContent', 'defneModal');
-                await setDoc(defneDoc, defneModalContent);
-                setDefneModalSuccess('Defne modal içeriği başarıyla güncellendi!');
-              } catch (err: any) {
-                setDefneModalError('Güncelleme başarısız: ' + (err?.message || err));
-              }
-              setDefneModalLoading(false);
-            }} 
-            style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}
-          >
-            {defneModalLoading ? 'Güncelleniyor...' : 'Defne Modal İçeriğini Güncelle'}
-          </button>
-          {defneModalSuccess && <div style={{ color: 'green', marginTop: 8 }}>{defneModalSuccess}</div>}
-          {defneModalError && <div style={{ color: 'red', marginTop: 8 }}>{defneModalError}</div>}
-        </div>
-        
-        {/* Kullanıcı Puan Yönetimi */}
-        <div style={{ background: '#fff', borderRadius: 12, padding: 24, marginBottom: 32, boxShadow: '0 2px 8px #7f1d1d22', color: '#222' }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 14, color: '#7f1d1d' }}>🎯 Kullanıcı Puan Yönetimi</h2>
-          <button 
-            onClick={async () => {
-              try {
-                await userService.setMbirlikScoreTo8000();
-                alert('mbirlik24@ku.edu.tr kullanıcısının puanı 8000 olarak güncellendi!');
-              } catch (err: any) {
-                alert('Hata: ' + (err?.message || err));
-              }
-            }} 
-            style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}
-          >
-            mbirlik24@ku.edu.tr Puanını 8000 Yap
-          </button>
-        </div>
-        
-        {/* Feedback listesi */}
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {feedbacks.map((fb, i) => (
-            <li key={fb.id} style={{ borderBottom: "1px solid #7f1d1d33", marginBottom: 24, paddingBottom: 18, background: i % 2 === 0 ? "#3b0d0c" : "#4b1c1c", borderRadius: 10, boxShadow: "0 1px 4px #7f1d1d22", padding: 18, color: '#fff' }}>
-              <div style={{ fontWeight: 700, color: "#fca5a5", fontSize: 18 }}><span style={{ marginRight: 8 }}>👤</span>{fb.name || <span style={{ color: "#aaa" }}>(Belirtilmemiş)</span>}</div>
-              <div style={{ margin: "10px 0", color: "#fff", fontSize: 17 }}><span style={{ marginRight: 8 }}>💬</span>{fb.feedback}</div>
-              <div style={{ fontSize: 13, color: "#fca5a5" }}><span style={{ marginRight: 8 }}>📅</span>{fb.date?.toDate ? fb.date.toDate().toLocaleString() : ''}</div>
-              <button onClick={async () => {
-                if (fb.email) {
-                  setMailModal({ open: true, to: fb.email, name: fb.name || '', feedbackId: fb.id });
-                } else if (fb.name) {
-                  setUserSearchLoading(true);
-                  const results = await userService.searchUsers(fb.name);
-                  setUserSearchResults(results);
-                  setUserSearchLoading(false);
-                  if (results.length === 1) {
-                    setMailModal({ open: true, to: results[0].email, name: results[0].displayName, feedbackId: fb.id });
-                  } else if (results.length > 1) {
-                    setMailModal({ open: true, to: '', name: fb.name, feedbackId: fb.id });
-                  } else {
-                    setMailModal({ open: true, to: '', name: fb.name, feedbackId: fb.id });
-                  }
-                } else {
-                  setMailModal({ open: true, to: '', name: '', feedbackId: fb.id });
-                }
-              }} style={{ marginTop: 10, padding: '8px 18px', borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 15 }}>Kullanıcıya Mail Gönder</button>
-              <button onClick={async () => {
-                setAiReplyLoading(true);
-                setAiReplyError(null);
-                setAiReply('');
-                setAiReplyTarget(null);
-                try {
-                  const aiRes = await puter.generateFeedbackReply(fb.feedback);
-                  setAiReply(aiRes);
-                  setAiReplyTarget({ to: fb.email || '', name: fb.name || '', feedback: fb.feedback });
-                } catch (err) {
-                  setAiReplyError('AI cevabı alınamadı: ' + (err?.message || err));
-                }
-                setAiReplyLoading(false);
-              }} style={{ marginTop: 10, marginLeft: 10, padding: '8px 18px', borderRadius: 8, background: '#fff', color: '#7f1d1d', fontWeight: 700, border: '1px solid #fca5a5', cursor: 'pointer', fontSize: 15 }}>AI ile Cevap Oluştur</button>
-            </li>
-          ))}
-        </ul>
-        {/* AI cevabı modalı */}
-        {aiReplyTarget && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: 32, minWidth: 340, maxWidth: 500, boxShadow: '0 4px 32px #7f1d1d80', color: '#222', position: 'relative' }}>
-              <button onClick={() => { setAiReplyTarget(null); setAiReply(''); }} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#7f1d1d', cursor: 'pointer' }}>×</button>
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 18 }}>AI Cevap Önerisi</h2>
-              <div style={{ fontSize: 15, marginBottom: 8 }}><b>Feedback:</b> {aiReplyTarget.feedback}</div>
-              {aiReplyLoading ? <div style={{ color: '#fca5a5', marginBottom: 8 }}>AI cevabı oluşturuluyor...</div> :
-                aiReplyError ? <div style={{ color: 'red', marginBottom: 8 }}>{aiReplyError}</div> :
-                <textarea value={aiReply} onChange={e => setAiReply(e.target.value)} rows={6} style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 12, fontSize: 15 }} />
-              }
-              <button disabled={!aiReply || aiReplyLoading || (!aiReplyTarget.to && !aiReplyTarget.name)} onClick={async () => {
-                let to = aiReplyTarget.to;
-                if (!to && aiReplyTarget.name) {
-                  setUserSearchLoading(true);
-                  const results = await userService.searchUsers(aiReplyTarget.name);
-                  setUserSearchLoading(false);
-                  if (results.length === 1) to = results[0].email;
-                  else return alert('Kullanıcı e-posta adresi bulunamadı veya birden fazla eşleşme var.');
-                }
-                if (!to) return alert('Kullanıcı e-posta adresi bulunamadı.');
-                setFreeMailSending(true);
-                setFreeMailSuccess(null);
-                setFreeMailError(null);
-                try {
-                  await sendMail({
-                    serviceId: EMAILJS_SERVICE_ID,
-                    templateId: EMAILJS_TEMPLATE_ID,
-                    to_email: to,
-                    subject: 'Geri Bildiriminize Yanıt',
-                    message: aiReply
-                  });
-                  setFreeMailSuccess('Mail başarıyla gönderildi!');
-                  setAiReplyTarget(null);
-                  setAiReply('');
-                } catch (err) {
-                  setFreeMailError('Mail gönderilemedi: ' + (err?.text || err?.message || err));
-                }
-                setFreeMailSending(false);
-              }} style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}>{aiReplyLoading ? 'Gönderiliyor...' : 'AI Cevabını Gönder'}</button>
-              {freeMailSuccess && <div style={{ color: 'green', marginTop: 8 }}>{freeMailSuccess}</div>}
-              {freeMailError && <div style={{ color: 'red', marginTop: 8 }}>{freeMailError}</div>}
-            </div>
+        {message && (
+          <div className="bg-green-600 text-white p-4 rounded-lg mb-6 text-center">
+            {message}
           </div>
         )}
-        {/* Mail Gönderme Modalı */}
-        {mailModal?.open && (
-          <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: '#000a', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: 32, minWidth: 340, maxWidth: 400, boxShadow: '0 4px 32px #7f1d1d80', color: '#222', position: 'relative' }}>
-              <button onClick={() => { setMailModal(null); setUserSearchResults([]); }} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#7f1d1d', cursor: 'pointer' }}>×</button>
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 18 }}>Kullanıcıya Mail Gönder</h2>
-              {!mailModal.to && userSearchResults.length > 1 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 8 }}>Birden fazla kullanıcı bulundu, lütfen seçin:</div>
-                  {userSearchLoading && <div style={{ color: '#fca5a5', marginBottom: 8 }}>Kullanıcılar yükleniyor...</div>}
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {userSearchResults.map(u => (
-                      <li key={u.userId} style={{ marginBottom: 6 }}>
-                        <button onClick={() => setMailModal({ ...mailModal, to: u.email, name: u.displayName })} style={{ padding: '6px 12px', borderRadius: 6, background: '#fca5a5', color: '#2d0101', fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: 14 }}>{u.displayName} ({u.email})</button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div style={{ fontSize: 15, marginBottom: 8 }}><b>Alıcı:</b> {mailModal.name} {mailModal.to && <>({mailModal.to})</>}</div>
-              <input type="text" value={mailSubject} onChange={e => setMailSubject(e.target.value)} placeholder="Konu" style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 12, fontSize: 15 }} />
-              <textarea value={mailMessage} onChange={e => setMailMessage(e.target.value)} placeholder="Mesajınız" rows={5} style={{ width: '100%', padding: 10, borderRadius: 7, border: '1px solid #fca5a5', marginBottom: 12, fontSize: 15 }} />
-              <button disabled={mailSending || !mailModal.to} onClick={async () => {
-                setMailSending(true);
-                setMailSuccess(null);
-                setMailError(null);
-                try {
-                  await sendMail({
-                    serviceId: EMAILJS_SERVICE_ID,
-                    templateId: EMAILJS_TEMPLATE_ID,
-                    to_email: mailModal.to,
-                    subject: mailSubject,
-                    message: mailMessage
-                  });
-                  setMailSuccess('Mail başarıyla gönderildi!');
-                  setMailSubject('');
-                  setMailMessage('');
-                } catch (err) {
-                  setMailError('Mail gönderilemedi: ' + (err?.text || err?.message || err));
-                }
-                setMailSending(false);
-              }} style={{ width: '100%', padding: 12, borderRadius: 8, background: '#fca5a5', color: '#2d0101', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px #7f1d1d33', marginBottom: 8 }}>{mailSending ? 'Gönderiliyor...' : 'Gönder'}</button>
-              {mailSuccess && <div style={{ color: 'green', marginTop: 8 }}>{mailSuccess}</div>}
-              {mailError && <div style={{ color: 'red', marginTop: 8 }}>{mailError}</div>}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <button
+            onClick={setEmirScoreTo11000}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            Emir'e 11.000 Puan Ver
+          </button>
+
+          <button
+            onClick={setMbirlikScoreTo8000}
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            mbirlik24@ku.edu.tr'ye 8.000 Puan Ver
+          </button>
+
+          <button
+            onClick={setGorkemSupporterBadge}
+            disabled={loading}
+            className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            Görkem'e Bağışçı Rozeti Ver
+          </button>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-4">Kullanıcı Listesi</h2>
+          
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+              <p className="mt-4">Yükleniyor...</p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-3 px-4">Kullanıcı</th>
+                    <th className="text-left py-3 px-4">Email</th>
+                    <th className="text-left py-3 px-4">Puan</th>
+                    <th className="text-left py-3 px-4">Oyun Sayısı</th>
+                    <th className="text-left py-3 px-4">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.userId} className="border-b border-gray-700 hover:bg-gray-700">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center">
+                          {user.photoURL && (
+                            <img 
+                              src={user.photoURL} 
+                              alt={user.displayName}
+                              className="w-8 h-8 rounded-full mr-3"
+                            />
+                          )}
+                          <div>
+                            <div className="font-semibold">{user.displayName}</div>
+                            <div className="text-xs text-gray-400">{user.userId}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">{user.email}</td>
+                      <td className="py-3 px-4 font-bold text-yellow-400">{user.totalScore}</td>
+                      <td className="py-3 px-4">{user.gamesPlayed}</td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => add500PointsToUser(user.userId)}
+                          disabled={loading}
+                          className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-600 text-white text-xs py-2 px-3 rounded transition-colors"
+                        >
+                          +500 Puan
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
