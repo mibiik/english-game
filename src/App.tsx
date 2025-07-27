@@ -58,21 +58,36 @@ function AppContent() {
   // Firebase Authentication durumunu dinle
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
       setIsAuthenticated(!!user);
+      
       if (user) {
+        // Kullanıcı giriş yapmış
+        console.log('User is authenticated:', user.email);
+        
+        // Oturum bilgilerini localStorage'a kaydet
         localStorage.setItem('lastAuthCheck', new Date().toISOString());
         localStorage.setItem('authUserId', user.uid);
+        
+        // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
         if (location.pathname === '/') {
           navigate('/home', { replace: true });
         }
       } else {
+        // Kullanıcı çıkış yapmış
+        console.log('User is not authenticated');
+        
+        // localStorage'dan oturum bilgilerini temizle
         localStorage.removeItem('lastAuthCheck');
         localStorage.removeItem('authUserId');
+        
+        // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
         if (location.pathname !== '/') {
           navigate('/', { replace: true });
         }
       }
     });
+
     return () => unsubscribe();
   }, [navigate, location.pathname]);
 
@@ -81,27 +96,47 @@ function AppContent() {
     const checkAuthState = () => {
       const currentUser = auth.currentUser;
       const storedUserId = localStorage.getItem('authUserId');
+      
+      // Firebase auth state ile localStorage senkronizasyonu
       if (currentUser && storedUserId && currentUser.uid === storedUserId) {
+        // Tutarlı durum - kullanıcı giriş yapmış
         setIsAuthenticated(true);
+        console.log('Auth state synchronized - user is authenticated');
       } else if (!currentUser && !storedUserId) {
+        // Tutarlı durum - kullanıcı giriş yapmamış
         setIsAuthenticated(false);
+        console.log('Auth state synchronized - user is not authenticated');
       } else {
+        // Tutarsız durum - localStorage'ı temizle ve Firebase state'ini kullan
+        console.log('Auth state inconsistency detected, clearing localStorage');
         localStorage.removeItem('lastAuthCheck');
         localStorage.removeItem('authUserId');
         setIsAuthenticated(!!currentUser);
       }
     };
+
+    // İlk yükleme
     checkAuthState();
+
+    // Sekme değişikliklerini dinle - daha az sıklıkta
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        checkAuthState();
+        console.log('Tab became visible, checking auth state');
+        // Sadece 5 saniyede bir kontrol et
+        setTimeout(checkAuthState, 5000);
       }
     };
+
+    // Focus event'ini dinle (sekme değişikliği) - daha az sıklıkta
     const handleFocus = () => {
-      checkAuthState();
+      console.log('Window focused, checking auth state');
+      // Sadece 5 saniyede bir kontrol et
+      setTimeout(checkAuthState, 5000);
     };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
