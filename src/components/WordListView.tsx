@@ -87,7 +87,7 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
     if (!wordList?.words) return [];
     return [...new Set(wordList.words.map(word => word.unit))].sort();
   }, [wordList?.words]);
-
+  
   useEffect(() => {
     if (initialList) {
       setWordList(initialList);

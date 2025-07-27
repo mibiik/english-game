@@ -15,8 +15,8 @@
 html, body {
   height: 100%;
   overflow-x: hidden;
-}
-
+  }
+  
 /* Layout shift'i önlemek için sabit boyutlar */
 img, video, canvas, audio, iframe, embed, object {
   max-width: 100%;
@@ -30,15 +30,15 @@ img, video, canvas, audio, iframe, embed, object {
   width: 100%;
   height: 0;
   padding-bottom: 56.25%; /* 16:9 aspect ratio */
-}
-
+  }
+  
 .aspect-ratio-container > * {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-}
+  }
 
 /* Font loading optimizasyonu */
 .font-display-swap {
@@ -58,7 +58,7 @@ img, video, canvas, audio, iframe, embed, object {
 /* Font utility class */
 .font-bebas {
   font-family: 'Bebas Neue', sans-serif;
-}
+  }
 
 /* Optimize animations */
 @media (prefers-reduced-motion: reduce) {
@@ -82,7 +82,7 @@ html {
 img {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
-}
+  }
 
 /* Optimize fonts */
 @font-face {
@@ -156,7 +156,7 @@ img {
   .animate-bounce-slow,
   .animate-pulse-bright {
     animation: none;
-  }
+}
 }
 
 /* Optimize focus styles */
@@ -254,7 +254,7 @@ img {
 }
 .group:hover .group-hover\:brightness-110 {
   filter: brightness(1.1);
-}
+  }
 /* Border animations */
 .border-white\/20 {
   border-color: rgba(255, 255, 255, 0.2);
@@ -272,7 +272,7 @@ img {
 }
 .rotate-y-180 {
   transform: rotateY(180deg);
-}
+  }
 .perspective-1000 {
   perspective: 1000px;
 }

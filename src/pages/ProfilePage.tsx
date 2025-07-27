@@ -286,49 +286,49 @@ const ProfilePage: React.FC = () => {
       {/* Floating Elements - Optimized */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Ana uçuşan elementler - Sabit pozisyonlar */}
-        <motion.div
+          <motion.div
           className="absolute w-2 h-2 bg-red-500/20 rounded-full"
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -100, 0],
-            opacity: [0.2, 0.8, 0.2],
-          }}
-          transition={{
+            animate={{
+              x: [0, 100, 0],
+              y: [0, -100, 0],
+              opacity: [0.2, 0.8, 0.2],
+            }}
+            transition={{
             duration: 15,
-            repeat: Infinity,
+              repeat: Infinity,
             delay: 2,
-          }}
+            }}
           style={{ left: '20%', top: '30%' }}
-        />
-        <motion.div
+          />
+          <motion.div
           className="absolute w-2 h-2 bg-red-500/20 rounded-full"
-          animate={{
+            animate={{
             x: [0, 80, 0],
             y: [0, -80, 0],
             opacity: [0.2, 0.6, 0.2],
-          }}
-          transition={{
+            }}
+            transition={{
             duration: 12,
-            repeat: Infinity,
+              repeat: Infinity,
             delay: 5,
-          }}
+            }}
           style={{ left: '60%', top: '20%' }}
-        />
+          />
         
         {/* Yıldız şeklinde elementler - Sabit pozisyonlar */}
-        <motion.div
-          className="absolute w-1 h-1 bg-yellow-500/40"
-          style={{
+          <motion.div
+            className="absolute w-1 h-1 bg-yellow-500/40"
+            style={{
             left: '25%',
             top: '35%',
-            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
-          }}
-          animate={{
-            rotate: [0, 360],
-            opacity: [0.3, 0.8, 0.3],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
+              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+            }}
+            animate={{
+              rotate: [0, 360],
+              opacity: [0.3, 0.8, 0.3],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
             duration: 10,
             repeat: Infinity,
             delay: 1,
@@ -348,24 +348,24 @@ const ProfilePage: React.FC = () => {
           }}
           transition={{
             duration: 12,
-            repeat: Infinity,
+              repeat: Infinity,
             delay: 4,
-          }}
-        />
-        
+            }}
+          />
+
         {/* Ek küçük elementler - Sabit pozisyonlar */}
-        <motion.div
-          className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
-          animate={{
-            x: [0, 150, 0],
-            y: [0, -150, 0],
-            opacity: [0.1, 0.5, 0.1],
-          }}
-          transition={{
+          <motion.div
+            className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
+            animate={{
+              x: [0, 150, 0],
+              y: [0, -150, 0],
+              opacity: [0.1, 0.5, 0.1],
+            }}
+            transition={{
             duration: 16,
-            repeat: Infinity,
+              repeat: Infinity,
             delay: 3,
-          }}
+            }}
           style={{ left: '15%', top: '50%' }}
         />
         <motion.div
@@ -379,9 +379,9 @@ const ProfilePage: React.FC = () => {
             duration: 14,
             repeat: Infinity,
             delay: 6,
-          }}
+            }}
           style={{ left: '75%', top: '35%' }}
-        />
+          />
       </div>
 
       {/* Ana içerik container'ı */}

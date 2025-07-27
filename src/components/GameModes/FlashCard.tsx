@@ -329,8 +329,8 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
             <div className="w-full h-full bg-blue-50/80 backdrop-blur-lg rounded-xl shadow-lg p-8 flex flex-col items-center justify-center border-2 border-blue-200 hover:border-blue-400 transition-colors">
               {definitionMode === 'turkish' ? (
                 <h2 className="text-3xl font-bold text-center text-blue-700">
-                  {currentWord.turkish}
-                </h2>
+                {currentWord.turkish}
+              </h2>
               ) : (
                 <div className="text-center">
                   {isLoadingDefinition ? (
