@@ -5,6 +5,9 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    global: 'globalThis',
+  },
   build: {
     rollupOptions: {
       output: {
@@ -13,11 +16,11 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'router-vendor': ['react-router-dom'],
           'ui-vendor': ['framer-motion', 'lucide-react', 'react-icons'],
-          'firebase-vendor': ['firebase', 'react-firebase-hooks'],
           'utils-vendor': ['axios', 'clsx', 'tailwind-merge'],
           'charts-vendor': ['recharts'],
         },
       },
+      external: [],
     },
     chunkSizeWarningLimit: 1000,
     minify: 'terser',
@@ -36,13 +39,6 @@ export default defineConfig({
       'framer-motion',
       'lucide-react',
       'react-icons',
-      'firebase/app',
-      'firebase/auth',
-      'firebase/firestore',
-      'firebase/analytics',
-      'firebase/functions',
-      'react-firebase-hooks/auth',
-      'react-firebase-hooks/firestore',
       'axios',
       'clsx',
       'tailwind-merge',
