@@ -825,7 +825,18 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
                 <div className="absolute inset-0 z-10 rounded-xl pointer-events-none border-2 border-white/20 group-hover:border-[#ff416c]/60 transition-all duration-300" />
                 {/* Görsel ve başlık */}
                 <div className="relative w-full aspect-[1/1] min-h-[12px] md:min-h-[20px] overflow-hidden flex flex-col justify-center items-center"> 
-                  <img src={imgSrc} alt="Oyun görseli" className="w-full h-full md:w-3/4 md:h-3/4 object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" />
+                  {/* Blurlu ve karartılmış arkaplan resmi */}
+                  <img 
+                    src={imgSrc} 
+                    alt="" 
+                    className="absolute inset-0 w-full h-full object-cover object-center blur-md brightness-50 scale-110" 
+                  />
+                  {/* Ana resim */}
+                  <img 
+                    src={imgSrc} 
+                    alt="Oyun görseli" 
+                    className="relative z-10 w-full h-full md:w-3/4 md:h-3/4 object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" 
+                  />
                 </div>
               </Link>
             );
