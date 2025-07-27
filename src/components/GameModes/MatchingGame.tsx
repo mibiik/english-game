@@ -56,6 +56,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
   const [infiniteMode, setInfiniteMode] = useState(false);
+  const [timerDisabled, setTimerDisabled] = useState(false); // Süre bir kere kapatıldı mı?
   const [showDefneModal, setShowDefneModal] = useState(false);
 
   // Kullanıcı ID'sini al
@@ -70,11 +71,12 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Round başlatma
   const startNewGame = useCallback((customWords?: GameWord[]) => {
+    setTimerDisabled(false); // Her round başında sıfırla
     setShowResult(false);
     setScore(0);
     setBonus(0);
     setTimeLeft(30);
-    setTimerActive(!infiniteMode); // Süresiz modda timer aktif değil
+    setTimerActive(!infiniteMode && !timerDisabled); // Süresiz modda veya süre kapatıldıysa timer aktif değil
     setScoreSaved(false); // Yeni round için puan kaydetme durumunu sıfırla
     
     if (customWords) {
@@ -118,10 +120,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   // Tekrar oyna fonksiyonu:
   const handleReplayRound = () => {
     setScoreSaved(false); // Tekrar oyna için puan kaydetme durumunu sıfırla
+    setTimerDisabled(false); // Her round başında sıfırla
+    setInfiniteMode(false); // Tekrar oynada süresiz modu sıfırla
     startNewGame(lastRoundWords);
   };
 
   const handlePreviousRound = () => {
+    setTimerDisabled(false); // Her round başında sıfırla
     const currentUnitWords = words.filter(word => word.unit === unit);
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
@@ -150,12 +155,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setScore(0);
     setBonus(0);
     setTimeLeft(30);
-    setTimerActive(true);
+    setTimerActive(!infiniteMode && !timerDisabled);
     setScoreSaved(false);
     setShowResult(false); // Round bitiş ekranını kapat
   };
 
   const handleNextRound = () => {
+    setTimerDisabled(false); // Her round başında sıfırla
     const currentUnitWords = words.filter(word => word.unit === unit);
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
@@ -184,7 +190,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setScore(0);
     setBonus(0);
     setTimeLeft(30);
-    setTimerActive(true);
+    setTimerActive(!infiniteMode && !timerDisabled);
     setScoreSaved(false);
     setShowResult(false); // Round bitiş ekranını kapat
   };
@@ -227,10 +233,10 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     if (infiniteMode) {
       setTimerActive(false);
       setBonus(0); // Süre kapatıldığında bonus sıfırlanır
-    } else if (!showResult) {
+    } else if (!showResult && !timerDisabled) {
       setTimerActive(true);
     }
-  }, [infiniteMode, showResult]);
+  }, [infiniteMode, showResult, timerDisabled]);
 
   // Kartlara tıklama
   const handleCardClick = (card: GameWord) => {
@@ -280,13 +286,16 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     const saveScore = async () => {
       if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !infiniteMode)) && !showResult && !scoreSaved) {
         setTimerActive(false);
-        const calculatedBonus = infiniteMode ? 0 : timeLeft * 2; // Süresiz modda bonus yok
+        
+        // Son round'da veya süre kapatıldıysa süre puanı verme
+        const isLastRound = currentRound === totalRounds;
+        const calculatedBonus = infiniteMode || isLastRound || timerDisabled ? 0 : timeLeft * 2; // Süresiz modda, son round'da veya süre kapatıldıysa bonus yok
         setBonus(calculatedBonus);
         const finalScore = score + calculatedBonus;
         
         // Kullanıcı ID'sini al ve puanı topla
         const userId = authService.getCurrentUserId();
-        console.log('🔥 MatchingGame - Round bitti:', { userId, finalScore, score, calculatedBonus });
+        console.log('🔥 MatchingGame - Round bitti:', { userId, finalScore, score, calculatedBonus, currentRound, totalRounds, isLastRound });
         if (userId) {
           try {
             // Sadece addScore kullan, awardPoints'i kaldır
@@ -305,7 +314,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     };
     
     saveScore();
-  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved]);
+  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds]);
 
   // Tasarım ve görsel yapı korunacak, sadece puan sistemi sadeleşecek
     if (showResult) {
@@ -317,7 +326,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             <div className="flex items-center justify-center gap-2 mb-2">
               <span className="font-semibold text-blue-600">Oyun Skoru</span>
             </div>
-            <p className="text-3xl font-bold text-blue-800">{score} {!infiniteMode && <span>+ <span className="text-green-600">{bonus} Bonus</span></span>}</p>
+            <p className="text-3xl font-bold text-blue-800">{score} {!infiniteMode && currentRound !== totalRounds && !timerDisabled && <span>+ <span className="text-green-600">{bonus} Bonus</span></span>}</p>
             <p className="mt-2 text-blue-700">Toplam: {score + bonus} puan</p>
             <p className="mt-2 text-blue-700">{matchedPairs.length} / {gameWords.length / 2} kelime eşleştirdin</p>
           </div>
@@ -377,13 +386,15 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   };
 
   // Yeni: Oyun Bilgi Kartı Bileşeni
-  function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound, infiniteMode, setInfiniteMode }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void, infiniteMode: boolean, setInfiniteMode: (mode: boolean) => void }) {
+  function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound, infiniteMode, setInfiniteMode, timerDisabled, setTimerDisabled }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void, infiniteMode: boolean, setInfiniteMode: (mode: boolean) => void, timerDisabled: boolean, setTimerDisabled: (disabled: boolean) => void }) {
     // Kırmızı ve animasyonlu süre stili
     const timeClass = infiniteMode 
       ? 'font-bold text-green-600 text-3xl sm:text-4xl md:text-5xl'
-      : timeLeft <= 10
-        ? 'font-bold text-red-600 text-3xl sm:text-4xl md:text-5xl animate-pulse'
-        : 'font-bold text-red-500 text-3xl sm:text-4xl md:text-5xl';
+      : timerDisabled
+        ? 'font-bold text-gray-500 text-3xl sm:text-4xl md:text-5xl'
+        : timeLeft <= 10
+          ? 'font-bold text-red-600 text-3xl sm:text-4xl md:text-5xl animate-pulse'
+          : 'font-bold text-red-500 text-3xl sm:text-4xl md:text-5xl';
     return (
       <div className="flex flex-row md:flex-col items-center justify-center gap-3 bg-white rounded-xl shadow border border-blue-100 px-3 py-3 w-full max-w-sm md:max-w-xs mx-auto md:h-full md:py-6">
         {/* Round etiketi */}
@@ -413,7 +424,14 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           </div>
             </div>
         <div className="flex items-center gap-2 md:gap-1 md:flex-col md:mt-3">
-          <span className={timeClass}>{infiniteMode ? '∞' : `${timeLeft}s`}</span>
+          <span className={timeClass}>
+  {infiniteMode
+    ? '∞'
+    : (!timerActive && timerDisabled)
+      ? 'Kapalı'
+      : `${timeLeft}s`
+  }
+</span>
         </div>
         <div className="flex items-center gap-2 ml-2 md:ml-0 md:mt-3 md:flex-col">
           <button
@@ -433,16 +451,33 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           />
           {!infiniteMode && (
             <button
-              onClick={() => setInfiniteMode(true)}
+              onClick={() => {
+                setInfiniteMode(true);
+                setTimerActive(false);
+                setTimerDisabled(true); // Bir kere kapatınca bonus asla verilmez
+              }}
               className="w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold bg-red-300 border-red-400 text-red-700 hover:bg-red-400"
-              title="Süreyi Kapat - Bir daha açılamaz!"
+              title="Süreyi Kapat - Bu round için süre bonusu alamazsın!"
             >
               ⏱️
             </button>
           )}
           {infiniteMode && (
-            <div className="w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-bold bg-green-500 border-green-600 text-white shadow-lg">
-              ∞
+            <button
+              onClick={() => {
+                setInfiniteMode(false);
+                setTimerActive(true);
+                // timerDisabled bir kere true olduysa bir daha false yapılmaz
+              }}
+              className="w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-bold bg-green-500 border-green-600 text-white shadow-lg hover:bg-green-600"
+              title="Süreyi Aç (Puan alamazsın)"
+            >
+              ⏱️
+            </button>
+          )}
+          {timerDisabled && !infiniteMode && (
+            <div className="w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-bold bg-gray-500 border-gray-600 text-white shadow-lg">
+              ⏱️
             </div>
           )}
         </div>
@@ -498,6 +533,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
               onNextRound={handleNextRound}
               infiniteMode={infiniteMode}
               setInfiniteMode={setInfiniteMode}
+              timerDisabled={timerDisabled}
+              setTimerDisabled={setTimerDisabled}
             />
           </div>
           <div className="flex-1">

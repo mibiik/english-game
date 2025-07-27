@@ -62,11 +62,17 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0); // Doğru sayısını takip etmek için
   const [streak, setStreak] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [theme, setTheme] = useState<Theme>('blue');
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
+  const [wrongWords, setWrongWords] = useState<WordDetail[]>([]); // Yanlış yapılan kelimeler
+  const [isReviewMode, setIsReviewMode] = useState(false); // Tekrar gösterim modu
+  const [reviewRound, setReviewRound] = useState(1); // Tekrar gösterim turu
+  const [showReviewInfo, setShowReviewInfo] = useState(false); // Tekrar bilgisi gösterimi
+  const [showCongratulations, setShowCongratulations] = useState(false); // Tebrik modalı
 
   const themeClasses = getThemeClasses(theme);
   
@@ -100,8 +106,14 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     setSelectedAnswer(null);
     setIsCorrect(null);
     setScore(0);
+    setCorrectCount(0);
     setStreak(0);
     setShowFeedback(false);
+    setWrongWords([]);
+    setIsReviewMode(false);
+    setReviewRound(1);
+    setShowReviewInfo(false);
+    setShowCongratulations(false);
     if (shuffledWords.length > 0) {
       generateOptions(shuffledWords, 0);
     }
@@ -141,15 +153,22 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
       const bonus = Math.min(streak, 2); // Maksimum 2 bonus puan
       const totalPoints = 2 + bonus;
       setScore(prev => prev + totalPoints);
+      setCorrectCount(prev => prev + 1);
       setScoreChange({ value: totalPoints, key: Date.now() });
       setStreak(prev => prev + 1);
       learningStatsTracker.recordWordLearned(currentWord);
       awardPoints('multiple-choice', totalPoints, currentWord.unit);
       soundService.playCorrect();
+      
+      // Tekrar gösterim modunda doğru yapıldıysa yanlış kelimeler listesinden çıkar
+      if (isReviewMode) {
+        setWrongWords(prev => prev.filter(word => word.headword !== currentWord.headword));
+      }
     } else {
       setScore(prev => prev - 2);
       setScoreChange({ value: -2, key: Date.now() });
       setStreak(0);
+      setWrongWords(prev => [...prev, currentWord]); // Yanlış yapılan kelimeyi ekle
       awardPoints('multiple-choice', -2, currentWord.unit);
       soundService.playWrong();
     }
@@ -164,9 +183,48 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     const nextIndex = currentWordIndex + 1;
     
     if (nextIndex >= roundWords.length) {
-      // Oyun bitti, skoru kaydet
-      const finalScore = score + (isCorrect ? 1 : 0);
-      const unit = roundWords[0]?.unit || '1';
+      // Tüm kelimeler bitti, yanlış yapılanları kontrol et
+      if (wrongWords.length > 0 && !isReviewMode) {
+        // Yanlış yapılan kelimeleri tekrar göster
+        const shuffledWrongWords = shuffleArray(wrongWords);
+        setRoundWords(shuffledWrongWords);
+        setCurrentWordIndex(0);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+        setShowFeedback(false);
+        setIsReviewMode(true);
+        setReviewRound(prev => prev + 1);
+        setShowReviewInfo(true); // Tekrar bilgisi göster
+        if (shuffledWrongWords.length > 0) {
+          generateOptions(shuffledWrongWords, 0);
+        }
+        return;
+      } else if (isReviewMode && wrongWords.length > 0) {
+        // Tekrar gösterim modunda da yanlış yapılanlar varsa devam et
+        const newWrongWords = wrongWords.filter(word => 
+          !roundWords.some(roundWord => roundWord.headword === word.headword)
+        );
+        if (newWrongWords.length > 0) {
+          const shuffledNewWrongWords = shuffleArray(newWrongWords);
+          setRoundWords(shuffledNewWrongWords);
+          setWrongWords(newWrongWords);
+          setCurrentWordIndex(0);
+          setSelectedAnswer(null);
+          setIsCorrect(null);
+          setShowFeedback(false);
+          setReviewRound(prev => prev + 1);
+          setShowReviewInfo(true); // Tekrar bilgisi göster
+          if (shuffledNewWrongWords.length > 0) {
+            generateOptions(shuffledNewWrongWords, 0);
+          }
+          return;
+        }
+      }
+      
+              // Gerçekten oyun bitti, tebrik modalını göster
+        setShowCongratulations(true);
+        const finalScore = score + (isCorrect ? 1 : 0);
+        const unit = roundWords[0]?.unit || '1';
       try {
         gameScoreService.saveScore('multiple-choice', finalScore, unit);
       } catch (error) {
@@ -180,7 +238,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     setSelectedAnswer(null);
     setIsCorrect(null);
     setShowFeedback(false);
-  }, [roundWords, currentWordIndex, generateOptions, score, isCorrect]);
+  }, [roundWords, currentWordIndex, generateOptions, score, isCorrect, wrongWords, isReviewMode, shuffleArray]);
 
   const getButtonStyle = (option: string) => {
     if (selectedAnswer === null) {
@@ -225,6 +283,85 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
 
   return (
     <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>
+      {/* Tekrar Bilgisi Modal */}
+      {showReviewInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl ${themeClasses.cardBg}`}>
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-orange-100 flex items-center justify-center">
+                <span className="text-2xl">🔄</span>
+              </div>
+              <h3 className={`text-2xl font-bold mb-4 ${themeClasses.headerText}`}>
+                Yanlışların Tekrarı
+              </h3>
+              <p className={`text-lg mb-6 ${themeClasses.text}`}>
+                <span className="font-bold text-orange-600">{wrongWords.length}</span> kelimeyi yanlış yaptınız.
+              </p>
+              <p className={`text-base mb-6 ${themeClasses.text}`}>
+                Bu kelimeleri tekrar çalışalım! Doğru yapana kadar devam edeceğiz.
+              </p>
+              <button
+                onClick={() => setShowReviewInfo(false)}
+                className={`px-6 py-3 rounded-lg font-semibold text-white transition-transform transform hover:scale-105 shadow-lg ${themeClasses.progressFill}`}
+              >
+                Başla
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tebrik Modal */}
+      {showCongratulations && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl ${themeClasses.cardBg}`}>
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center animate-bounce">
+                <span className="text-3xl">🎉</span>
+              </div>
+              <h3 className={`text-3xl font-bold mb-4 ${themeClasses.headerText}`}>
+                Tebrikler!
+              </h3>
+              <p className={`text-lg mb-4 ${themeClasses.text}`}>
+                Tüm kelimeleri başarıyla tamamladınız!
+              </p>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6">
+                <p className={`text-sm ${themeClasses.text}`}>
+                  <span className="font-bold text-green-600">Doğru Sayısı:</span> {correctCount} / {roundWords.length}
+                </p>
+                <p className={`text-sm ${themeClasses.text}`}>
+                  <span className="font-bold text-blue-600">Toplam Puan:</span> {score}
+                </p>
+                {isReviewMode && (
+                  <p className={`text-sm ${themeClasses.text}`}>
+                    <span className="font-bold text-orange-600">Tekrar Turu:</span> {reviewRound - 1}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowCongratulations(false);
+                  }}
+                  className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-transform transform hover:scale-105 shadow-lg ${themeClasses.progressFill}`}
+                >
+                  Tamamla
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCongratulations(false);
+                    startNewRound();
+                  }}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-transform transform hover:scale-105 shadow-lg"
+                >
+                  Tekrar Oyna
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Puan Gösterimi */}
       {scoreChange && (
         <div key={scoreChange.key} className={`fixed top-1/3 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none animate-fade-in-out`}
@@ -241,13 +378,19 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
               <div className="flex items-center gap-2">
                 <div className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-md ${themeClasses.statBg}`}>
                   <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span className={`font-bold ${themeClasses.text}`}>{score}</span>
+                  <span className={`font-bold ${themeClasses.text}`}>{correctCount}</span>
                   <span className={`opacity-70 ${themeClasses.text}`}>/{currentWordIndex + 1}</span>
                 </div>
                 {streak > 0 && (
                   <div className="flex items-center gap-2 bg-orange-100 rounded-full px-4 py-2 shadow-md">
                     <Target className="w-5 h-5 text-orange-500" />
                     <span className="font-bold text-orange-600">{streak} 🔥</span>
+                  </div>
+                )}
+                {isReviewMode && (
+                  <div className="flex items-center gap-2 bg-red-100 rounded-full px-4 py-2 shadow-md">
+                    <span className="text-red-600 font-bold">Tekrar {reviewRound}</span>
+                    <span className="text-red-600 text-sm">({wrongWords.length} kelime)</span>
                   </div>
                 )}
               </div>
@@ -318,8 +461,16 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
             <Trophy className="w-24 h-24 text-yellow-400 mb-6" />
             <h2 className={`text-4xl font-bold mb-4 ${themeClasses.headerText}`}>Oyun Bitti!</h2>
             <p className={`text-xl mb-6 ${themeClasses.text}`}>
-              Skorunuz: <span className="font-extrabold">{score} / {roundWords.length}</span>
+              Doğru Sayısı: <span className="font-extrabold">{correctCount} / {roundWords.length}</span>
             </p>
+            <p className={`text-lg mb-6 ${themeClasses.text}`}>
+              Toplam Puan: <span className="font-extrabold">{score}</span>
+            </p>
+            {isReviewMode && (
+              <p className={`text-lg mb-6 ${themeClasses.text}`}>
+                Tekrar Gösterim: <span className="font-extrabold">{reviewRound - 1} tur</span>
+              </p>
+            )}
             <button
               onClick={startNewGame}
               className={`px-8 py-3 rounded-lg font-semibold text-white transition-transform transform hover:scale-105 shadow-lg ${themeClasses.progressFill}`}

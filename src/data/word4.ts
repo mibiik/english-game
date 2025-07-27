@@ -4475,7 +4475,7 @@ export interface WordDetail {
     },
     {
       headword: 'moderate',
-      turkish: 'ılımlı',
+      turkish: 'ılımlı,makul',
       unit: '6',
       section: 'Reading & Writing',
       forms: {
@@ -4948,7 +4948,7 @@ export interface WordDetail {
     },
     {
       headword: 'alert',
-      turkish: 'uyanık',
+      turkish: 'uyarı',
       unit: '6',
       section: 'Extra Words',
       forms: { verb: [], noun: ['alert'], adjective: ['alert'], adverb: [] },
@@ -4992,7 +4992,7 @@ export interface WordDetail {
     },
     {
       headword: 'declare',
-      turkish: 'ilan etmek',
+      turkish: 'ilan etmek,bildirmek',
       unit: '6',
       section: 'Extra Words',
       forms: { verb: ['declare'], noun: ['declaration'], adjective: [], adverb: [] },
