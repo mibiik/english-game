@@ -47,6 +47,7 @@ const LearningMode = lazy(() => import('./components/GameModes/LearningMode').th
 const MemoryGame = lazy(() => import('./components/GameModes/MemoryGame').then(module => ({ default: module.MemoryGame })));
 const QuizGame = lazy(() => import('./components/GameModes/QuizGame').then(module => ({ default: module.QuizGame })));
 const SpeakingGame = lazy(() => import('./components/GameModes/SpeakingGame').then(module => ({ default: module.SpeakingGame })));
+const WordFormsGame = lazy(() => import('./components/GameModes/WordFormsGame'));
 
 // Loading Spinner bileşeni
 const LoadingSpinner = () => (
@@ -335,7 +336,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
               setCurrentLevel={setCurrentLevel}
             />
             <div className="pt-32">
-              <GameWrapperWithParams component={FlashCard} />
+              <GameWrapperWithParams component={WordFormsGame} />
             </div>
           </>
         </ProtectedRoute>
