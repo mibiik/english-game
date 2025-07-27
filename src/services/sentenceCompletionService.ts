@@ -26,10 +26,13 @@ class SentenceCompletionServiceClass {
       return [];
     }
 
+    // Kelimeleri rastgele karıştır
+    const shuffledWords = this.shuffleArray([...words]);
+
     // AI'dan soru istemek için bir prompt oluştur
     const prompt = `
       You are an API that generates sentence completion questions for English learners.
-      For each word in this list: [${words.join(', ')}], create one unique B1-B2 level English sentence.
+      For each word in this list: [${shuffledWords.join(', ')}], create one unique B1-B2 level English sentence.
       The sentence must use the word, but replace the word with '_____'.
 
       RULES:
@@ -69,8 +72,8 @@ class SentenceCompletionServiceClass {
       const aiResponse = completion.message.content ?? '';
       const aiQuestions = this.parseAIResponse(aiResponse);
 
-      // AI'dan gelen her soru için şıkları oluştur
-      return aiQuestions.map((q: { sentence: string; targetWord: string }) => {
+      // AI'dan gelen her soru için şıkları oluştur ve rastgele karıştır
+      const questionsWithOptions = aiQuestions.map((q: { sentence: string; targetWord: string }) => {
         const wrongOptions = this.generateRandomOptions(q.targetWord, 3);
         const allOptions = [q.targetWord, ...wrongOptions];
         
@@ -80,6 +83,9 @@ class SentenceCompletionServiceClass {
           correctAnswer: q.targetWord,
         };
       });
+
+      // Soruları da rastgele karıştır
+      return this.shuffleArray(questionsWithOptions);
 
     } catch (error) {
       console.error('Error generating sentence completions:', error instanceof Error ? error.message : JSON.stringify(error));

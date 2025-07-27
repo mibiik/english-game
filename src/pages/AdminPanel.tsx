@@ -74,7 +74,7 @@ const AdminPanel: React.FC = () => {
       const count = await userService.getUserCount();
       setMessage(`📊 Toplam ${count} kullanıcı bulundu!`);
       setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
+      } catch (error) {
       setMessage('❌ Kullanıcı sayısı alınırken hata oluştu!');
       console.error('Kullanıcı sayısı hatası:', error);
     } finally {
@@ -144,15 +144,15 @@ const AdminPanel: React.FC = () => {
             Görkem'e Bağışçı Rozeti
           </button>
 
-          <button
+          <button 
             onClick={loadUsers}
             disabled={loading}
             className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
           >
             🔄 Yenile
           </button>
-
-          <button
+        
+          <button 
             onClick={getUserCount}
             disabled={loading}
             className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
@@ -160,7 +160,7 @@ const AdminPanel: React.FC = () => {
             📊 Kullanıcı Sayısı
           </button>
         </div>
-
+        
         <div className="bg-gray-800 rounded-lg p-6">
           <div className="flex flex-col md:flex-row justify-between items-center mb-6">
             <h2 className="text-2xl font-bold mb-4 md:mb-0">Kullanıcı Listesi</h2>
@@ -212,8 +212,8 @@ const AdminPanel: React.FC = () => {
                           ) : (
                             <div className="w-8 h-8 rounded-full mr-3 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                               {user.displayName ? user.displayName.charAt(0).toUpperCase() : '?'}
-                            </div>
-                          )}
+          </div>
+        )}
                           <div>
                             <div className="font-semibold">{user.displayName}</div>
                             <div className="text-xs text-gray-400">{user.userId}</div>
@@ -257,8 +257,8 @@ const AdminPanel: React.FC = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
+                </div>
+              )}
         </div>
 
         {/* Puan Ayarlama Modal */}
