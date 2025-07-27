@@ -14,7 +14,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { X, Sparkles } from 'lucide-react';
 import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
-import { UserFeedbackModal } from './components/UserFeedbackModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { userAnalyticsService } from './services/userAnalyticsService';
 
@@ -56,7 +55,6 @@ function AppContent() {
 
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
   const [showMehmetModal, setShowMehmetModal] = useState(false);
-  const [showUserFeedbackModal, setShowUserFeedbackModal] = useState(false);
 
   // Uygulama başlangıcında monitoring'i başlat
   useEffect(() => {
@@ -205,34 +203,7 @@ function AppContent() {
     checkMehmetModal();
   }, [isAuthenticated]);
 
-  // mht3bah@gmail.com kullanıcısı için feedback modal kontrolü
-  useEffect(() => {
-    const checkUserFeedbackModal = async () => {
-      if (isAuthenticated) {
-        const currentUser = authService.getCurrentUser();
-        if (currentUser?.email === 'mht3bah@gmail.com') {
-          try {
-            const { doc, getDoc } = await import('firebase/firestore');
-            const userId = authService.getCurrentUserId();
-            if (userId) {
-              const userProfileRef = doc(db, 'userProfiles', userId);
-              const userProfileDoc = await getDoc(userProfileRef);
-              if (userProfileDoc.exists()) {
-                const userData = userProfileDoc.data();
-                if (!userData.userFeedbackModalShown) {
-                  setShowUserFeedbackModal(true);
-                }
-              }
-            }
-          } catch (error) {
-            console.error('User feedback modal kontrolü sırasında hata:', error);
-          }
-        }
-      }
-    };
-    
-    checkUserFeedbackModal();
-  }, [isAuthenticated]);
+
 
   // URL parametreleri değiştiğinde state'i ve localStorage'ı güncelle
   useEffect(() => {
@@ -303,10 +274,6 @@ function AppContent() {
       <MehmetModal 
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
-      />
-      <UserFeedbackModal 
-        isOpen={showUserFeedbackModal} 
-        onClose={() => setShowUserFeedbackModal(false)} 
       />
       <PerformanceMonitor />
     </div>
