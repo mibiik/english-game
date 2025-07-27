@@ -2,469 +2,152 @@ import { db } from '../config/firebase';
 import { 
   collection, 
   doc, 
+  onSnapshot, 
+  getDocs, 
   setDoc, 
-  getDoc, 
   updateDoc, 
   query, 
-  where, 
-  getDocs, 
   orderBy, 
   limit as firestoreLimit, 
-  addDoc 
+  where,
+  getDoc
 } from 'firebase/firestore';
 import { authService } from './authService';
 
-export interface UserActivity {
-  id?: string;
+interface UserActivity {
+  id: string;
   userId: string;
-  activityType: 'login' | 'logout' | 'game_start' | 'game_complete' | 'game_score' | 'level_up' | 'word_learned' | 'profile_update' | 'page_visit';
-  gameMode?: string;
-  score?: number;
-  level?: string;
-  unit?: string;
-  wordId?: string;
-  word?: string;
-  page?: string;
-  details?: any;
+  activityType: 'login' | 'logout' | 'game_start' | 'game_complete' | 'score_change';
+  details: any;
   timestamp: Date;
-  sessionId?: string;
-}
-
-export interface GameSession {
-  id?: string;
-  userId: string;
-  sessionId: string;
-  gameMode: string;
-  startTime: Date;
-  endTime?: Date;
-  totalScore: number;
-  wordsPlayed: number;
-  correctAnswers: number;
-  wrongAnswers: number;
-  level: string;
-  unit: string;
-  duration?: number; // saniye cinsinden
-  isCompleted: boolean;
-}
-
-export interface UserStats {
-  userId: string;
-  totalGamesPlayed: number;
-  totalScore: number;
-  averageScore: number;
-  bestScore: number;
-  totalPlayTime: number; // dakika cinsinden
-  favoriteGameMode: string;
-  totalWordsLearned: number;
-  currentStreak: number; // günlük oyun serisi
-  longestStreak: number;
-  lastPlayed: Date;
-  levelProgress: {
-    [level: string]: {
-      totalScore: number;
-      gamesPlayed: number;
-      wordsLearned: number;
-      averageScore: number;
-    }
-  };
-  unitProgress: {
-    [unit: string]: {
-      totalScore: number;
-      gamesPlayed: number;
-      wordsLearned: number;
-      averageScore: number;
-    }
-  };
-  gameModeStats: {
-    [gameMode: string]: {
-      totalScore: number;
-      gamesPlayed: number;
-      averageScore: number;
-      bestScore: number;
-    }
-  };
-  updatedAt: Date;
-}
-
-export interface UserLearningProgress {
-  userId: string;
-  wordId: string;
-  word: string;
-  level: string;
-  unit: string;
-  timesSeen: number;
-  timesCorrect: number;
-  timesWrong: number;
-  lastSeen: Date;
-  masteryLevel: number; // 0-100 arası
-  isMastered: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
+interface GameSession {
+  id: string;
+  userId: string;
+  gameType: string;
+  startTime: Date;
+  endTime?: Date;
+  score: number;
+  duration: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface UserLearningProgress {
+  id: string;
+  userId: string;
+  wordId: string;
+  word: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  masteryLevel: number;
+  lastReviewed: Date;
+  nextReview: Date;
+  reviewCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ScoreChange {
+  userId: string;
+  userName: string;
+  oldScore: number;
+  newScore: number;
+  change: number;
+  timestamp: Date;
+  reason?: string;
+  isAnomaly: boolean;
+}
+
+interface UserScoreHistory {
+  userId: string;
+  userName: string;
+  scores: {
+    score: number;
+    timestamp: Date;
+  }[];
+  lastCheck: Date;
+}
+
 class UserAnalyticsService {
   private readonly activitiesCollection = 'userActivities';
-  private readonly gameSessionsCollection = 'gameSessions';
+  private readonly sessionsCollection = 'gameSessions';
   private readonly userStatsCollection = 'userStats';
   private readonly learningProgressCollection = 'userLearningProgress';
+  private scoreHistory: Map<string, UserScoreHistory> = new Map();
+  private anomalyThreshold = 100; // 100 puan üzeri düşüş anomali sayılır
+  private isMonitoring = false;
+  private unsubscribe: (() => void) | null = null;
 
   // Kullanıcı aktivitesi kaydet
-  public async logActivity(activity: Omit<UserActivity, 'id' | 'timestamp'>): Promise<void> {
+  async logActivity(userId: string, activityType: UserActivity['activityType'], details: any = {}) {
     try {
-      const userId = authService.getCurrentUserId();
-      if (!userId) throw new Error('Kullanıcı oturum açmamış');
-
       const activityData: UserActivity = {
-        ...activity,
+        id: this.generateId(),
         userId,
-        timestamp: new Date()
+        activityType,
+        details,
+        timestamp: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
-      await addDoc(collection(db, this.activitiesCollection), activityData);
+      await setDoc(doc(db, this.activitiesCollection, activityData.id), activityData);
     } catch (error) {
       console.error('Aktivite kaydedilirken hata:', error);
     }
   }
 
-  // Giriş aktivitesi kaydet
-  public async logLogin(): Promise<void> {
-    await this.logActivity({
-      userId: authService.getCurrentUserId() || '',
-      activityType: 'login',
-      sessionId: this.generateSessionId()
-    });
-  }
-
-  // Çıkış aktivitesi kaydet
-  public async logLogout(): Promise<void> {
-    await this.logActivity({
-      userId: authService.getCurrentUserId() || '',
-      activityType: 'logout'
-    });
-  }
-
-  // Oyun başlangıcı kaydet
-  public async logGameStart(gameMode: string, level: string, unit: string): Promise<string> {
-    const sessionId = this.generateSessionId();
-    
-    await this.logActivity({
-      userId: authService.getCurrentUserId() || '',
-      activityType: 'game_start',
-      gameMode,
-      level,
-      unit,
-      sessionId
-    });
-
-    // Oyun oturumu oluştur
-    const sessionData: GameSession = {
-      userId: authService.getCurrentUserId() || '',
-      sessionId,
-      gameMode,
-      startTime: new Date(),
-      totalScore: 0,
-      wordsPlayed: 0,
-      correctAnswers: 0,
-      wrongAnswers: 0,
-      level,
-      unit,
-      isCompleted: false
-    };
-
-    await setDoc(doc(db, this.gameSessionsCollection, sessionId), sessionData);
-
-    return sessionId;
-  }
-
-  // Oyun tamamlama kaydet
-  public async logGameComplete(
-    sessionId: string, 
-    totalScore: number, 
-    wordsPlayed: number, 
-    correctAnswers: number, 
-    wrongAnswers: number
-  ): Promise<void> {
+  // Oyun oturumu başlat
+  async startGameSession(userId: string, gameType: string): Promise<string> {
     try {
-      const userId = authService.getCurrentUserId();
-      if (!userId) throw new Error('Kullanıcı oturum açmamış');
+      const sessionId = this.generateId();
+      const sessionData: GameSession = {
+        id: sessionId,
+        userId,
+        gameType,
+        startTime: new Date(),
+        score: 0,
+        duration: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      const endTime = new Date();
-      
-      // Oyun oturumunu güncelle
-      const sessionRef = doc(db, this.gameSessionsCollection, sessionId);
+      await setDoc(doc(db, this.sessionsCollection, sessionId), sessionData);
+      return sessionId;
+    } catch (error) {
+      console.error('Oyun oturumu başlatılırken hata:', error);
+      throw error;
+    }
+  }
+
+  // Oyun oturumu bitir
+  async endGameSession(sessionId: string, finalScore: number) {
+    try {
+      const sessionRef = doc(db, this.sessionsCollection, sessionId);
       const sessionDoc = await getDoc(sessionRef);
       
       if (sessionDoc.exists()) {
         const sessionData = sessionDoc.data() as GameSession;
-        const duration = Math.round((endTime.getTime() - sessionData.startTime.getTime()) / 1000);
-        
+        const endTime = new Date();
+        const duration = endTime.getTime() - sessionData.startTime.getTime();
+
         await updateDoc(sessionRef, {
           endTime,
-          totalScore,
-          wordsPlayed,
-          correctAnswers,
-          wrongAnswers,
+          score: finalScore,
           duration,
-          isCompleted: true
-        });
-
-        // Aktivite kaydet
-        await this.logActivity({
-          userId,
-          activityType: 'game_complete',
-          gameMode: sessionData.gameMode || '',
-          score: totalScore,
-          level: sessionData.level || '',
-          unit: sessionData.unit || '',
-          sessionId,
-          details: {
-            wordsPlayed,
-            correctAnswers,
-            wrongAnswers,
-            duration
-          }
-        });
-
-        // Kullanıcı istatistiklerini güncelle
-        await this.updateUserStats(userId, totalScore, sessionData.gameMode || '', sessionData.level || '', sessionData.unit || '');
-      }
-
-    } catch (error) {
-      console.error('Oyun tamamlama kaydedilirken hata:', error);
-    }
-  }
-
-  // Kelime öğrenme kaydet
-  public async logWordLearned(wordId: string, word: string, level: string, unit: string, isCorrect: boolean): Promise<void> {
-    try {
-      const userId = authService.getCurrentUserId();
-      if (!userId) throw new Error('Kullanıcı oturum açmamış');
-
-      // Aktivite kaydet
-      await this.logActivity({
-        userId,
-        activityType: 'word_learned',
-        wordId,
-        word,
-        level,
-        unit,
-        details: { isCorrect }
-      });
-
-      // Öğrenme ilerlemesini güncelle
-      await this.updateLearningProgress(userId, wordId, word, level, unit, isCorrect);
-
-    } catch (error) {
-      console.error('Kelime öğrenme kaydedilirken hata:', error);
-    }
-  }
-
-  // Sayfa ziyareti kaydet
-  public async logPageVisit(page: string): Promise<void> {
-    await this.logActivity({
-      userId: authService.getCurrentUserId() || '',
-      activityType: 'page_visit',
-      page
-    });
-  }
-
-  // Kullanıcı istatistiklerini güncelle
-  private async updateUserStats(
-    userId: string, 
-    score: number, 
-    gameMode: string, 
-    level: string, 
-    unit: string
-  ): Promise<void> {
-    try {
-      const statsRef = doc(db, this.userStatsCollection, userId);
-      const statsDoc = await getDoc(statsRef);
-      
-      let stats: UserStats;
-      
-      if (statsDoc.exists()) {
-        stats = statsDoc.data() as UserStats;
-        
-        // Mevcut istatistikleri güncelle
-        stats.totalGamesPlayed += 1;
-        stats.totalScore += score;
-        stats.averageScore = Math.round(stats.totalScore / stats.totalGamesPlayed);
-        stats.bestScore = Math.max(stats.bestScore, score);
-        stats.lastPlayed = new Date();
-        
-        // Level istatistiklerini güncelle
-        if (!stats.levelProgress[level]) {
-          stats.levelProgress[level] = {
-            totalScore: 0,
-            gamesPlayed: 0,
-            wordsLearned: 0,
-            averageScore: 0
-          };
-        }
-        stats.levelProgress[level].totalScore += score;
-        stats.levelProgress[level].gamesPlayed += 1;
-        stats.levelProgress[level].averageScore = Math.round(stats.levelProgress[level].totalScore / stats.levelProgress[level].gamesPlayed);
-        
-        // Unit istatistiklerini güncelle
-        if (!stats.unitProgress[unit]) {
-          stats.unitProgress[unit] = {
-            totalScore: 0,
-            gamesPlayed: 0,
-            wordsLearned: 0,
-            averageScore: 0
-          };
-        }
-        stats.unitProgress[unit].totalScore += score;
-        stats.unitProgress[unit].gamesPlayed += 1;
-        stats.unitProgress[unit].averageScore = Math.round(stats.unitProgress[unit].totalScore / stats.unitProgress[unit].gamesPlayed);
-        
-        // Oyun modu istatistiklerini güncelle
-        if (!stats.gameModeStats[gameMode]) {
-          stats.gameModeStats[gameMode] = {
-            totalScore: 0,
-            gamesPlayed: 0,
-            averageScore: 0,
-            bestScore: 0
-          };
-        }
-        stats.gameModeStats[gameMode].totalScore += score;
-        stats.gameModeStats[gameMode].gamesPlayed += 1;
-        stats.gameModeStats[gameMode].averageScore = Math.round(stats.gameModeStats[gameMode].totalScore / stats.gameModeStats[gameMode].gamesPlayed);
-        stats.gameModeStats[gameMode].bestScore = Math.max(stats.gameModeStats[gameMode].bestScore, score);
-        
-        // En favori oyun modunu güncelle
-        let maxGames = 0;
-        for (const [mode, modeStats] of Object.entries(stats.gameModeStats)) {
-          if (modeStats.gamesPlayed > maxGames) {
-            maxGames = modeStats.gamesPlayed;
-            stats.favoriteGameMode = mode;
-          }
-        }
-        
-      } else {
-        // Yeni kullanıcı istatistikleri oluştur
-        stats = {
-          userId,
-          totalGamesPlayed: 1,
-          totalScore: score,
-          averageScore: score,
-          bestScore: score,
-          totalPlayTime: 0,
-          favoriteGameMode: gameMode,
-          totalWordsLearned: 0,
-          currentStreak: 1,
-          longestStreak: 1,
-          lastPlayed: new Date(),
-          levelProgress: {
-            [level]: {
-              totalScore: score,
-              gamesPlayed: 1,
-              wordsLearned: 0,
-              averageScore: score
-            }
-          },
-          unitProgress: {
-            [unit]: {
-              totalScore: score,
-              gamesPlayed: 1,
-              wordsLearned: 0,
-              averageScore: score
-            }
-          },
-          gameModeStats: {
-            [gameMode]: {
-              totalScore: score,
-              gamesPlayed: 1,
-              averageScore: score,
-              bestScore: score
-            }
-          },
           updatedAt: new Date()
-        };
+        });
       }
-      
-      stats.updatedAt = new Date();
-      await setDoc(statsRef, stats);
-      
     } catch (error) {
-      console.error('Kullanıcı istatistikleri güncellenirken hata:', error);
-    }
-  }
-
-  // Öğrenme ilerlemesini güncelle
-  private async updateLearningProgress(
-    userId: string, 
-    wordId: string, 
-    word: string, 
-    level: string, 
-    unit: string, 
-    isCorrect: boolean
-  ): Promise<void> {
-    try {
-      const progressRef = doc(db, this.learningProgressCollection, `${userId}_${wordId}`);
-      const progressDoc = await getDoc(progressRef);
-      
-      let progress: UserLearningProgress;
-      
-      if (progressDoc.exists()) {
-        progress = progressDoc.data() as UserLearningProgress;
-        progress.timesSeen += 1;
-        if (isCorrect) {
-          progress.timesCorrect += 1;
-        } else {
-          progress.timesWrong += 1;
-        }
-        progress.lastSeen = new Date();
-        progress.masteryLevel = Math.round((progress.timesCorrect / progress.timesSeen) * 100);
-        progress.isMastered = progress.masteryLevel >= 80;
-        progress.updatedAt = new Date();
-      } else {
-        progress = {
-          userId,
-          wordId,
-          word,
-          level,
-          unit,
-          timesSeen: 1,
-          timesCorrect: isCorrect ? 1 : 0,
-          timesWrong: isCorrect ? 0 : 1,
-          lastSeen: new Date(),
-          masteryLevel: isCorrect ? 100 : 0,
-          isMastered: isCorrect,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-      }
-      
-      await setDoc(progressRef, progress);
-      
-    } catch (error) {
-      console.error('Öğrenme ilerlemesi güncellenirken hata:', error);
-    }
-  }
-
-  // Kullanıcı istatistiklerini getir
-  public async getUserStats(userId: string): Promise<UserStats | null> {
-    try {
-      const statsDoc = await getDoc(doc(db, this.userStatsCollection, userId));
-      
-      if (statsDoc.exists()) {
-        const data = statsDoc.data();
-        return {
-          ...data,
-          lastPlayed: data.lastPlayed?.toDate(),
-          updatedAt: data.updatedAt?.toDate()
-        } as UserStats;
-      }
-      return null;
-    } catch (error) {
-      console.error('Kullanıcı istatistikleri getirilirken hata:', error);
-      return null;
+      console.error('Oyun oturumu bitirilirken hata:', error);
     }
   }
 
   // Kullanıcı aktivitelerini getir
-  public async getUserActivities(userId: string, limitCount: number = 50): Promise<UserActivity[]> {
+  async getUserActivities(userId: string, limitCount: number = 50): Promise<UserActivity[]> {
     try {
       const activitiesQuery = query(
         collection(db, this.activitiesCollection),
@@ -477,12 +160,7 @@ class UserAnalyticsService {
       const activities: UserActivity[] = [];
       
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        activities.push({
-          ...data,
-          timestamp: data.timestamp?.toDate(),
-          id: doc.id
-        } as UserActivity);
+        activities.push(doc.data() as UserActivity);
       });
       
       return activities;
@@ -493,10 +171,10 @@ class UserAnalyticsService {
   }
 
   // Oyun oturumlarını getir
-  public async getUserGameSessions(userId: string, limitCount: number = 20): Promise<GameSession[]> {
+  async getGameSessions(userId: string, limitCount: number = 20): Promise<GameSession[]> {
     try {
       const sessionsQuery = query(
-        collection(db, this.gameSessionsCollection),
+        collection(db, this.sessionsCollection),
         where('userId', '==', userId),
         orderBy('startTime', 'desc'),
         firestoreLimit(limitCount)
@@ -506,13 +184,7 @@ class UserAnalyticsService {
       const sessions: GameSession[] = [];
       
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        sessions.push({
-          ...data,
-          startTime: data.startTime?.toDate(),
-          endTime: data.endTime?.toDate(),
-          id: doc.id
-        } as GameSession);
+        sessions.push(doc.data() as GameSession);
       });
       
       return sessions;
@@ -522,33 +194,37 @@ class UserAnalyticsService {
     }
   }
 
-  // Öğrenme ilerlemesini getir
-  public async getUserLearningProgress(userId: string, level?: string, unit?: string): Promise<UserLearningProgress[]> {
+  // Öğrenme ilerlemesini kaydet
+  async saveLearningProgress(progress: Omit<UserLearningProgress, 'id' | 'createdAt' | 'updatedAt'>) {
     try {
-      let progressQuery = query(
+      const progressData: UserLearningProgress = {
+        ...progress,
+        id: this.generateId(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await setDoc(doc(db, this.learningProgressCollection, progressData.id), progressData);
+    } catch (error) {
+      console.error('Öğrenme ilerlemesi kaydedilirken hata:', error);
+    }
+  }
+
+  // Öğrenme ilerlemesini getir
+  async getLearningProgress(userId: string, limitCount: number = 100): Promise<UserLearningProgress[]> {
+    try {
+      const progressQuery = query(
         collection(db, this.learningProgressCollection),
-        where('userId', '==', userId)
+        where('userId', '==', userId),
+        orderBy('lastReviewed', 'desc'),
+        firestoreLimit(limitCount)
       );
-      
-      if (level) {
-        progressQuery = query(progressQuery, where('level', '==', level));
-      }
-      if (unit) {
-        progressQuery = query(progressQuery, where('unit', '==', unit));
-      }
       
       const querySnapshot = await getDocs(progressQuery);
       const progress: UserLearningProgress[] = [];
       
       querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        progress.push({
-          ...data,
-          lastSeen: data.lastSeen?.toDate(),
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate(),
-          id: doc.id
-        } as unknown as UserLearningProgress);
+        progress.push(doc.data() as UserLearningProgress);
       });
       
       return progress;
@@ -558,9 +234,216 @@ class UserAnalyticsService {
     }
   }
 
-  // Session ID oluştur
-  private generateSessionId(): string {
+  // Benzersiz ID oluştur
+  private generateId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  // Monitoring'i başlat
+  startMonitoring() {
+    if (this.isMonitoring) return;
+    
+    console.log('🔍 User Analytics Monitoring başlatılıyor...');
+    this.isMonitoring = true;
+    
+    // Tüm kullanıcıları dinle
+    const usersRef = collection(db, 'userProfiles');
+    const q = query(usersRef, orderBy('totalScore', 'desc'));
+    
+    this.unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'modified') {
+          this.handleScoreChange(change.doc);
+        }
+      });
+    }, (error) => {
+      console.error('❌ User Analytics Monitoring hatası:', error);
+    });
+  }
+
+  // Monitoring'i durdur
+  stopMonitoring() {
+    if (this.unsubscribe) {
+      this.unsubscribe();
+      this.unsubscribe = null;
+    }
+    this.isMonitoring = false;
+    console.log('🛑 User Analytics Monitoring durduruldu');
+  }
+
+  // Puan değişikliğini işle
+  private async handleScoreChange(docSnapshot: any) {
+    const userData = docSnapshot.data();
+    const userId = docSnapshot.id;
+    const newScore = userData.totalScore || 0;
+    const userName = userData.displayName || 'Bilinmeyen Kullanıcı';
+
+    // Kullanıcının geçmiş puanını al
+    const history = this.scoreHistory.get(userId);
+    const oldScore = history?.scores[history.scores.length - 1]?.score || 0;
+
+    // Puan değişikliğini hesapla
+    const change = newScore - oldScore;
+
+    // Eğer puan düştüyse ve anomali eşiğini geçtiyse
+    if (change < -this.anomalyThreshold) {
+      const scoreChange: ScoreChange = {
+        userId,
+        userName,
+        oldScore,
+        newScore,
+        change,
+        timestamp: new Date(),
+        reason: 'Ani puan düşüşü',
+        isAnomaly: true
+      };
+
+      console.warn('🚨 ANOMALİ ALGILANDI:', scoreChange);
+      
+      // Anomaliyi kaydet
+      await this.saveAnomaly(scoreChange);
+      
+      // Admin'e bildir
+      await this.notifyAdmin(scoreChange);
+      
+      // Son puanı yedekle
+      await this.backupLastScore(userId, userName, oldScore);
+    }
+
+    // Puan geçmişini güncelle
+    this.updateScoreHistory(userId, userName, newScore);
+  }
+
+  // Anomaliyi kaydet
+  private async saveAnomaly(scoreChange: ScoreChange) {
+    try {
+      const anomaliesRef = collection(db, 'scoreAnomalies');
+      await setDoc(doc(anomaliesRef), {
+        ...scoreChange,
+        timestamp: scoreChange.timestamp.toISOString()
+      });
+      console.log('✅ Anomali kaydedildi:', scoreChange.userName);
+    } catch (error) {
+      console.error('❌ Anomali kaydedilirken hata:', error);
+    }
+  }
+
+  // Admin'e bildir
+  private async notifyAdmin(scoreChange: ScoreChange) {
+    try {
+      const notificationsRef = collection(db, 'adminNotifications');
+      await setDoc(doc(notificationsRef), {
+        type: 'score_anomaly',
+        title: '🚨 Puan Anomalisi Algılandı',
+        message: `${scoreChange.userName} kullanıcısının puanı ${scoreChange.oldScore}'den ${scoreChange.newScore}'e düştü (${scoreChange.change} puan kayıp)`,
+        data: scoreChange,
+        timestamp: new Date().toISOString(),
+        isRead: false
+      });
+      console.log('📢 Admin bildirimi gönderildi');
+    } catch (error) {
+      console.error('❌ Admin bildirimi gönderilirken hata:', error);
+    }
+  }
+
+  // Son puanı yedekle
+  private async backupLastScore(userId: string, userName: string, score: number) {
+    try {
+      const backupsRef = collection(db, 'scoreBackups');
+      await setDoc(doc(backupsRef), {
+        userId,
+        userName,
+        score,
+        timestamp: new Date().toISOString(),
+        reason: 'Anomali algılandı - otomatik yedekleme'
+      });
+      console.log('💾 Son puan yedeklendi:', userName, score);
+    } catch (error) {
+      console.error('❌ Puan yedeklenirken hata:', error);
+    }
+  }
+
+  // Puan geçmişini güncelle
+  private updateScoreHistory(userId: string, userName: string, score: number) {
+    const history = this.scoreHistory.get(userId) || {
+      userId,
+      userName,
+      scores: [],
+      lastCheck: new Date()
+    };
+
+    history.scores.push({
+      score,
+      timestamp: new Date()
+    });
+
+    // Son 10 puanı tut
+    if (history.scores.length > 10) {
+      history.scores = history.scores.slice(-10);
+    }
+
+    history.lastCheck = new Date();
+    this.scoreHistory.set(userId, history);
+  }
+
+  // Anomalileri getir
+  async getAnomalies(limitCount: number = 50) {
+    try {
+      const anomaliesRef = collection(db, 'scoreAnomalies');
+      const q = query(anomaliesRef, orderBy('timestamp', 'desc'), firestoreLimit(limitCount));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('❌ Anomaliler getirilirken hata:', error);
+      return [];
+    }
+  }
+
+  // Admin bildirimlerini getir
+  async getAdminNotifications(limitCount: number = 20) {
+    try {
+      const notificationsRef = collection(db, 'adminNotifications');
+      const q = query(notificationsRef, orderBy('timestamp', 'desc'), firestoreLimit(limitCount));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('❌ Admin bildirimleri getirilirken hata:', error);
+      return [];
+    }
+  }
+
+  // Puanı geri yükle
+  async restoreScore(userId: string, score: number) {
+    try {
+      const userRef = doc(db, 'userProfiles', userId);
+      await updateDoc(userRef, {
+        totalScore: score
+      });
+      console.log('✅ Puan geri yüklendi:', userId, score);
+      return true;
+    } catch (error) {
+      console.error('❌ Puan geri yüklenirken hata:', error);
+      return false;
+    }
+  }
+
+  // Monitoring durumunu kontrol et
+  isMonitoringActive() {
+    return this.isMonitoring;
+  }
+
+  // Anomali eşiğini ayarla
+  setAnomalyThreshold(threshold: number) {
+    this.anomalyThreshold = threshold;
+    console.log('📊 Anomali eşiği güncellendi:', threshold);
   }
 }
 

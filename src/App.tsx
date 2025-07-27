@@ -15,6 +15,7 @@ import { X, Sparkles } from 'lucide-react';
 import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
+import { userAnalyticsService } from './services/userAnalyticsService';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
@@ -54,6 +55,40 @@ function AppContent() {
 
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
   const [showMehmetModal, setShowMehmetModal] = useState(false);
+
+  // Uygulama başlangıcında monitoring'i başlat
+  useEffect(() => {
+    console.log('🚀 Uygulama başlatılıyor - Monitoring başlatılıyor...');
+    
+    // Ana uygulama monitoring'i
+    userAnalyticsService.startMonitoring();
+    
+    // Service Worker ile iletişim kur
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        // Service Worker'a monitoring başlatma mesajı gönder
+        registration.active?.postMessage({
+          type: 'START_MONITORING'
+        });
+        console.log('✅ Service Worker monitoring başlatıldı');
+      });
+    }
+    
+    // Uygulama kapanırken monitoring'i durdur
+    return () => {
+      console.log('🛑 Uygulama kapanıyor - Monitoring durduruluyor...');
+      userAnalyticsService.stopMonitoring();
+      
+      // Service Worker'a monitoring durdurma mesajı gönder
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.active?.postMessage({
+            type: 'STOP_MONITORING'
+          });
+        });
+      }
+    };
+  }, []);
 
   // Firebase Authentication durumunu dinle
   useEffect(() => {

@@ -83,30 +83,10 @@ const LeaderboardPage: React.FC = () => {
       {/* Önce Destekçilerimiz Bölümü (SAYFA EN ÜSTÜ) */}
       <div className="w-full max-w-3xl mx-auto mt-0 mb-8">
         <div className="bg-white border border-green-200 rounded-xl shadow-sm p-4 flex flex-col items-center text-center">
-          <h3 className="text-lg font-bold text-green-700 mb-2">Önce Destekçilerimiz</h3>
-          <div className="flex flex-col gap-2 w-full max-w-xs mx-auto mb-2">
-            <div className="flex flex-row items-center justify-start gap-2">
-              <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                </svg>
-              </span>
-              <span className="font-extrabold text-lg text-black">Görkem Akdemir</span>
-              <Crown className="w-5 h-5 text-blue-500 ml-1" />
-            </div>
-            <div className="flex flex-row items-center justify-start gap-2">
-              <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                </svg>
-              </span>
-              <span className="font-extrabold text-lg text-black">Defne</span>
-            </div>
-          </div>
           <div className="text-sm text-green-700 font-extrabold mt-3 mb-2">EKİBE KAHVELER BENDEN ☕        49,90₺</div>
           <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-700 text-white font-extrabold py-3 px-6 rounded-full shadow-2xl transition text-lg mt-2 animate-bounce-slow animate-pulse-bright">
             <span className="mr-3 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'1.7em', height:'1.7em', position:'relative'}}>
-              <svg fill="#fff" stroke="#fff" width="1.5em" height="1.5em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg" style={{position:'relative', zIndex:1}}>
+              <svg fill="#fff" stroke="#fff" width="1.7em" height="1.7em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg" style={{position:'relative', zIndex:1}}>
                 <g><g>
                   <circle cx="456" cy="312" r="28" fill="#FFD700" stroke="#FFD700" strokeWidth="4" />
                   <path d="m456.32 424.81c-62.145 0-112.7-50.559-112.7-112.7s50.559-112.7 112.7-112.7 112.7 50.559 112.7 112.7-50.559 112.7-112.7 112.7zm0-201.38c-48.895 0-88.672 39.777-88.672 88.672s39.777 88.672 88.672 88.672 88.672-39.777 88.672-88.672-39.777-88.672-88.672-88.672z"></path>
@@ -115,7 +95,7 @@ const LeaderboardPage: React.FC = () => {
                 </g></g>
               </svg>
             </span>
-            Destek Ol
+            DESTEK OL
           </a>
           <div className="flex items-center justify-center mt-2">
             <span className="text-black font-normal italic text-sm font-sans flex items-center">Shopier tarafından onaylanmıştır <img src="/assets/aaaaaaaadwü/shield_9623201.png" alt="onaylı" className="ml-1 w-4 h-4 inline-block align-middle" /></span>
@@ -341,30 +321,54 @@ const LeaderboardPage: React.FC = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    {user.displayName === 'Görkem Akdemir' ? (
-                      <div className="font-semibold truncate text-pink-500"><span className="mr-1">❤️</span>{user.displayName}<span className="ml-1">❤️</span>
-                        <div className="flex flex-wrap justify-center gap-1 mt-1">
-                          <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
-                            <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                            </svg>
+                    <div className="font-semibold truncate text-pink-500">{user.displayName}</div>
+                    {/* Dinamik rozet sistemi - üst 3 kullanıcı için */}
+                    <div className="flex flex-wrap justify-center gap-1 mt-1">
+                      {user.badges?.map((badge, index) => {
+                        // Destekçi rozeti
+                        if (badge === 'destekçi') {
+                          return (
+                            <span key={index} className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
+                              <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                              </svg>
+                              Destekçi
+                            </span>
+                          );
+                        }
+                        // Ekstra rozet
+                        if (badge === 'ekstra') {
+                          return (
+                            <span key={index} className="inline-flex items-center px-2 py-1 bg-purple-600 rounded-full text-xs font-semibold">
+                              <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                              Ekstra
+                            </span>
+                          );
+                        }
+                        // Bağışçı rozeti
+                        if (badge === 'bağışçı') {
+                          return (
+                            <span key={index} className="inline-flex items-center px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
+                              <Award className="w-4 h-4 mr-1 text-yellow-500" /> Bağışçı
+                            </span>
+                          );
+                        }
+                        // Diğer rozetler
+                        return (
+                          <span key={index} className="inline-flex items-center px-2 py-1 bg-blue-600 rounded-full text-xs font-semibold">
+                            {badge}
                           </span>
-                          <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold ml-1">
-                            <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
-                          </span>
-                        </div>
-                      </div>
-                    ) : user.displayName === 'Defne' ? (
-                      <div className="font-semibold truncate text-pink-400 flex items-center"><span className="mr-1">⭐</span>{user.displayName}<span className="ml-1">⭐</span>
-                        <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold ml-2">
-                          <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                          </svg>
+                        );
+                      })}
+                      {/* İlk destekçi rozeti */}
+                      {user.isFirstSupporter && (
+                        <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                          <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                         </span>
-                      </div>
-                    ) : (
-                      <div className="font-semibold truncate text-pink-500">{user.displayName}</div>
-                    )}
+                      )}
+                    </div>
                   </div>
                   <div className="text-right flex flex-col justify-center">
                     <div className="text-lg font-bold text-white">{user.totalScore}</div>
@@ -413,17 +417,53 @@ const LeaderboardPage: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    {/* Diğer kullanıcılar için normal badge kontrolü */}
-                    {user.userId !== 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && user.badges?.includes('bağışçı') && (
-                      <span className="inline-flex items-center px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
-                        <Award className="w-4 h-4 mr-1 text-yellow-500" /> Bağışçı
-                      </span>
-                    )}
-                    {user.userId !== 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && user.isFirstSupporter && (
-                      <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
-                        <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
-                      </span>
-                    )}
+                    {/* Dinamik rozet sistemi */}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {user.badges?.map((badge, index) => {
+                        // Destekçi rozeti
+                        if (badge === 'destekçi') {
+                          return (
+                            <span key={index} className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
+                              <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                              </svg>
+                              Destekçi
+                            </span>
+                          );
+                        }
+                        // Ekstra rozet
+                        if (badge === 'ekstra') {
+                          return (
+                            <span key={index} className="inline-flex items-center px-2 py-1 bg-purple-600 rounded-full text-xs font-semibold">
+                              <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                              Ekstra
+                            </span>
+                          );
+                        }
+                        // Bağışçı rozeti
+                        if (badge === 'bağışçı') {
+                          return (
+                            <span key={index} className="inline-flex items-center px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-semibold">
+                              <Award className="w-4 h-4 mr-1 text-yellow-500" /> Bağışçı
+                            </span>
+                          );
+                        }
+                        // Diğer rozetler
+                        return (
+                          <span key={index} className="inline-flex items-center px-2 py-1 bg-blue-600 rounded-full text-xs font-semibold">
+                            {badge}
+                          </span>
+                        );
+                      })}
+                      {/* İlk destekçi rozeti */}
+                      {user.isFirstSupporter && (
+                        <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                          <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Puan */}

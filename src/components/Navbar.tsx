@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown, Search, MessageCircle, Users, Settings, LogOut, Trophy, Volume2, VolumeX } from 'lucide-react';
+import { Home, User, Menu, X, BookOpen, GraduationCap, SlidersHorizontal, Layers, Book, ChevronDown, Search, MessageCircle, Users, Settings, LogOut, Trophy, Volume2, VolumeX, Shield } from 'lucide-react';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
 import { soundService } from '../services/soundService';
@@ -231,6 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     const stored = localStorage.getItem('userScore');
     return stored ? Number(stored) : null;
   });
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
@@ -243,10 +244,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           const score = data?.totalScore || 0;
           setUserScore(score);
           localStorage.setItem('userScore', String(score)); // localStorage'a yaz
+          
+          // Admin kontrolü - belirli kullanıcı ID'leri ve email'leri admin olabilir
+          const adminUserIds = ['VtSQP9JxPSVmRrHUyeMX9aYBMDq1', 'D1QC2']; // Görkem ve diğer admin ID'leri
+          const adminEmails = ['mbirlik24@ku.edu.tr']; // Admin email'leri
+          const userEmail = data?.email || '';
+          setIsAdmin(adminUserIds.includes(userId) || adminEmails.includes(userEmail));
         });
       }
     } else {
       setUserScore(null);
+      setIsAdmin(false);
       localStorage.removeItem('userScore');
     }
     return () => { unsub && unsub(); };
@@ -352,6 +360,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   {soundEnabled ? <Volume2 className="w-7 h-7" /> : <VolumeX className="w-7 h-7" />}
                 </motion.button>
+                {isAdmin && (
+                  <motion.button 
+                    onClick={() => navigate('/admin')} 
+                    className="p-2 rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/10" 
+                    whileHover={{ scale: 1.1 }} 
+                    whileTap={{ scale: 0.95 }} 
+                    title="Admin Panel"
+                  >
+                    <Shield className="w-7 h-7" />
+                  </motion.button>
+                )}
                 <motion.button onClick={handleProfileClick} className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} title="Profil">
                   <User className="w-7 h-7" />
                 </motion.button>
@@ -379,6 +398,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
                 </motion.button>
+                {isAdmin && (
+                  <motion.button 
+                    onClick={() => navigate('/admin')} 
+                    className="p-1.5 rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/10" 
+                    whileHover={{ scale: 1.1 }} 
+                    whileTap={{ scale: 0.95 }} 
+                    title="Admin Panel"
+                  >
+                    <Shield className="w-5 h-5" />
+                  </motion.button>
+                )}
                 <motion.button 
                   onClick={handleProfileClick} 
                   className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10" 
