@@ -4475,7 +4475,7 @@ export interface WordDetail {
     },
     {
       headword: 'moderate',
-      turkish: 'ılımlı,makul',
+      turkish: 'ılımlı, makul',
       unit: '6',
       section: 'Reading & Writing',
       forms: {

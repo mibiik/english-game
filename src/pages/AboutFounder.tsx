@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Linkedin, Instagram, Star, Code, Brain, BookOpen, Target, Zap } from 'lucide-react';
+import { ArrowLeft, Linkedin, Instagram, Star, Code, Brain, BookOpen, Target, Zap, Settings, Monitor, Smartphone, Globe, Link, Radio, Gamepad2, Bot, Activity, BarChart3, Search, Zap as Lightning } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AboutFounder: React.FC = () => {
@@ -14,68 +14,149 @@ const AboutFounder: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] text-white overflow-x-hidden relative">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Floating Code Symbols */}
-        {[...Array(15)].map((_, i) => (
+        {/* Floating Code Symbols - Uzayda bağımsız hareket */}
+        {[...Array(20)].map((_, i) => (
           <motion.div
-            key={`code-${i}`}
-            className="absolute text-blue-400/20 text-2xl font-mono"
+            key={`code-space-${i}`}
+            className="absolute text-blue-400/70 text-2xl font-mono drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
             animate={{
-              x: [0, 100, 0],
-              y: [0, -100, 0],
-              rotate: [0, 360],
-              opacity: [0.1, 0.3, 0.1],
+              x: [0, Math.random() * 400 - 200, Math.random() * 400 - 200, Math.random() * 400 - 200, Math.random() * 400 - 200, Math.random() * 400 - 200, 0],
+              y: [0, Math.random() * 400 - 200, Math.random() * 400 - 200, Math.random() * 400 - 200, Math.random() * 400 - 200, Math.random() * 400 - 200, 0],
+              rotate: [0, Math.random() * 1080, Math.random() * 1080, Math.random() * 1080, Math.random() * 1080, Math.random() * 1080, 360],
+              opacity: [0.3, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, 0.7],
+              scale: [1, Math.random() * 1.2 + 0.6, Math.random() * 1.2 + 0.6, Math.random() * 1.2 + 0.6, Math.random() * 1.2 + 0.6, Math.random() * 1.2 + 0.6, 1.1],
             }}
             transition={{
-              duration: Math.random() * 20 + 15,
+              duration: Math.random() * 45 + 30,
               repeat: Infinity,
-              delay: Math.random() * 10,
+              ease: "linear",
+              delay: Math.random() * 25,
             }}
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
             }}
           >
-            {['<>', '</>', '{}', '()', '[]', '&&', '||', '=>', '++', '--'][i % 10]}
+            {['<>', '</>', '{}', '()', '[]', '&&', '||', '=>', '++', '--', '//', '/*', '*/', '==', '!=', '+=', '-=', '*=', '/=', '**'][i % 20]}
           </motion.div>
         ))}
 
-        {/* Floating Stars */}
+        {/* Floating Tech Icons - Uzayda bağımsız hareket */}
+        {[...Array(15)].map((_, i) => {
+          const icons = [
+            <Lightning key="lightning" className="w-6 h-6" />,
+            <Settings key="settings" className="w-6 h-6" />,
+            <Monitor key="monitor" className="w-6 h-6" />,
+            <Smartphone key="smartphone" className="w-6 h-6" />,
+            <Globe key="globe" className="w-6 h-6" />,
+            <Gamepad2 key="gamepad" className="w-6 h-6" />,
+            <Bot key="bot" className="w-6 h-6" />,
+            <Brain key="brain" className="w-6 h-6" />,
+            <BarChart3 key="chart" className="w-6 h-6" />,
+            <Target key="target" className="w-6 h-6" />,
+            <Link key="link" className="w-6 h-6" />,
+            <Radio key="radio" className="w-6 h-6" />,
+            <Search key="search" className="w-6 h-6" />,
+            <Settings key="gear" className="w-6 h-6" />,
+            <Monitor key="desktop" className="w-6 h-6" />
+          ];
+          
+          return (
+            <motion.div
+              key={`tech-space-${i}`}
+              className="absolute text-green-400/80 drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+              animate={{
+                x: [0, Math.random() * 350 - 175, Math.random() * 350 - 175, Math.random() * 350 - 175, Math.random() * 350 - 175, Math.random() * 350 - 175, 0],
+                y: [0, Math.random() * 350 - 175, Math.random() * 350 - 175, Math.random() * 350 - 175, Math.random() * 350 - 175, Math.random() * 350 - 175, 0],
+                rotate: [0, Math.random() * 900 - 450, Math.random() * 900 - 450, Math.random() * 900 - 450, Math.random() * 900 - 450, Math.random() * 900 - 450, 0],
+                opacity: [0.4, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, 0.7],
+                scale: [1, Math.random() * 1.3 + 0.7, Math.random() * 1.3 + 0.7, Math.random() * 1.3 + 0.7, Math.random() * 1.3 + 0.7, Math.random() * 1.3 + 0.7, 1.2],
+              }}
+              transition={{
+                duration: Math.random() * 40 + 25,
+                repeat: Infinity,
+                ease: "linear",
+                delay: Math.random() * 20,
+              }}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+            >
+              {icons[i % 15]}
+            </motion.div>
+          );
+        })}
+
+        {/* Floating Programming Languages - Uzayda bağımsız hareket */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={`lang-${i}`}
+            className="absolute text-cyan-400/75 text-lg font-bold drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]"
+            animate={{
+              x: [0, Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150, 0],
+              y: [0, Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150, Math.random() * 300 - 150, 0],
+              rotate: [0, Math.random() * 950, Math.random() * 950, Math.random() * 950, Math.random() * 950, Math.random() * 950, 360],
+              opacity: [0.3, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, 0.7],
+              scale: [1, Math.random() * 1.1 + 0.8, Math.random() * 1.1 + 0.8, Math.random() * 1.1 + 0.8, Math.random() * 1.1 + 0.8, Math.random() * 1.1 + 0.8, 1.1],
+            }}
+            transition={{
+              duration: Math.random() * 35 + 20,
+              repeat: Infinity,
+              ease: "linear",
+              delay: Math.random() * 15,
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          >
+            {['JS', 'TS', 'PY', 'GO', 'RS', 'CPP', 'JAVA', 'PHP', 'RUBY', 'SWIFT', 'KOTLIN', 'DART'][i % 12]}
+          </motion.div>
+        ))}
+
+        {/* Floating Stars - Uzayda bağımsız hareket */}
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={`star-${i}`}
-            className="absolute w-1 h-1 bg-yellow-400/40"
+            className="absolute w-1 h-1 bg-yellow-400/40 drop-shadow-[0_0_4px_rgba(250,204,21,0.3)]"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
             }}
             animate={{
-              rotate: [0, 360],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
+              x: [0, Math.random() * 150 - 75, Math.random() * 150 - 75, Math.random() * 150 - 75, Math.random() * 150 - 75, Math.random() * 150 - 75, 0],
+              y: [0, Math.random() * 150 - 75, Math.random() * 150 - 75, Math.random() * 150 - 75, Math.random() * 150 - 75, Math.random() * 150 - 75, 0],
+              rotate: [0, Math.random() * 1200, Math.random() * 1200, Math.random() * 1200, Math.random() * 1200, Math.random() * 1200, 360],
+              opacity: [0.2, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, Math.random() * 0.9 + 0.1, 0.5],
+              scale: [1, Math.random() * 1.4 + 0.6, Math.random() * 1.4 + 0.6, Math.random() * 1.4 + 0.6, Math.random() * 1.4 + 0.6, Math.random() * 1.4 + 0.6, 1.2],
             }}
             transition={{
-              duration: Math.random() * 8 + 6,
+              duration: Math.random() * 25 + 12,
               repeat: Infinity,
-              delay: Math.random() * 5,
+              ease: "linear",
+              delay: Math.random() * 10,
             }}
           />
         ))}
 
-        {/* Neural Network Dots */}
+        {/* Neural Network Dots - Uzayda bağımsız hareket */}
         {[...Array(25)].map((_, i) => (
           <motion.div
             key={`neural-${i}`}
-            className="absolute w-2 h-2 bg-purple-500/30 rounded-full"
+            className="absolute w-2 h-2 bg-purple-500/35 rounded-full drop-shadow-[0_0_6px_rgba(168,85,247,0.2)]"
             animate={{
-              x: [0, 50, 0],
-              y: [0, -50, 0],
-              opacity: [0.1, 0.6, 0.1],
+              x: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100, 0],
+              y: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100, 0],
+              opacity: [0.1, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.8 + 0.2, 0.4],
+              scale: [1, Math.random() * 1.0 + 0.8, Math.random() * 1.0 + 0.8, Math.random() * 1.0 + 0.8, Math.random() * 1.0 + 0.8, Math.random() * 1.0 + 0.8, 1.1],
             }}
             transition={{
-              duration: Math.random() * 12 + 10,
+              duration: Math.random() * 30 + 15,
               repeat: Infinity,
-              delay: Math.random() * 8,
+              ease: "linear",
+              delay: Math.random() * 15,
             }}
             style={{
               left: `${Math.random() * 100}%`,
