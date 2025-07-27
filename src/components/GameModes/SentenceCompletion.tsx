@@ -139,18 +139,18 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
   // --- UI HELPERS ---
   const getButtonClass = (option: string) => {
     if (status !== 'answered') {
-      return 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-2 border-transparent hover:border-blue-300 transition-all duration-300 transform hover:scale-105';
+      return 'bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 shadow-sm';
     }
 
     if (option === questions[currentIndex].correctAnswer) {
-      return 'bg-gradient-to-r from-green-500 to-emerald-600 text-white border-2 border-green-300 shadow-lg';
+      return 'bg-green-50 border-green-500 text-green-800 shadow-md';
     }
 
     if (option === selectedAnswer && option !== questions[currentIndex].correctAnswer) {
-      return 'bg-gradient-to-r from-red-500 to-pink-600 text-white border-2 border-red-300 shadow-lg';
+      return 'bg-red-50 border-red-500 text-red-800 shadow-md';
     }
 
-    return 'bg-gradient-to-r from-gray-500 to-gray-600 text-white border-2 border-gray-300 opacity-60';
+    return 'bg-white border-gray-200 text-gray-600 opacity-60';
   };
 
   const renderContent = () => {
@@ -162,7 +162,7 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     const currentQuestion = questions[currentIndex];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex flex-col">
         {/* Header */}
         <Header score={score} currentIndex={currentIndex} totalQuestions={questions.length} />
         
@@ -170,24 +170,24 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
         <main className="flex-1 flex items-center justify-center p-4">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8 w-full max-w-4xl"
+            className="bg-white rounded-xl shadow-lg p-8 w-full max-w-2xl"
           >
             {/* Question */}
             <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
                 Boşluğu doğru kelime ile doldurun
               </h2>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 border border-white/30">
-                <p className="text-xl md:text-2xl text-white leading-relaxed">
+              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                <p className="text-xl text-gray-700 leading-relaxed">
                   {currentQuestion.sentence.split('___').map((part, index) => (
                     <React.Fragment key={index}>
                       {part}
                       {index < currentQuestion.sentence.split('___').length - 1 && (
-                        <span className="inline-block w-32 h-8 mx-2 border-b-4 border-pink-400 bg-pink-100/20 rounded"></span>
+                        <span className="inline-block w-24 h-8 mx-2 border-b-2 border-blue-400 bg-blue-50 rounded"></span>
                       )}
                     </React.Fragment>
                   ))}
@@ -202,9 +202,9 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
                   key={index}
                   onClick={() => handleAnswerSelect(option)}
                   disabled={status !== 'playing'}
-                  className={`${getButtonClass(option)} p-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 disabled:cursor-not-allowed`}
-                  whileHover={{ scale: status === 'playing' ? 1.05 : 1 }}
-                  whileTap={{ scale: status === 'playing' ? 0.95 : 1 }}
+                  className={`${getButtonClass(option)} p-4 rounded-lg font-medium text-lg transition-all duration-300 disabled:cursor-not-allowed`}
+                  whileHover={{ scale: status === 'playing' ? 1.02 : 1 }}
+                  whileTap={{ scale: status === 'playing' ? 0.98 : 1 }}
                 >
                   {option}
                 </motion.button>
@@ -222,14 +222,14 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
                   className="text-center mb-6"
                 >
                   {isCorrect ? (
-                    <div className="flex items-center justify-center gap-3 text-green-400">
-                      <CheckCircle className="w-8 h-8" />
-                      <span className="text-2xl font-bold">Doğru!</span>
+                    <div className="flex items-center justify-center gap-3 text-green-600">
+                      <CheckCircle className="w-6 h-6" />
+                      <span className="text-xl font-bold">Doğru!</span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center gap-3 text-red-400">
-                      <XCircle className="w-8 h-8" />
-                      <span className="text-2xl font-bold">Yanlış!</span>
+                    <div className="flex items-center justify-center gap-3 text-red-600">
+                      <XCircle className="w-6 h-6" />
+                      <span className="text-xl font-bold">Yanlış!</span>
                       <span className="text-lg">Doğru cevap: {currentQuestion.correctAnswer}</span>
                     </div>
                   )}
@@ -242,23 +242,23 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
               <Button
                 onClick={handlePreviousQuestion}
                 disabled={currentIndex === 0}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
               >
-                <ArrowLeft className="w-5 h-5 mr-2" />
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Önceki
               </Button>
 
-              <div className="text-white text-lg font-semibold">
+              <div className="text-gray-600 text-lg font-medium">
                 {currentIndex + 1} / {questions.length}
               </div>
 
               <Button
                 onClick={handleNextQuestion}
                 disabled={status !== 'answered'}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
               >
                 {currentIndex === questions.length - 1 ? 'Bitir' : 'Sonraki'}
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
           </motion.div>
@@ -273,19 +273,16 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
 // --- YARDIMCI BİLEŞENLER ---
 
 const Header: React.FC<{ score: number; currentIndex: number; totalQuestions: number; }> = ({ score, currentIndex, totalQuestions }) => (
-  <header className="bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 text-white p-4 shadow-lg border-b border-white/20">
-    <div className="max-w-4xl mx-auto flex justify-between items-center">
-      <div className="flex items-center gap-4">
-        <Trophy className="w-8 h-8 text-yellow-400" />
-        <div>
-          <div className="text-2xl font-bold">Puan: {score}</div>
-          <div className="text-sm text-gray-300">Soru {currentIndex + 1} / {totalQuestions}</div>
-        </div>
+  <header className="bg-white shadow-sm border-b border-gray-200 p-4">
+    <div className="max-w-2xl mx-auto flex justify-between items-center">
+      <div className="flex items-center gap-3">
+        <Trophy className="w-6 h-6 text-yellow-500" />
+        <div className="text-lg font-bold text-gray-800">{score} / {totalQuestions * 2}</div>
       </div>
       <div className="flex items-center gap-2">
-        <div className="w-32 bg-gray-700 rounded-full h-3">
+        <div className="w-24 bg-gray-200 rounded-full h-2">
           <div 
-            className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+            className="bg-blue-500 h-2 rounded-full transition-all duration-500"
             style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>
@@ -294,41 +291,40 @@ const Header: React.FC<{ score: number; currentIndex: number; totalQuestions: nu
   </header>
 );
 
-// --- YENİ BAŞLANGIÇ YÜKLEME EKRANI BİLEŞENİ ---
 const InitialLoadingScreen: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-    <div className="text-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+    <div className="text-center bg-white rounded-xl shadow-lg p-8">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
+        className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
       />
-      <h2 className="text-2xl font-bold text-white mb-2">Oyun Yükleniyor</h2>
-      <p className="text-gray-300">Cümleler hazırlanıyor...</p>
+      <h2 className="text-xl font-bold text-gray-800 mb-2">Oyun Yükleniyor</h2>
+      <p className="text-gray-600">Cümleler hazırlanıyor...</p>
     </div>
   </div>
 );
 
 const GameSkeleton = () => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-    <div className="text-center">
-      <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-      <p className="text-white">Daha fazla soru yükleniyor...</p>
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+    <div className="text-center bg-white rounded-xl shadow-lg p-8">
+      <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
+      <p className="text-gray-600">Daha fazla soru yükleniyor...</p>
     </div>
   </div>
 );
 
 const ErrorDisplay: React.FC<{ onRetry: () => void; message?: string }> = ({ onRetry, message }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-    <div className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20">
-      <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-      <h2 className="text-2xl font-bold text-white mb-4">Hata Oluştu</h2>
-      <p className="text-gray-300 mb-6">{message || "Oyun yüklenirken bir hata oluştu."}</p>
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+    <div className="text-center bg-white rounded-xl shadow-lg p-8 max-w-md">
+      <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <h2 className="text-xl font-bold text-gray-800 mb-4">Hata Oluştu</h2>
+      <p className="text-gray-600 mb-6">{message || "Oyun yüklenirken bir hata oluştu."}</p>
       <Button
         onClick={onRetry}
-        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300"
       >
-        <RefreshCw className="w-5 h-5 mr-2" />
+        <RefreshCw className="w-4 h-4 mr-2" />
         Tekrar Dene
       </Button>
     </div>
@@ -336,26 +332,26 @@ const ErrorDisplay: React.FC<{ onRetry: () => void; message?: string }> = ({ onR
 );
 
 const CompletedDisplay: React.FC<{ score: number; total: number; onPlayAgain: () => void; }> = ({ score, total, onPlayAgain }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 max-w-md w-full"
+      className="text-center bg-white rounded-xl shadow-lg p-8 max-w-md w-full"
     >
-      <Trophy className="w-20 h-20 text-yellow-400 mx-auto mb-6" />
-      <h2 className="text-3xl font-bold text-white mb-4">Oyun Tamamlandı!</h2>
-      <div className="text-2xl font-bold text-blue-400 mb-6">
+      <Trophy className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Oyun Tamamlandı!</h2>
+      <div className="text-xl font-bold text-blue-600 mb-6">
         Puanınız: {score} / {total * 2}
       </div>
-      <div className="text-lg text-gray-300 mb-8">
+      <div className="text-lg text-gray-600 mb-8">
         Başarı oranı: {Math.round((score / (total * 2)) * 100)}%
       </div>
       <Button
         onClick={onPlayAgain}
-        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105"
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300"
       >
-        <RefreshCw className="w-6 h-6 mr-2" />
+        <RefreshCw className="w-5 h-5 mr-2" />
         Tekrar Oyna
       </Button>
     </motion.div>
