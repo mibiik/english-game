@@ -36,7 +36,13 @@ export default defineConfig({
       'framer-motion',
       'lucide-react',
       'react-icons',
-      'firebase',
+      'firebase/app',
+      'firebase/auth',
+      'firebase/firestore',
+      'firebase/analytics',
+      'firebase/functions',
+      'react-firebase-hooks/auth',
+      'react-firebase-hooks/firestore',
       'axios',
       'clsx',
       'tailwind-merge',
@@ -45,7 +51,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "firebase": "firebase/app",
     },
   },
   server: {
