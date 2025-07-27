@@ -1,5 +1,5 @@
 import { db } from '../config/firebase';
-import { collection, doc, setDoc, getDoc, updateDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, updateDoc, query, where, getDocs, orderBy, limit, deleteDoc } from 'firebase/firestore';
 import { authService } from './authService';
 
 export interface User {
@@ -105,25 +105,51 @@ class UserService {
   // Tüm kullanıcıları getir
   public async getAllUsers(): Promise<User[]> {
     try {
-      const usersQuery = query(
-        collection(db, this.usersCollection),
-        orderBy('totalScore', 'desc')
-      );
+      // Hem users hem userProfiles koleksiyonlarından al
+      const usersQuery = query(collection(db, this.usersCollection));
+      const profilesQuery = query(collection(db, this.userProfilesCollection));
       
-      const querySnapshot = await getDocs(usersQuery);
+      const [usersSnapshot, profilesSnapshot] = await Promise.all([
+        getDocs(usersQuery),
+        getDocs(profilesQuery)
+      ]);
+      
       const users: User[] = [];
+      const processedIds = new Set<string>();
       
-      querySnapshot.forEach((doc) => {
+      // Önce users koleksiyonundan al
+      usersSnapshot.forEach((doc) => {
         const data = doc.data();
-        users.push({
-          ...data,
-          lastPlayed: data.lastPlayed?.toDate(),
-          lastSeen: data.lastSeen?.toDate(),
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate()
-        } as User);
+        if (data && data.userId) {
+          processedIds.add(data.userId);
+          users.push({
+            ...data,
+            lastPlayed: data.lastPlayed?.toDate(),
+            lastSeen: data.lastSeen?.toDate(),
+            createdAt: data.createdAt?.toDate(),
+            updatedAt: data.updatedAt?.toDate()
+          } as User);
+        }
       });
       
+      // Sonra userProfiles'den eksik olanları ekle
+      profilesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data && data.userId && !processedIds.has(data.userId)) {
+          users.push({
+            ...data,
+            lastPlayed: data.lastPlayed?.toDate(),
+            lastSeen: data.lastSeen?.toDate(),
+            createdAt: data.createdAt?.toDate(),
+            updatedAt: data.updatedAt?.toDate()
+          } as User);
+        }
+      });
+      
+      // Puanına göre sırala (totalScore olmayanlar 0 puan sayılır)
+      users.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+      
+      console.log(`Toplam ${users.length} kullanıcı yüklendi`);
       return users;
     } catch (error) {
       console.error('Kullanıcılar getirilirken hata:', error);
@@ -299,60 +325,6 @@ class UserService {
     }
   }
 
-  // Emir'in puanını mevcut puan + 11.000 olarak güncelle
-  public async setEmirScoreTo11000(): Promise<void> {
-    const userId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
-    try {
-      // Mevcut kullanıcıyı al
-      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
-      let currentScore = 0;
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as User;
-        currentScore = userData.totalScore || 0;
-      }
-      const newScore = currentScore + 11000;
-      const updateData = {
-        totalScore: newScore,
-        updatedAt: new Date()
-      };
-      await updateDoc(doc(db, this.usersCollection, userId), updateData);
-      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
-      console.log(`Emir'in puanı ${newScore} olarak güncellendi.`);
-    } catch (error) {
-      console.error("Emir'in puanı güncellenirken hata:", error);
-    }
-  }
-
-  // mbirlik24@ku.edu.tr kullanıcısının puanını 8000 yap
-  public async setMbirlikScoreTo8000(): Promise<void> {
-    try {
-      // Önce email ile kullanıcıyı bul
-      const usersQuery = query(collection(db, this.usersCollection), where('email', '==', 'mbirlik24@ku.edu.tr'));
-      const usersSnapshot = await getDocs(usersQuery);
-      
-      if (usersSnapshot.empty) {
-        console.error('mbirlik24@ku.edu.tr email adresli kullanıcı bulunamadı');
-        return;
-      }
-
-      const userDoc = usersSnapshot.docs[0];
-      const userId = userDoc.id;
-      const userData = userDoc.data() as User;
-      
-      const updateData = {
-        totalScore: 8000,
-        updatedAt: new Date()
-      };
-      
-      await updateDoc(doc(db, this.usersCollection, userId), updateData);
-      await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
-      
-      console.log(`mbirlik24@ku.edu.tr kullanıcısının puanı 8000 olarak güncellendi.`);
-    } catch (error) {
-      console.error("mbirlik24@ku.edu.tr kullanıcısının puanı güncellenirken hata:", error);
-    }
-  }
-
   // Kullanıcı profil fotoğrafını güncelle (Google ile girişte veya değişiklikte)
   public async updateUserPhoto(userId: string, photoURL: string): Promise<void> {
     try {
@@ -406,26 +378,35 @@ class UserService {
     }
   }
 
-  // Belirtilen kullanıcıya 500 puan ekle
-  public async add500PointsToUser(userId: string): Promise<void> {
+  // Kullanıcıyı leaderboard'dan sil (puanını sıfırla)
+  public async removeUserFromLeaderboard(userId: string): Promise<void> {
     try {
-      // Mevcut kullanıcıyı al
-      const userDoc = await getDoc(doc(db, this.usersCollection, userId));
-      let currentScore = 0;
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as User;
-        currentScore = userData.totalScore || 0;
-      }
-      const newScore = currentScore + 500;
       const updateData = {
-        totalScore: newScore,
+        totalScore: 0,
+        gamesPlayed: 0,
         updatedAt: new Date()
       };
+      
+      // Her iki koleksiyonu da güncelle
       await updateDoc(doc(db, this.usersCollection, userId), updateData);
       await updateDoc(doc(db, this.userProfilesCollection, userId), updateData);
-      console.log(`${userId} kullanıcısına 500 puan eklendi. Yeni puan: ${newScore}`);
+      
+      console.log(`${userId} kullanıcısı leaderboard'dan silindi (puan sıfırlandı)`);
     } catch (error) {
-      console.error(`${userId} kullanıcısına puan eklenirken hata:`, error);
+      console.error(`${userId} kullanıcısı leaderboard'dan silinirken hata:`, error);
+    }
+  }
+
+  // Kullanıcıyı tamamen sil (tüm verilerini sil)
+  public async deleteUserCompletely(userId: string): Promise<void> {
+    try {
+      // Her iki koleksiyondan da kullanıcıyı sil
+      await deleteDoc(doc(db, this.usersCollection, userId));
+      await deleteDoc(doc(db, this.userProfilesCollection, userId));
+      
+      console.log(`${userId} kullanıcısı tamamen silindi`);
+    } catch (error) {
+      console.error(`${userId} kullanıcısı silinirken hata:`, error);
     }
   }
 }

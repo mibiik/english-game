@@ -84,20 +84,33 @@ class GameScoreService {
     const userProfileDoc = await getDoc(userProfileRef);
 
     if (!userProfileDoc.exists()) {
-      // Yeni kullanıcı profili oluştur
+      // Önce users koleksiyonundan mevcut puanı kontrol et
+      const usersRef = doc(db, 'users', userId);
+      const usersDoc = await getDoc(usersRef);
+      let existingScore = 0;
+      
+      if (usersDoc.exists()) {
+        const userData = usersDoc.data();
+        existingScore = userData.totalScore || 0;
+        console.log(`🔍 Mevcut puan bulundu: ${existingScore} (users koleksiyonundan)`);
+      }
+
+      // Yeni kullanıcı profili oluştur - mevcut puanı koru
       const newProfile: UserProfile = {
         userId,
         displayName,
         email,
-        totalScore: 0,
+        totalScore: existingScore, // Mevcut puanı koru, sıfırlama!
         gamesPlayed: 0,
         lastPlayed: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
       };
       await setDoc(userProfileRef, newProfile);
+      console.log(`✅ Yeni profil oluşturuldu, puan korundu: ${existingScore}`);
     } else {
       // Profil zaten varsa hiçbir şekilde sıfırlama veya güncelleme yapma
+      console.log(`ℹ️ Profil zaten mevcut, değişiklik yapılmadı`);
       return;
     }
   }
@@ -156,12 +169,23 @@ class GameScoreService {
     if (!user) throw new Error('Kullanıcı bulunamadı');
 
     try {
-      // Kullanıcı profilini oluştur veya güncelle
-      await this.createOrUpdateUserProfile(userId, user.displayName || 'Anonim', user.email || '');
+      console.log(`🎮 saveScore çağrıldı: ${gameMode}, puan: ${score}, unit: ${unit}`);
 
-      // Mevcut kullanıcı profilini getir
-      const userProfile = await this.getUserProfile(userId);
-      if (!userProfile) throw new Error('Kullanıcı profili bulunamadı');
+      // Önce mevcut kullanıcı profilini getir
+      let userProfile = await this.getUserProfile(userId);
+      
+      if (!userProfile) {
+        console.log(`⚠️ Profil bulunamadı, oluşturuluyor...`);
+        // Kullanıcı profilini oluştur veya güncelle
+        await this.createOrUpdateUserProfile(userId, user.displayName || 'Anonim', user.email || '');
+        userProfile = await this.getUserProfile(userId);
+        
+        if (!userProfile) {
+          throw new Error('Kullanıcı profili oluşturulamadı');
+        }
+      }
+
+      console.log(`📊 Mevcut puan: ${userProfile.totalScore}, yeni puan: ${score}`);
 
       // Yeni skoru kaydet
       await addDoc(collection(db, this.collectionName), {
@@ -175,14 +199,27 @@ class GameScoreService {
 
       // Kullanıcı profilini güncelle - mevcut puanı sıfırlama, yeni puanı ekle
       const newTotalScore = (userProfile.totalScore || 0) + score;
+      console.log(`💾 Yeni toplam puan: ${newTotalScore}`);
+      
       await this.updateUserProfile(userId, {
         totalScore: newTotalScore,
-        gamesPlayed: userProfile.gamesPlayed + 1,
+        gamesPlayed: (userProfile.gamesPlayed || 0) + 1,
         lastPlayed: new Date()
       });
 
+      // users koleksiyonunu da güncelle
+      const usersRef = doc(db, 'users', userId);
+      await updateDoc(usersRef, {
+        totalScore: newTotalScore,
+        gamesPlayed: (userProfile.gamesPlayed || 0) + 1,
+        lastPlayed: new Date(),
+        updatedAt: new Date()
+      });
+
+      console.log(`✅ Puan başarıyla kaydedildi: ${newTotalScore}`);
+
     } catch (error) {
-      console.error('Skor kaydedilirken hata:', error);
+      console.error('❌ Skor kaydedilirken hata:', error);
       throw error;
     }
   }
@@ -264,26 +301,45 @@ class GameScoreService {
 
   public async addScore(userId: string, gameMode: GameMode, score: number): Promise<void> {
     console.log('🔥 addScore çağrıldı:', { userId, gameMode, score });
-    // Firebase'den mevcut kullanıcı profilini al
-    const userProfileRef = doc(db, this.userProfilesCollection, userId);
-    const userProfileDoc = await getDoc(userProfileRef);
+    
+    try {
+      // Firebase'den mevcut kullanıcı profilini al
+      const userProfileRef = doc(db, this.userProfilesCollection, userId);
+      const userProfileDoc = await getDoc(userProfileRef);
 
-    if (!userProfileDoc.exists()) {
-      console.error('❌ Kullanıcı profili bulunamadı:', userId);
-      return;
+      if (!userProfileDoc.exists()) {
+        console.error('❌ Kullanıcı profili bulunamadı:', userId);
+        return;
+      }
+
+      const userProfile = userProfileDoc.data() as UserProfile;
+      const currentScore = userProfile.totalScore || 0;
+      const newTotalScore = currentScore + score;
+
+      console.log(`📊 Mevcut puan: ${currentScore}, yeni puan: ${score}, toplam: ${newTotalScore}`);
+
+      // userProfiles koleksiyonunu güncelle
+      await updateDoc(userProfileRef, {
+        totalScore: newTotalScore,
+        updatedAt: Timestamp.now(),
+        lastPlayed: Timestamp.now(),
+        gamesPlayed: (userProfile.gamesPlayed || 0) + 1
+      });
+
+      // users koleksiyonunu da güncelle
+      const usersRef = doc(db, 'users', userId);
+      await updateDoc(usersRef, {
+        totalScore: newTotalScore,
+        gamesPlayed: (userProfile.gamesPlayed || 0) + 1,
+        lastPlayed: new Date(),
+        updatedAt: new Date()
+      });
+
+      console.log('✅ Her iki koleksiyon da güncellendi:', newTotalScore);
+    } catch (error) {
+      console.error('❌ addScore hatası:', error);
+      throw error;
     }
-
-    const userProfile = userProfileDoc.data() as UserProfile;
-    const newTotalScore = (userProfile.totalScore || 0) + score;
-
-    // Sadece totalScore'u güncelle
-    await updateDoc(userProfileRef, {
-      totalScore: newTotalScore,
-      updatedAt: Timestamp.now(),
-      lastPlayed: Timestamp.now(),
-      gamesPlayed: (userProfile.gamesPlayed || 0) + 1
-    });
-    console.log('✅ Sadece totalScore güncellendi:', newTotalScore);
   }
 
   public async getGameModeLeaderboard(gameMode: GameMode, limit = 10): Promise<UserScore[]> {
@@ -302,50 +358,13 @@ class GameScoreService {
   }
 
   public async getOverallLeaderboard(): Promise<UserScore[]> {
-    // Emir'in userId'si
-    const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
-    // Emir'in güncel profilini al
-    const emirProfile = await this.getUserProfile(emirId);
     // scores dizisinin kopyasını al
     const scoresCopy = [...this.scores];
-    if (emirProfile) {
-      const emirIndex = scoresCopy.findIndex(u => u.id === emirId);
-      const emirLeaderboardScore = emirProfile.totalScore + 11000;
-      if (emirIndex !== -1) {
-        scoresCopy[emirIndex].totalScore = emirLeaderboardScore;
-      } else {
-        scoresCopy.push({
-          id: emirProfile.userId,
-          name: emirProfile.displayName,
-          totalScore: emirLeaderboardScore
-        });
-      }
-    }
     return scoresCopy.sort((a, b) => b.totalScore - a.totalScore);
   }
 
   public async getLeaderboardByGameMode(gameMode: GameMode): Promise<UserScore[]> {
     return [...this.scores].sort((a, b) => b.totalScore - a.totalScore);
-  }
-
-  // Emir'in leaderboard puanını güncelle (manuel düzeltme için)
-  public async updateEmirLeaderboardScore(): Promise<void> {
-    const userId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
-    // Emir'in güncel profilini al
-    const userProfile = await this.getUserProfile(userId);
-    if (!userProfile) return;
-    // scores dizisinde Emir'i bul
-    const emirIndex = this.scores.findIndex(u => u.id === userId);
-    if (emirIndex !== -1) {
-      this.scores[emirIndex].totalScore = userProfile.totalScore;
-    } else {
-      // Eğer yoksa ekle
-      this.scores.push({
-        id: userProfile.userId,
-        name: userProfile.displayName,
-        totalScore: userProfile.totalScore
-      });
-    }
   }
 }
 

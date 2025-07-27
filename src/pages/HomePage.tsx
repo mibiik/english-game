@@ -165,11 +165,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
         };
       });
       
-      // Emir'in userId'si - memoize et
-      const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
-      fetched = fetched.map(u =>
-        u.userId === emirId ? { ...u, totalScore: (u.totalScore || 0) + 11000 } : u
-      );
+      // Sıralamayı güncel puana göre yap ve sadece ilk 5'i al
       
       // Sıralamayı güncel puana göre yap ve sadece ilk 5'i al
       const filteredAndSorted = fetched

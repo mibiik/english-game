@@ -48,11 +48,7 @@ const LeaderboardPage: React.FC = () => {
           isFirstSupporter: !!data.isFirstSupporter,
         };
       });
-      // Emir'in userId'si
-      const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
-      fetchedUsers = fetchedUsers.map(u =>
-        u.userId === emirId ? { ...u, totalScore: (u.totalScore || 0) + 11000 } : u
-      );
+      // Sıralamayı güncel puana göre yap
       // Sıralamayı güncel puana göre yap
       fetchedUsers = fetchedUsers.filter(u => u.displayName && u.displayName.trim() !== '').sort((a, b) => b.totalScore - a.totalScore);
       setUsers(fetchedUsers);
