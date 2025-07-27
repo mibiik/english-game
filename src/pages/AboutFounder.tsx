@@ -7,7 +7,12 @@ const AboutFounder: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Sayfa yüklendiğinde en üste scroll yap
     window.scrollTo(0, 0);
+    
+    // Ek olarak document.documentElement.scrollTop'u da sıfırla
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, []);
 
   return (
