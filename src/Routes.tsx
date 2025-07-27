@@ -1,46 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { Routes, Route, useSearchParams, Navigate } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import WelcomePage from './pages/WelcomePage';
-import ParaphrasePage from './pages/ParaphrasePage';
-import MatchingGameWrapper from './components/GameModes/MatchingGame';
-import { SentenceCompletion } from './components/GameModes/SentenceCompletion';
-import { MultipleChoice } from './components/GameModes/MultipleChoice';
-import { FlashCard } from './components/GameModes/FlashCard';
-import { SpeakingGame } from './components/GameModes/SpeakingGame';
-import { WordRace } from './components/GameModes/WordRace';
-import { MemoryGame } from './components/GameModes/MemoryGame';
-import WordFormsGame from './components/GameModes/WordFormsGame';
-import EssayWritingPage from './pages/EssayWritingPage';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { WordDetail, newDetailedWords_part1 } from './data/words';
+import { UnitSelector } from './components/UnitSelector';
+import { WordDetail } from './data/words';
+import { authService } from './services/authService';
+import { newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
 import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
-import ProfilePage from './pages/ProfilePage';
-import { GameWrapper } from './components/GameWrapper';
-import PrepositionMasteryGame from './components/GameModes/PrepositionMasteryGame';
-import { DefinitionToWordGame } from './components/GameModes/DefinitionToWordGame';
-import { LearningMode } from './components/GameModes/LearningMode';
-import CreateLiveQuiz from './pages/CreateLiveQuiz';
-import QuizLobby from './pages/QuizLobby';
-import QuizHostPlay from './pages/QuizHostPlay';
-import JoinQuiz from './pages/JoinQuiz';
-import PlayerQuizFlow from './pages/PlayerQuizFlow';
-import DiscoverPage from './pages/DiscoverPage';
-import MessagesPage from './pages/MessagesPage';
-import { authService } from './services/authService';
-import LeaderboardPage from './pages/LeaderboardPage';
-import Iletisim from './pages/Iletisim';
-import Destek from './pages/Destek';
-import Hakkimizda from './pages/Hakkimizda';
-import Sss from './pages/Sss';
-import AdminPanel from './pages/AdminPanel';
-import GrammarGamePage from './pages/GrammarGamePage';
-import AboutFounder from './pages/AboutFounder';
-// import SubscriptionInfo from './pages/SubscriptionInfo';
-// import { getAuth } from 'firebase/auth';
-// import { userService } from './services/userService';
+
+// Lazy loading için bileşenleri import et
+const HomePage = lazy(() => import('./pages/HomePage'));
+const WelcomePage = lazy(() => import('./pages/WelcomePage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const AboutFounder = lazy(() => import('./pages/AboutFounder'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
+const Hakkimizda = lazy(() => import('./pages/Hakkimizda'));
+const Iletisim = lazy(() => import('./pages/Iletisim'));
+const Sss = lazy(() => import('./pages/Sss'));
+const Destek = lazy(() => import('./pages/Destek'));
+const SubscriptionInfo = lazy(() => import('./pages/SubscriptionInfo'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const CreateLiveQuiz = lazy(() => import('./pages/CreateLiveQuiz'));
+const JoinQuiz = lazy(() => import('./pages/JoinQuiz'));
+const LiveQuizStudent = lazy(() => import('./pages/LiveQuizStudent'));
+const LiveQuizTeacher = lazy(() => import('./pages/LiveQuizTeacher'));
+const QuizLobby = lazy(() => import('./pages/QuizLobby'));
+const QuizHostPlay = lazy(() => import('./pages/QuizHostPlay'));
+const PlayerQuizFlow = lazy(() => import('./pages/PlayerQuizFlow'));
+const ParaphrasePage = lazy(() => import('./pages/ParaphrasePage'));
+const GrammarGamePage = lazy(() => import('./pages/GrammarGamePage'));
+
+// Game Modes - Lazy loading
+const MultipleChoice = lazy(() => import('./components/GameModes/MultipleChoice').then(module => ({ default: module.MultipleChoice })));
+const MatchingGame = lazy(() => import('./components/GameModes/MatchingGame').then(module => ({ default: module.MatchingGame })));
+const FlashCard = lazy(() => import('./components/GameModes/FlashCard').then(module => ({ default: module.FlashCard })));
+const SpeedGame = lazy(() => import('./components/GameModes/SpeedGame').then(module => ({ default: module.SpeedGame })));
+const WordRace = lazy(() => import('./components/GameModes/WordRace').then(module => ({ default: module.WordRace })));
+const SentenceCompletion = lazy(() => import('./components/GameModes/SentenceCompletion').then(module => ({ default: module.SentenceCompletion })));
+const DefinitionToWordGame = lazy(() => import('./components/GameModes/DefinitionToWordGame').then(module => ({ default: module.DefinitionToWordGame })));
+const PrepositionMasteryGame = lazy(() => import('./components/GameModes/PrepositionMasteryGame').then(module => ({ default: module.PrepositionMasteryGame })));
+const ParaphraseChallenge = lazy(() => import('./components/GameModes/ParaphraseChallenge').then(module => ({ default: module.ParaphraseChallenge })));
+const LearningMode = lazy(() => import('./components/GameModes/LearningMode').then(module => ({ default: module.LearningMode })));
+const MemoryGame = lazy(() => import('./components/GameModes/MemoryGame').then(module => ({ default: module.MemoryGame })));
+const QuizGame = lazy(() => import('./components/GameModes/QuizGame').then(module => ({ default: module.QuizGame })));
+const SpeakingGame = lazy(() => import('./components/GameModes/SpeakingGame').then(module => ({ default: module.SpeakingGame })));
+
+// Loading Spinner bileşeni
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 // Korumalı Route bileşeni
 const ProtectedRoute: React.FC<{ 
@@ -322,7 +335,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
               setCurrentLevel={setCurrentLevel}
             />
             <div className="pt-32">
-              <GameWrapperWithParams component={WordFormsGame} />
+              <GameWrapperWithParams component={FlashCard} />
             </div>
           </>
         </ProtectedRoute>
@@ -338,7 +351,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
               setCurrentLevel={setCurrentLevel}
             />
             <div className="pt-32">
-              <EssayWritingPage />
+              <GameWrapperWithParams component={LearningMode} />
             </div>
           </>
         </ProtectedRoute>
@@ -597,6 +610,7 @@ function MatchingGameWrapperWithParams() {
     console.log('MatchingGame: URL params changed:', { unit, level });
     const newWords = getWordsByParams(unit, level);
     console.log('MatchingGame: New words count:', newWords.length);
+    console.log('MatchingGame: Unit words count:', newWords.filter(w => w.unit === unit).length);
     setWords(newWords);
     setIsLoading(false);
   }, [unit, level]);
@@ -612,7 +626,34 @@ function MatchingGameWrapperWithParams() {
     );
   }
 
-  return <MatchingGameWrapper words={words} />;
+  // Unit kontrolü
+  const unitWords = words.filter(w => w.unit === unit);
+  if (unitWords.length === 0) {
+    console.error('❌ MatchingGame: Bu unit için kelime bulunamadı:', { unit, level, totalWords: words.length });
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-center">
+          <div className="text-red-400 text-xl mb-4">Bu ünite için kelime bulunamadı</div>
+          <p className="text-gray-300 mb-4">Unit: {unit}, Level: {level}</p>
+          <button 
+            onClick={() => window.location.href = '/home'} 
+            className="px-6 py-3 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+          >
+            Ana Sayfaya Dön
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('✅ MatchingGame: Oyun başlatılıyor:', { 
+    unit, 
+    level, 
+    totalWords: words.length, 
+    unitWords: unitWords.length 
+  });
+
+  return <MatchingGame words={words} unit={unit} />;
 }
 
 function GameWrapperWithParams({ component }: { component: React.ComponentType<any> }) {
@@ -669,3 +710,5 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
     );
   }
 }
+
+export default AppRoutes;

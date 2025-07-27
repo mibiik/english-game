@@ -6,271 +6,274 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-  
-  .transform-style-3d {
-    transform-style: preserve-3d;
-  }
-  
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
-  
-  .rotate-y-180 {
-    transform: rotateY(180deg);
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+/* CLS (Cumulative Layout Shift) optimizasyonları */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Layout shift'i önlemek için sabit boyutlar */
+img, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Aspect ratio container'ları */
+.aspect-ratio-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.aspect-ratio-container > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Font loading optimizasyonu */
+.font-display-swap {
+  font-display: swap;
+}
+
+/* Preload kritik kaynaklar */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Bebas Neue font için */
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+  font-display: swap;
+}
+
+/* Font utility class */
+.font-bebas {
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+/* Optimize scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Optimize images */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Optimize fonts */
+@font-face {
+  font-family: 'Bebas Neue';
+  src: url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+  font-display: swap;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  font-display: swap;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
+/* Custom animations with better performance */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.4s ease-out forwards;
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes pulse-bright {
-  0%, 100% { filter: brightness(1) scale(1); }
-  50% { filter: brightness(1.25) scale(1.08); }
-}
-.animate-pulse-bright {
-  animation: pulse-bright 1.2s infinite;
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.1); }
 }
 
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
-
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    background-color: #030712; /* Ekranın tamamının koyu tema olmasını sağla */
-  }
+/* Optimized utility classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* Power Card Effects */
-.power-card-glow {
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
-  transform: scale(1.05);
+.slide-up {
+  animation: slideUp 0.4s ease-out;
 }
 
-.power-card-disabled {
-  filter: grayscale(100%);
-  opacity: 0.6;
+.pulse-bright {
+  animation: pulse-bright 2s ease-in-out infinite;
 }
 
-/* Quick Mode Enhancements */
-.quick-mode-button {
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+.bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
 }
 
-.quick-mode-button:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.quick-mode-button:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* Leaderboard Animations */
-.leaderboard-item {
-  transition: all 0.3s ease;
-}
-
-.leaderboard-item:hover {
-  transform: translateX(5px);
-}
-
-.leaderboard-gold {
-  background: linear-gradient(135deg, #ffd700, #ffed4e);
-}
-
-.leaderboard-silver {
-  background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
-}
-
-.leaderboard-bronze {
-  background: linear-gradient(135deg, #cd7f32, #f97316);
-}
-
-/* Room Code Display */
-.room-code-display {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  letter-spacing: 0.2em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Progress Bar Enhancements */
-.progress-bar-animated {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
-  background-size: 200% 100%;
-  animation: gradient-flow 2s ease infinite;
-}
-
-@keyframes gradient-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Mobile Responsive Enhancements */
+/* Optimize for mobile */
 @media (max-width: 768px) {
-  .quick-mode-button {
-    padding: 1.5rem;
-    font-size: 1.1rem;
-  }
-  
-  .room-code-display {
-    font-size: 1.5rem;
-    letter-spacing: 0.15em;
+  .mobile-optimized {
+    will-change: auto;
+    transform: translateZ(0);
   }
 }
 
-/* Print Styles for Results */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-  
-  .print-friendly {
-    color: black !important;
-    background: white !important;
+/* Optimize for high DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
   }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  .dark-mode-support {
-    background-color: #1f2937;
-    color: #f9fafb;
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .animate-bounce-slow,
+  .animate-pulse-bright {
+    animation: none;
   }
 }
 
-/* Accessibility Enhancements */
+/* Optimize focus styles */
 .focus-visible:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-.reduced-motion {
-  transition: none !important;
-  animation: none !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+/* Optimize for dark mode */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-optimized {
+    background-color: #1a1a1a;
+    color: #ffffff;
   }
 }
 
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-  .high-contrast {
-    border: 2px solid;
-    background: white;
-    color: black;
+/* Optimize for print */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-optimized {
+    background: white !important;
+    color: black !important;
   }
 }
+
+/* Layout shift önleme için sabit boyutlar */
+.card-fixed-size {
+  min-height: 200px;
+  width: 100%;
+}
+
+.button-fixed-size {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Loading placeholder'ları */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Container query desteği */
+.container {
+  container-type: inline-size;
+}
+
+/* Grid layout optimizasyonu */
+.grid-stable {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+/* Flexbox optimizasyonu */
+.flex-stable {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Text rendering optimizasyonu */
+.text-optimized {
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+}
+
+/* Responsive text sizes */
+@media (max-width: 640px) {
+  .xs\:text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+/* Backdrop blur support */
+@supports (backdrop-filter: blur(10px)) {
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Game card hover effects */
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+}
+.group:hover .group-hover\:brightness-110 {
+  filter: brightness(1.1);
+}
+/* Border animations */
+.border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.group:hover .group-hover\:border-\[\#ff416c\]\/60 {
+  border-color: rgba(255, 65, 108, 0.6);
+}
+
+/* FlashCard 3D Transform Classes */
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+.perspective-1000 {
+  perspective: 1000px;
+}
+

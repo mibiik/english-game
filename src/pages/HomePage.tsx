@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX, HiChevronDown, HiMinus, HiChevronUp } from 'react-icons/hi';
 import { FaCheckCircle } from 'react-icons/fa';
-// import icoLogo from './ico.png';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
 import { gameStateManager } from '../lib/utils';
@@ -14,6 +13,7 @@ import { collection, getDocs, getFirestore, orderBy, query, onSnapshot } from 'f
 import app from '../config/firebase';
 import SupportModal from '../components/SupportModal';
 import FeedbackButton from '../components/FeedbackButton';
+import { debounce } from '../lib/performance';
 
 export interface Word {
   english: string;
@@ -88,7 +88,7 @@ const gameModeDescriptions: Record<string, string> = {
   'learning-mode': 'Oyunlara başlamadan önce kelimeleri, anlamlarını ve örnek cümleleri öğrenin.',
 };
 
-const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, currentLevel }) => {
+const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUnit, currentLevel }) => {
   const unit = currentUnit;
   const level = currentLevel;
   const navigate = useNavigate();
@@ -97,29 +97,44 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(true); // leaderboard açık/kapalı
-  // Liderlik verisi
+  const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
 
-  useEffect(() => {
-    // Kullanıcının oturum durumunu kontrol et
-    const checkAuth = () => {
+  // Memoized game modes
+  const gameModes = useMemo(() => [
+    { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'word-forms', title: 'Kelime Formları', icon: <HiCollection />, link: `/word-forms?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <HiBookOpen />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'paraphrase', title: 'Paraphrase', icon: <HiSpeakerphone />, link: `/paraphrase`, color: '', shadow: '' },
+    { id: 'essay-writing', title: 'Essay Yazma', icon: <HiDocumentText />, link: '/essay-writing', color: '', shadow: '' },
+    { id: 'preposition-mastery', title: 'Preposition', icon: <HiPuzzle />, link: '/preposition-mastery', color: '', shadow: '' },
+    { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
+  ], [unit, level]);
+
+  // Debounced auth check
+  const debouncedAuthCheck = useCallback(
+    debounce(() => {
       const isAuth = authService.isAuthenticated();
       setIsAuthenticated(isAuth);
-    };
+    }, 100),
+    []
+  );
     
-    // Sayfa yüklendiğinde kontrol et
-    checkAuth();
+  useEffect(() => {
+    debouncedAuthCheck();
 
-    // Auth modal'ı kapandığında oturum durumunu tekrar kontrol et
     const handleAuthClose = () => {
       setTimeout(() => {
-        checkAuth();
+        debouncedAuthCheck();
       }, 100);
     };
 
-    // Periyodik olarak oturum durumunu kontrol et (her 2 saniyede)
-    const interval = setInterval(checkAuth, 2000);
+    const interval = setInterval(debouncedAuthCheck, 2000);
 
     window.addEventListener('auth-closed', handleAuthClose);
     
@@ -127,11 +142,18 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       window.removeEventListener('auth-closed', handleAuthClose);
       clearInterval(interval);
     };
-  }, []);
+  }, [debouncedAuthCheck]);
+
+  // Memoized leaderboard data
+  const leaderboardData = useMemo(() => {
+    return topUsers.slice(0, 5);
+  }, [topUsers]);
 
   useEffect(() => {
     const db = getFirestore(app);
     const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
+    
+    // Query'yi optimize et - sadece gerekli alanları çek
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       let fetched = querySnapshot.docs.map(doc => {
         const d = doc.data();
@@ -142,15 +164,24 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           userId: doc.id,
         };
       });
-      // Emir'in userId'si
+      
+      // Emir'in userId'si - memoize et
       const emirId = 'dZFMjEqoTDTJCMyiNmQ3cMaCqx83';
       fetched = fetched.map(u =>
         u.userId === emirId ? { ...u, totalScore: (u.totalScore || 0) + 11000 } : u
       );
-      // Sıralamayı güncel puana göre yap
-      fetched = fetched.filter(u => u.displayName && u.displayName.trim() !== '').sort((a, b) => b.totalScore - a.totalScore);
-      setTopUsers(fetched.slice(0, 5)); // Artık ilk 5 kullanıcıyı alıyoruz
+      
+      // Sıralamayı güncel puana göre yap ve sadece ilk 5'i al
+      const filteredAndSorted = fetched
+        .filter(u => u.displayName && u.displayName.trim() !== '')
+        .sort((a, b) => b.totalScore - a.totalScore)
+        .slice(0, 5);
+      
+      setTopUsers(filteredAndSorted);
+    }, (error) => {
+      console.error('Leaderboard yüklenirken hata:', error);
     });
+    
     return () => unsubscribe();
   }, []);
 
@@ -176,21 +207,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       setIsLoading(false);
     }
   };
-
-  const gameModes: GameMode[] = [
-    { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'word-forms', title: 'Kelime Formları', icon: <HiCollection />, link: `/word-forms?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <HiBookOpen />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'paraphrase', title: 'Paraphrase', icon: <HiSpeakerphone />, link: `/paraphrase`, color: '', shadow: '' },
-    { id: 'essay-writing', title: 'Essay Yazma', icon: <HiDocumentText />, link: '/essay-writing', color: '', shadow: '' },
-    { id: 'preposition-mastery', title: 'Preposition', icon: <HiPuzzle />, link: '/preposition-mastery', color: '', shadow: '' },
-    { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
-  ];
 
   const headingLines = [
     <>
@@ -307,7 +323,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           </div>
         </div>
         {/* Mini Leaderboard */}
-        {topUsers.length >= 3 && (
+        {leaderboardData.length >= 3 && (
           <div className="flex-1 max-w-md md:max-w-lg lg:max-w-xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-0 flex flex-col items-center p-4 md:p-2 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl scale-105 md:scale-110 relative md:py-2">
             {/* Küçült butonu sadece masaüstünde */}
             <button
@@ -333,14 +349,14 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                   {/* 2. Kullanıcı */}
                   <div className="flex flex-col items-center flex-1">
                     <div className="w-10 h-10 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
-                      {topUsers[1]?.photoURL ? (
-                        <img src={topUsers[1].photoURL} alt={topUsers[1].displayName} className="w-full h-full object-cover" />
+                      {leaderboardData[1]?.photoURL ? (
+                        <img src={leaderboardData[1].photoURL} alt={leaderboardData[1].displayName} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-base md:text-sm font-bold text-purple-600">{topUsers[1]?.displayName?.charAt(0).toUpperCase()}</span>
+                        <span className="text-base md:text-sm font-bold text-purple-600">{leaderboardData[1]?.displayName?.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="text-xs md:text-xs font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[1]?.displayName?.toUpperCase()}</span>
-                    <span className="text-base md:text-base font-extrabold text-white text-center w-full">{topUsers[1]?.totalScore}</span>
+                    <span className="text-xs md:text-xs font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{leaderboardData[1]?.displayName?.toUpperCase()}</span>
+                    <span className="text-base md:text-base font-extrabold text-white text-center w-full">{leaderboardData[1]?.totalScore}</span>
                     <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
                   </div>
                   {/* 1. Kullanıcı */}
@@ -348,35 +364,35 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                     <div className="w-20 h-20 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-1 shadow-lg relative" style={{boxShadow:'0 0 32px 8px #ffd70088, 0 0 0 6px #fffbe6cc'}}>
                       {/* Altın parlama efekti */}
                       <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 32px 12px #ffd70088, 0 0 0 8px #fffbe644'}}></div>
-                      {topUsers[0]?.photoURL ? (
-                        <img src={topUsers[0].photoURL} alt={topUsers[0].displayName} className="w-full h-full object-cover relative z-10" />
+                      {leaderboardData[0]?.photoURL ? (
+                        <img src={leaderboardData[0].photoURL} alt={leaderboardData[0].displayName} className="w-full h-full object-cover relative z-10" />
                       ) : (
-                        <span className="text-3xl md:text-2xl font-extrabold text-yellow-700 relative z-10">{topUsers[0]?.displayName?.charAt(0).toUpperCase()}</span>
+                        <span className="text-3xl md:text-2xl font-extrabold text-yellow-700 relative z-10">{leaderboardData[0]?.displayName?.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="text-base md:text-base font-extrabold text-yellow-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[0]?.displayName?.toUpperCase()}</span>
-                    <span className="text-2xl md:text-xl font-extrabold text-white text-center w-full">{topUsers[0]?.totalScore}</span>
+                    <span className="text-base md:text-base font-extrabold text-yellow-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{leaderboardData[0]?.displayName?.toUpperCase()}</span>
+                    <span className="text-2xl md:text-xl font-extrabold text-white text-center w-full">{leaderboardData[0]?.totalScore}</span>
                     <span className="mt-1 text-xs bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 font-bold">1</span>
                   </div>
                   {/* 3. Kullanıcı */}
                   <div className="flex flex-col items-center flex-1">
                     <div className="w-8 h-8 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
-                      {topUsers[2]?.photoURL ? (
-                        <img src={topUsers[2].photoURL} alt={topUsers[2].displayName} className="w-full h-full object-cover" />
+                      {leaderboardData[2]?.photoURL ? (
+                        <img src={leaderboardData[2].photoURL} alt={leaderboardData[2].displayName} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xs md:text-xs font-bold text-pink-600">{topUsers[2]?.displayName?.charAt(0).toUpperCase()}</span>
+                        <span className="text-xs md:text-xs font-bold text-pink-600">{leaderboardData[2]?.displayName?.charAt(0).toUpperCase()}</span>
                       )}
                     </div>
-                    <span className="text-xs md:text-xs font-extrabold text-pink-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{topUsers[2]?.displayName?.toUpperCase()}</span>
-                    <span className="text-sm md:text-xs font-extrabold text-white text-center w-full">{topUsers[2]?.totalScore}</span>
+                    <span className="text-xs md:text-xs font-extrabold text-pink-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{leaderboardData[2]?.displayName?.toUpperCase()}</span>
+                    <span className="text-sm md:text-xs font-extrabold text-white text-center w-full">{leaderboardData[2]?.totalScore}</span>
                     <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
                   </div>
                 </div>
                 {/* 4 ve 5. kullanıcılar için ek liste */}
-                {(topUsers[3] || topUsers[4]) && (
+                {(leaderboardData[3] || leaderboardData[4]) && (
                   <div className="w-full mt-2 md:mt-1">
                     <ul className="divide-y divide-gray-700">
-                      {topUsers.slice(3, 5).map((user, idx) => (
+                      {leaderboardData.slice(3, 5).map((user, idx) => (
                         <li key={user.displayName} className="flex items-center py-2 md:py-1 gap-3">
                           <div className={`w-8 h-8 md:w-7 md:h-7 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
                             {user.photoURL ? (
@@ -443,90 +459,85 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
           <div className="text-xs text-green-800 mt-2">(Destek olanlara uygulama içinde {ProBadge})</div>
         </div>
       </div>
-      {/* Sabit beyaz küçük yıldızlar */}
-      {/* Derinlik için birden fazla yıldız katmanı */}
+      {/* Sabit beyaz küçük yıldızlar - Optimized */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Uzak, çok küçük yıldızlar */}
-        {[...Array(120)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white opacity-30"
-            style={{
-              width: `${Math.random() * 1 + 0.5}px`,
-              height: `${Math.random() * 1 + 0.5}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              filter: 'blur(0.5px)'
-            }}
-          />
-        ))}
-        {/* Orta katman yıldızlar */}
-        {[...Array(40)].map((_, i) => (
-          <div
-            key={`mid-${i}`}
-            className="absolute rounded-full bg-blue-200 opacity-50"
-            style={{
-              width: `${Math.random() * 2 + 1}px`,
-              height: `${Math.random() * 2 + 1}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              filter: 'blur(1.2px)'
-            }}
-          />
-        ))}
-        {/* Yakın, parlak yıldızlar */}
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={`close-${i}`}
-            className="absolute rounded-full bg-white opacity-80 shadow-lg"
-            style={{
-              width: `${Math.random() * 3 + 2}px`,
-              height: `${Math.random() * 3 + 2}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              filter: 'blur(0.5px)'
-            }}
-          />
-        ))}
+        {/* Uzak, çok küçük yıldızlar - Sabit pozisyonlar */}
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '10%', top: '15%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '25%', top: '8%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '45%', top: '22%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '67%', top: '12%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '85%', top: '18%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '15%', top: '35%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '35%', top: '42%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '55%', top: '38%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '75%', top: '45%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-0.5 h-0.5 bg-white opacity-30 rounded-full" style={{ left: '92%', top: '32%', filter: 'blur(0.5px)' }} />
+        
+        {/* Orta katman yıldızlar - Sabit pozisyonlar */}
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '20%', top: '25%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '40%', top: '15%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '60%', top: '28%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '80%', top: '20%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '30%', top: '50%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '50%', top: '55%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '70%', top: '48%', filter: 'blur(1.2px)' }} />
+        <div className="absolute w-1 h-1 bg-blue-200 opacity-50 rounded-full" style={{ left: '90%', top: '52%', filter: 'blur(1.2px)' }} />
+        
+        {/* Yakın, parlak yıldızlar - Sabit pozisyonlar */}
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '12%', top: '30%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '38%', top: '18%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '65%', top: '35%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '88%', top: '25%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '22%', top: '60%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '45%', top: '65%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '68%', top: '58%', filter: 'blur(0.5px)' }} />
+        <div className="absolute w-2 h-2 bg-white opacity-80 shadow-lg rounded-full" style={{ left: '85%', top: '62%', filter: 'blur(0.5px)' }} />
       </div>
-      {/* Nebula ve galaksi efektleri için ekstra katmanlar */}
+      
+      {/* Nebula ve galaksi efektleri - Optimized */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Büyük mor bulutlar */}
-        {[...Array(2)].map((_, i) => (
-          <div
-            key={`nebula-purple-${i}`}
-            className="absolute rounded-full"
-            style={{
-              width: `${600 + Math.random() * 300}px`,
-              height: `${300 + Math.random() * 200}px`,
-              left: `${10 + Math.random() * 70}%`,
-              top: `${10 + Math.random() * 70}%`,
+        {/* Büyük mor bulutlar - Sabit pozisyonlar */}
+        <div className="absolute rounded-full" style={{
+          width: '700px',
+          height: '350px',
+          left: '15%',
+          top: '20%',
               background: 'radial-gradient(circle, #a259ff55 0%, #2a1a5a33 60%, transparent 100%)',
-              opacity: 0.18 + Math.random() * 0.10,
+          opacity: 0.18,
               filter: 'blur(60px)'
-            }}
-          />
-        ))}
-        {/* Büyük mavi bulutlar */}
-        {[...Array(2)].map((_, i) => (
-          <div
-            key={`nebula-blue-${i}`}
-            className="absolute rounded-full"
-            style={{
-              width: `${500 + Math.random() * 300}px`,
-              height: `${250 + Math.random() * 200}px`,
-              left: `${10 + Math.random() * 70}%`,
-              top: `${10 + Math.random() * 70}%`,
+        }} />
+        <div className="absolute rounded-full" style={{
+          width: '600px',
+          height: '300px',
+          left: '60%',
+          top: '10%',
+          background: 'radial-gradient(circle, #a259ff55 0%, #2a1a5a33 60%, transparent 100%)',
+          opacity: 0.15,
+          filter: 'blur(60px)'
+        }} />
+        
+        {/* Büyük mavi bulutlar - Sabit pozisyonlar */}
+        <div className="absolute rounded-full" style={{
+          width: '500px',
+          height: '250px',
+          left: '25%',
+          top: '40%',
               background: 'radial-gradient(circle, #00c3ff44 0%, #1a233a33 60%, transparent 100%)',
-              opacity: 0.13 + Math.random() * 0.10,
+          opacity: 0.13,
               filter: 'blur(60px)'
-            }}
-          />
-        ))}
-        {/* Hafif pembe galaksi izi */}
-        <div
-          className="absolute rounded-full"
-          style={{
+        }} />
+        <div className="absolute rounded-full" style={{
+          width: '450px',
+          height: '220px',
+          left: '70%',
+          top: '50%',
+          background: 'radial-gradient(circle, #00c3ff44 0%, #1a233a33 60%, transparent 100%)',
+          opacity: 0.12,
+          filter: 'blur(60px)'
+        }} />
+        
+        {/* Hafif pembe galaksi izi - Sabit pozisyon */}
+        <div className="absolute rounded-full" style={{
             width: '900px',
             height: '200px',
             left: '30%',
@@ -534,18 +545,18 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             background: 'radial-gradient(circle, #ff61a6aa 0%, #0a0d1a00 80%)',
             opacity: 0.10,
             filter: 'blur(80px)'
-          }}
-        />
+        }} />
       </div>
-      {/* Hafif mavi bulut efekti */}
+      
+      {/* Hafif mavi bulut efekti - Optimized */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[400px] rounded-full bg-[#1a233a]/40 blur-3xl" />
       </div>
-      {/* Floating Elements */}
+      
+      {/* Floating Elements - Optimized with fewer elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(35)].map((_, i) => (
+        {/* Ana uçuşan elementler - Sabit pozisyonlar */}
           <motion.div
-            key={i}
             className="absolute w-2 h-2 bg-red-500/20 rounded-full"
             animate={{
               x: [0, 100, 0],
@@ -553,21 +564,43 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               opacity: [0.2, 0.8, 0.2],
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+            duration: 15,
               repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
+            delay: 2,
+          }}
+          style={{ left: '20%', top: '30%' }}
+        />
+        <motion.div
+          className="absolute w-2 h-2 bg-red-500/20 rounded-full"
+          animate={{
+            x: [0, 80, 0],
+            y: [0, -80, 0],
+            opacity: [0.2, 0.6, 0.2],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            delay: 5,
+          }}
+          style={{ left: '60%', top: '20%' }}
+        />
+        <motion.div
+          className="absolute w-2 h-2 bg-red-500/20 rounded-full"
+          animate={{
+            x: [0, 120, 0],
+            y: [0, -120, 0],
+            opacity: [0.2, 0.7, 0.2],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            delay: 8,
+          }}
+          style={{ left: '80%', top: '40%' }}
+        />
         
-        {/* Büyük uçuşan elementler */}
-        {[...Array(15)].map((_, i) => (
+        {/* Büyük uçuşan elementler - Sabit pozisyonlar */}
           <motion.div
-            key={`large-${i}`}
             className="absolute w-1 h-1 bg-cyan-500/30 rounded-full"
             animate={{
               x: [0, 200, 0],
@@ -576,25 +609,34 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               scale: [1, 1.5, 1],
             }}
             transition={{
-              duration: Math.random() * 15 + 15,
+            duration: 20,
               repeat: Infinity,
-              delay: Math.random() * 10,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
+            delay: 3,
+          }}
+          style={{ left: '15%', top: '50%' }}
+        />
+        <motion.div
+          className="absolute w-1 h-1 bg-cyan-500/30 rounded-full"
+          animate={{
+            x: [0, 150, 0],
+            y: [0, -150, 0],
+            opacity: [0.1, 0.5, 0.1],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            duration: 16,
+            repeat: Infinity,
+            delay: 7,
+          }}
+          style={{ left: '75%', top: '25%' }}
+        />
         
-        {/* Yıldız şeklinde elementler */}
-        {[...Array(20)].map((_, i) => (
+        {/* Yıldız şeklinde elementler - Sabit pozisyonlar */}
           <motion.div
-            key={`star-${i}`}
             className="absolute w-1 h-1 bg-yellow-500/40"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+            left: '25%',
+            top: '35%',
               clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
             }}
             animate={{
@@ -603,144 +645,89 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
               scale: [1, 1.2, 1],
             }}
             transition={{
-              duration: Math.random() * 8 + 8,
+            duration: 10,
               repeat: Infinity,
-              delay: Math.random() * 5,
+            delay: 1,
             }}
           />
-        ))}
-
-        {/* Ek küçük elementler */}
-        {[...Array(25)].map((_, i) => (
           <motion.div
-            key={`small-${i}`}
-            className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
+          className="absolute w-1 h-1 bg-yellow-500/40"
+          style={{
+            left: '55%',
+            top: '45%',
+            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+          }}
             animate={{
-              x: [0, 150, 0],
-              y: [0, -150, 0],
-              opacity: [0.1, 0.5, 0.1],
+            rotate: [0, 360],
+            opacity: [0.3, 0.7, 0.3],
+            scale: [1, 1.1, 1],
             }}
             transition={{
-              duration: Math.random() * 12 + 12,
+            duration: 12,
               repeat: Infinity,
-              delay: Math.random() * 8,
+            delay: 4,
             }}
+        />
+        
+        {/* Büyük glow efektli yıldızlar - Sabit pozisyonlar */}
+        <motion.div
+          className="absolute rounded-full pointer-events-none"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
-        {/* Büyük glow efektli yıldızlar */}
-        {[...Array(4)].map((_, i) => (
+            width: '150px',
+            height: '150px',
+            left: '10%',
+            top: '15%',
+            background: 'radial-gradient(circle, #fff 0%, #2a1a5a 40%, #0a0120 100%)',
+            opacity: 0.12,
+            filter: 'blur(16px)'
+          }}
+          animate={{ opacity: [0.08, 0.18, 0.08] }}
+          transition={{ duration: 10, repeat: Infinity, repeatType: 'reverse', delay: 2 }}
+        />
           <motion.div
-            key={`glow-star-${i}`}
             className="absolute rounded-full pointer-events-none"
             style={{
-              width: `${120 + Math.random() * 100}px`,
-              height: `${120 + Math.random() * 100}px`,
-              left: `${10 + Math.random() * 80}%`,
-              top: `${10 + Math.random() * 80}%`,
+            width: '120px',
+            height: '120px',
+            left: '70%',
+            top: '25%',
               background: 'radial-gradient(circle, #fff 0%, #2a1a5a 40%, #0a0120 100%)',
-              opacity: 0.10 + Math.random() * 0.15,
+            opacity: 0.10,
               filter: 'blur(16px)'
             }}
-            animate={{ opacity: [0.08, 0.18, 0.08] }}
-            transition={{ duration: 8 + Math.random() * 4, repeat: Infinity, repeatType: 'reverse', delay: Math.random() * 4 }}
+          animate={{ opacity: [0.06, 0.15, 0.06] }}
+          transition={{ duration: 12, repeat: Infinity, repeatType: 'reverse', delay: 6 }}
           />
-        ))}
-        {/* Mor-mavi bulutlar */}
-        {[...Array(3)].map((_, i) => (
+        
+        {/* Mor-mavi bulutlar - Sabit pozisyonlar */}
           <motion.div
-            key={`cloud-${i}`}
             className="absolute rounded-full pointer-events-none"
             style={{
-              width: `${300 + Math.random() * 200}px`,
-              height: `${180 + Math.random() * 120}px`,
-              left: `${5 + Math.random() * 80}%`,
-              top: `${20 + Math.random() * 60}%`,
+            width: '350px',
+            height: '200px',
+            left: '20%',
+            top: '30%',
               background: 'radial-gradient(circle, #2a1a5a 0%, #0a0120 60%, transparent 100%)',
-              opacity: 0.08 + Math.random() * 0.10,
+            opacity: 0.08,
               filter: 'blur(60px)'
             }}
             animate={{ opacity: [0.06, 0.14, 0.06] }}
-            transition={{ duration: 12 + Math.random() * 6, repeat: Infinity, repeatType: 'reverse', delay: Math.random() * 6 }}
+          transition={{ duration: 15, repeat: Infinity, repeatType: 'reverse', delay: 3 }}
           />
-        ))}
-      </div>
-      {/* Gezegenler: Farklı boyut, renk ve konumda, derinlik için blur ve opacity ile */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Uzak, saydam mavi gezegen */}
         <motion.div
-          className="absolute rounded-full"
+          className="absolute rounded-full pointer-events-none"
           style={{
-            width: '90px',
-            height: '90px',
-            left: '12%',
-            top: '7%',
-            background: 'radial-gradient(circle at 60% 40%, #4fd1ff 0%, #1a2a4a 90%)',
-            boxShadow: '0 0 40px 8px #4fd1ff33',
-            opacity: 0.22,
-            filter: 'blur(2.5px)'
+            width: '300px',
+            height: '180px',
+            left: '65%',
+            top: '40%',
+            background: 'radial-gradient(circle, #2a1a5a 0%, #0a0120 60%, transparent 100%)',
+            opacity: 0.09,
+            filter: 'blur(60px)'
           }}
-          animate={{ y: [0, 10, 0], scale: [1, 1.03, 1] }}
-          transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ opacity: [0.07, 0.13, 0.07] }}
+          transition={{ duration: 18, repeat: Infinity, repeatType: 'reverse', delay: 8 }}
         />
-        {/* Masaüstü için: Ay benzeri gezegen */}
-        <motion.div
-          className="absolute rounded-full hidden md:block"
-          style={{
-            width: '80px',
-            height: '80px',
-            left: '78%',
-            top: '2%',
-            background: 'radial-gradient(circle at 60% 40%, #e0e7ef 0%, #bfc9d6 60%, #7a8596 100%)',
-            boxShadow: '0 0 60px 12px #bfc9d655, 0 0 120px 24px #e0e7ef22',
-            opacity: 0.22,
-            filter: 'blur(1.8px)'
-          }}
-          animate={{
-            scale: [1, 1.06, 1],
-            filter: [
-              'blur(1.8px) brightness(1)',
-              'blur(2.2px) brightness(1.08)',
-              'blur(1.8px) brightness(1)'
-            ]
-          }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          {/* Kraterler */}
-          <div style={{position:'absolute', left:'22px', top:'18px', width:'13px', height:'13px', borderRadius:'50%', background:'radial-gradient(circle, #bfc9d6 60%, transparent 100%)', opacity:0.18}} />
-          <div style={{position:'absolute', left:'48px', top:'36px', width:'8px', height:'8px', borderRadius:'50%', background:'radial-gradient(circle, #7a8596 60%, transparent 100%)', opacity:0.22}} />
-          <div style={{position:'absolute', left:'30px', top:'54px', width:'6px', height:'6px', borderRadius:'50%', background:'radial-gradient(circle, #bfc9d6 60%, transparent 100%)', opacity:0.13}} />
-        </motion.div>
-        {/* Mobil için: Ay benzeri gezegen */}
-        <motion.div
-          className="absolute rounded-full md:hidden"
-          style={{
-            width: '38px',
-            height: '38px',
-            right: '6px',
-            top: '6px',
-            background: 'radial-gradient(circle at 60% 40%, #e0e7ef 0%, #bfc9d6 60%, #7a8596 100%)',
-            boxShadow: '0 0 18px 4px #bfc9d655, 0 0 36px 8px #e0e7ef22',
-            opacity: 0.22,
-            filter: 'blur(1.2px)'
-          }}
-          animate={{
-            scale: [1, 1.08, 1],
-            filter: [
-              'blur(1.2px) brightness(1)',
-              'blur(1.6px) brightness(1.08)',
-              'blur(1.2px) brightness(1)'
-            ]
-          }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          {/* Kraterler */}
-          <div style={{position:'absolute', left:'10px', top:'7px', width:'6px', height:'6px', borderRadius:'50%', background:'radial-gradient(circle, #bfc9d6 60%, transparent 100%)', opacity:0.18}} />
-          <div style={{position:'absolute', left:'22px', top:'18px', width:'4px', height:'4px', borderRadius:'50%', background:'radial-gradient(circle, #7a8596 60%, transparent 100%)', opacity:0.22}} />
-        </motion.div>
       </div>
 
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
@@ -777,7 +764,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
         )}
 
         {/* Oyun Modları Görseldeki Bordo-Siyah Kartlar */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 lg:gap-12 mt-4">
+        <div id="game-modes-section" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8 mt-4">
           {gameModes.map((mode, idx) => {
             // Her karta çok hafif farklı bir transparan pastel renk
             const pastelGradients = [
@@ -808,19 +795,19 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
             // Bordo-kırmızı/siyah gradient
             const bgGradient = 'from-[#2a0618] via-[#a10d2f] to-[#1a0105]';
             return (
-              <Link to={mode.link} key={mode.id} className={`relative group rounded-xl overflow-hidden shadow-lg border-2 border-white/10 bg-black/30 bg-gradient-to-br ${pastelBg} flex flex-col backdrop-blur-md transition-all duration-200 hover:scale-105 cursor-pointer p-2 md:p-3`}>
+              <Link to={mode.link} key={mode.id} className={`relative group rounded-xl overflow-hidden shadow-lg border-2 border-white/10 bg-black/30 bg-gradient-to-br ${pastelBg} flex flex-col backdrop-blur-md transition-all duration-200 hover:scale-105 cursor-pointer p-1.5 md:p-2`}>
                 {/* Başlık kartın en üstünde */}
-                <div className="w-full flex justify-center pt-2 pb-2 z-30">
+                <div className="w-full flex justify-center pt-1.5 pb-1.5 z-30">
                   <span
-                    className="text-2xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
+                    className="text-lg xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
                     style={{
                       letterSpacing: '0.01em',
                       fontWeight: 700,
                       width: '100%',
                       display: 'block',
                       fontSize: (typeof window !== 'undefined' && window.innerWidth >= 768)
-                        ? '2.2rem'
-                        : 'clamp(1.6rem, 6.5vw, 4.1rem)',
+                        ? '1.5rem'
+                        : 'clamp(1.5rem, 6vw, 3.2rem)',
                       lineHeight: 1.1,
                       ...(typeof window !== 'undefined' && window.innerWidth >= 768
                         ? {
@@ -841,7 +828,7 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
                 {/* Güçlü transparan border */}
                 <div className="absolute inset-0 z-10 rounded-xl pointer-events-none border-2 border-white/20 group-hover:border-[#ff416c]/60 transition-all duration-300" />
                 {/* Görsel ve başlık */}
-                <div className="relative w-full aspect-[1/1] min-h-[16px] md:min-h-[28px] overflow-hidden flex flex-col justify-center items-center"> 
+                <div className="relative w-full aspect-[1/1] min-h-[12px] md:min-h-[20px] overflow-hidden flex flex-col justify-center items-center"> 
                   <img src={imgSrc} alt="Oyun görseli" className="w-full h-full object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" />
                 </div>
               </Link>
@@ -864,6 +851,6 @@ const HomePage: React.FC<HomePageProps> = ({ filteredWords, currentUnit, current
       </div>
     </div>
   );
-};
+});
 
 export default HomePage;

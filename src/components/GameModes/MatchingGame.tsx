@@ -19,19 +19,63 @@ interface MatchingGameProps {
 
 const MatchingGameWrapper = ({ words }: { words: WordDetail[] }) => {
   const navigate = useNavigate();
+  
   useEffect(() => {
-    if (words && words.length === 0) {
+    console.log('🔄 MatchingGameWrapper - Kelimeler kontrol ediliyor:', { 
+      wordsCount: words?.length || 0,
+      hasWords: !!words,
+      isArray: Array.isArray(words)
+    });
+    
+    // Kelime kontrolü
+    if (!words || !Array.isArray(words) || words.length === 0) {
+      console.warn('⚠️ MatchingGameWrapper - Kelime bulunamadı, ana sayfaya yönlendiriliyor');
       navigate('/home');
+      return;
+    }
+    
+    // En az bir kelimenin unit bilgisi var mı kontrol et
+    const hasValidUnit = words.some(word => word.unit);
+    if (!hasValidUnit) {
+      console.warn('⚠️ MatchingGameWrapper - Geçerli unit bilgisi bulunamadı, ana sayfaya yönlendiriliyor');
+      navigate('/home');
+      return;
     }
   }, [words, navigate]);
-  if (!words || words.length === 0) return null;
+  
+  // Kelime kontrolü
+  if (!words || !Array.isArray(words) || words.length === 0) {
+    console.log('❌ MatchingGameWrapper - Kelime yok, null döndürülüyor');
+    return null;
+  }
+  
+  // Unit bilgisi kontrolü
   const unit = words[0]?.unit;
-  if (!unit) return null;
+  if (!unit) {
+    console.log('❌ MatchingGameWrapper - Unit bilgisi yok, null döndürülüyor');
+    return null;
+  }
+  
+  console.log('✅ MatchingGameWrapper - Oyun başlatılıyor:', { 
+    wordsCount: words.length, 
+    unit,
+    unitWordsCount: words.filter(w => w.unit === unit).length 
+  });
+  
   return <MatchingGame words={words} unit={unit} />;
 };
 
 export function MatchingGame({ words, unit }: MatchingGameProps) {
   const navigate = useNavigate();
+  
+  // Debug log
+  console.log('🎮 MatchingGame - Component başlatıldı:', { 
+    wordsCount: words?.length || 0, 
+    unit, 
+    hasWords: !!words,
+    isArray: Array.isArray(words)
+  });
+  
   const [gameWords, setGameWords] = useState<GameWord[]>([]);
   const [selectedEnglish, setSelectedEnglish] = useState<GameWord | null>(null);
   const [selectedTurkish, setSelectedTurkish] = useState<GameWord | null>(null);
@@ -71,6 +115,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Round başlatma
   const startNewGame = useCallback((customWords?: GameWord[]) => {
+    console.log('🎮 MatchingGame - startNewGame çağrıldı:', { 
+      customWords: !!customWords, 
+      wordsCount: words.length, 
+      unit,
+      currentUnitWords: words.filter(w => w.unit === unit).length 
+    });
+    
     setTimerDisabled(false); // Her round başında sıfırla
     setShowResult(false);
     setScore(0);
@@ -92,6 +143,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
     // Tüm ünite kelimeleri
     const currentUnitWords = words.filter(word => word.unit === unit);
+    
+    // Kelime kontrolü
+    if (currentUnitWords.length === 0) {
+      console.error('❌ MatchingGame - Bu ünite için kelime bulunamadı:', { unit, totalWords: words.length });
+      return;
+    }
+    
     const total = currentUnitWords.length;
     const rounds = Math.ceil(total / 9);
     setTotalRounds(rounds);
@@ -104,10 +162,23 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     const roundEndIndex = Math.min(roundStartIndex + 9, total);
     const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
     
+    console.log('📝 MatchingGame - Round kelimeleri hazırlanıyor:', { 
+      roundWordsCount: roundWords.length, 
+      totalWords: total,
+      roundStartIndex,
+      roundEndIndex 
+    });
+    
     // Kartları oluştur
     const englishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'english' as const }));
     const turkishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'turkish' as const }));
     const allCards = [...englishCards, ...turkishCards].sort(() => 0.5 - Math.random());
+    
+    console.log('🎴 MatchingGame - Kartlar oluşturuldu:', { 
+      totalCards: allCards.length, 
+      englishCards: englishCards.length, 
+      turkishCards: turkishCards.length 
+    });
     
     setGameWords(allCards);
     setLastRoundWords(allCards);
@@ -115,7 +186,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setSelectedEnglish(null);
     setSelectedTurkish(null);
     setIsChecking(false);
-  }, [words, unit]);
+  }, [words, unit, infiniteMode, timerDisabled]);
 
   // Tekrar oyna fonksiyonu:
   const handleReplayRound = () => {
@@ -198,24 +269,49 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   useEffect(() => {
     const hasWordsChanged = JSON.stringify(previousWords.current) !== JSON.stringify(words);
     const hasUnitChanged = previousUnit.current !== '' && previousUnit.current !== unit;
-    if (hasWordsChanged || hasUnitChanged) {
-      setGameWords([]);
+    
+    // Sadece gerçekten değişiklik varsa ve oyun henüz başlamamışsa sıfırla
+    if ((hasWordsChanged || hasUnitChanged) && gameWords.length === 0) {
       setSelectedEnglish(null);
       setSelectedTurkish(null);
       setMatchedPairs([]);
       setIsChecking(false);
       setScore(0);
       setShowResult(false);
+      setCurrentRound(1);
+      setTotalRounds(1);
+      setLastRoundWords([]);
+      setWrongCards([]);
+      setScoreSaved(false);
+      setScoreChange(null);
+      setInfiniteMode(false);
+      setTimerDisabled(false);
+      setTimeLeft(30);
+      setTimerActive(false);
+      setBonus(0);
     }
+    
     previousWords.current = words;
     previousUnit.current = unit;
-  }, [words, unit]);
+  }, [words, unit, gameWords.length]);
 
   useEffect(() => {
-    if (words.length > 0 && gameWords.length === 0 && !showResult) {
+    // Oyun başlatma koşullarını kontrol et
+    const shouldStartGame = words.length > 0 && 
+                           gameWords.length === 0 && 
+                           !showResult && 
+                           unit && 
+                           words.some(word => word.unit === unit);
+    
+    if (shouldStartGame) {
+      console.log('🔄 MatchingGame - Oyun başlatılıyor:', { 
+        wordsCount: words.length, 
+        unit, 
+        unitWordsCount: words.filter(w => w.unit === unit).length 
+      });
       startNewGame();
     }
-  }, [words, gameWords.length, showResult, startNewGame]);
+  }, [words, gameWords.length, showResult, startNewGame, unit]);
 
   // Timer başlatma ve azaltma
   useEffect(() => {

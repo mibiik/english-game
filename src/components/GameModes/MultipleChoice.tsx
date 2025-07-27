@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Trophy, Target, CheckCircle, XCircle } from 'lucide-react';
 import { WordDetail } from '../../data/words';
 import { learningStatsTracker } from '../../data/learningStats';
@@ -55,7 +55,7 @@ const getThemeClasses = (theme: Theme) => {
     }
 };
 
-export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
+export const MultipleChoice: React.FC<MultipleChoiceProps> = React.memo(({ words }) => {
   const [roundWords, setRoundWords] = useState<WordDetail[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
@@ -74,7 +74,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
   const [showReviewInfo, setShowReviewInfo] = useState(false); // Tekrar bilgisi gösterimi
   const [showCongratulations, setShowCongratulations] = useState(false); // Tebrik modalı
 
-  const themeClasses = getThemeClasses(theme);
+  const themeClasses = useMemo(() => getThemeClasses(theme), [theme]);
   
   const shuffleArray = useCallback(<T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -98,6 +98,14 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
     const allOptions = shuffleArray([...wrongOptions, correctAnswer]);
     setOptions(allOptions);
   }, [shuffleArray]);
+
+  // Mevcut kelimeyi memoize et
+  const currentWord = useMemo(() => {
+    return roundWords[currentWordIndex];
+  }, [roundWords, currentWordIndex]);
+
+  const isGameComplete = currentWordIndex >= roundWords.length - 1 && selectedAnswer !== null;
+  const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
 
   const startNewRound = useCallback(() => {
     const shuffledWords = shuffleArray(words);
@@ -276,10 +284,6 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
       </div>
     );
   }
-
-  const isGameComplete = currentWordIndex >= roundWords.length - 1 && selectedAnswer !== null;
-  const currentWord = roundWords[currentWordIndex];
-  const progress = ((currentWordIndex + 1) / roundWords.length) * 100;
 
   return (
     <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>
@@ -482,4 +486,4 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = ({ words }) => {
       </div>
     </div>
   );
-};
+});

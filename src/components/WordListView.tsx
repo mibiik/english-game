@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Eye, X, Play, Download, Share2, Copy, Search, Filter } from 'lucide-react';
 import { wordListService, WordList } from '../services/wordListService';
 import { authService } from '../services/authService';
@@ -10,6 +10,53 @@ interface WordListViewProps {
   onSelectForGame?: (list: WordList) => void;
 }
 
+// Virtual scrolling için bileşen
+const VirtualizedWordList: React.FC<{
+  words: Array<{ english: string; turkish: string; unit: string }>;
+  itemHeight: number;
+  containerHeight: number;
+}> = React.memo(({ words, itemHeight, containerHeight }) => {
+  const [scrollTop, setScrollTop] = useState(0);
+  
+  const totalHeight = words.length * itemHeight;
+  const startIndex = Math.floor(scrollTop / itemHeight);
+  const endIndex = Math.min(startIndex + Math.ceil(containerHeight / itemHeight) + 1, words.length);
+  
+  const visibleWords = words.slice(startIndex, endIndex);
+  const offsetY = startIndex * itemHeight;
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
+  return (
+    <div 
+      style={{ height: containerHeight, overflow: 'auto' }}
+      onScroll={handleScroll}
+    >
+      <div style={{ height: totalHeight, position: 'relative' }}>
+        <div style={{ transform: `translateY(${offsetY}px)` }}>
+          {visibleWords.map((word, index) => (
+            <div
+              key={`${word.english}-${startIndex + index}`}
+              style={{ height: itemHeight }}
+              className="flex items-center justify-between p-3 border-b border-gray-200 hover:bg-gray-50"
+            >
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">{word.english}</div>
+                <div className="text-sm text-gray-600">{word.turkish}</div>
+              </div>
+              <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                Unit {word.unit}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export function WordListView({ listId, list: initialList, onClose, onSelectForGame }: WordListViewProps) {
   const [wordList, setWordList] = useState<WordList | null>(initialList || null);
   const [isLoading, setIsLoading] = useState(!initialList);
@@ -20,6 +67,27 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
   const [selectedUnit, setSelectedUnit] = useState('all');
   const [isOwner, setIsOwner] = useState(false);
   
+  // Memoized filtered words
+  const filteredWords = useMemo(() => {
+    if (!wordList?.words) return [];
+    
+    return wordList.words.filter(word => {
+      const matchesSearch = searchTerm === '' || 
+        word.english.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        word.turkish.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesUnit = selectedUnit === 'all' || word.unit === selectedUnit;
+      
+      return matchesSearch && matchesUnit;
+    });
+  }, [wordList?.words, searchTerm, selectedUnit]);
+
+  // Memoized units
+  const units = useMemo(() => {
+    if (!wordList?.words) return [];
+    return [...new Set(wordList.words.map(word => word.unit))].sort();
+  }, [wordList?.words]);
+
   useEffect(() => {
     if (initialList) {
       setWordList(initialList);
@@ -29,12 +97,12 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
     }
   }, [initialList, listId]);
   
-  const checkOwnership = (list: WordList) => {
+  const checkOwnership = useCallback((list: WordList) => {
     const currentUser = authService.getCurrentUser();
     setIsOwner(currentUser?.uid === list.userId);
-  };
+  }, []);
 
-  const loadWordList = async (id: string) => {
+  const loadWordList = useCallback(async (id: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -48,8 +116,9 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
     } finally {
       setIsLoading(false);
     }
-  };
-  const handleCopyToClipboard = () => {
+  }, [checkOwnership]);
+
+  const handleCopyToClipboard = useCallback(() => {
     if (!wordList) return;
 
     const formattedText = wordList.words
@@ -65,17 +134,15 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
         console.error('Panoya kopyalama hatası:', err);
         setError('Kelimeler panoya kopyalanırken bir hata oluştu.');
       });
-  };
+  }, [wordList]);
 
-  const handleShareList = async () => {
+  const handleShareList = useCallback(async () => {
     if (!wordList || !wordList.id) return;
 
     try {
-      // Liste paylaşım durumunu güncelle
       await wordListService.updateWordList(wordList.id, { isPublic: true });
       setSuccess('Liste herkese açık olarak ayarlandı ve paylaşıma hazır!');
       
-      // Listeyi yeniden yükle
       if (listId) {
         await loadWordList(listId);
       }
@@ -83,23 +150,7 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
       console.error('Liste paylaşılırken hata oluştu:', err);
       setError('Liste paylaşılırken bir hata oluştu.');
     }
-  };
-
-  const filteredWords = wordList?.words.filter(word => {
-    const matchesSearch = searchTerm === '' || 
-      word.english.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      word.turkish.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesUnit = selectedUnit === 'all' || word.unit === selectedUnit;
-    
-    return matchesSearch && matchesUnit;
-  }) || [];
-
-  // Mevcut üniteler
-  const units = wordList?.words
-    .map(word => word.unit)
-    .filter((unit, index, self) => self.indexOf(unit) === index)
-    .sort((a, b) => parseInt(a) - parseInt(b)) || [];
+  }, [wordList, listId, loadWordList]);
 
   if (isLoading) {
     return (
@@ -228,26 +279,11 @@ export function WordListView({ listId, list: initialList, onClose, onSelectForGa
           </p>
         </div>
       ) : (
-        <div className="border border-gray-200 rounded-lg overflow-hidden max-h-[400px] overflow-y-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İngilizce</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Türkçe</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ünite</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredWords.map((word, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{word.english}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{word.turkish}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">Ünite {word.unit}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <VirtualizedWordList
+          words={filteredWords}
+          itemHeight={60} // Adjust as needed
+          containerHeight={300} // Adjust as needed
+        />
       )}
       
       <div className="mt-6 flex justify-end">

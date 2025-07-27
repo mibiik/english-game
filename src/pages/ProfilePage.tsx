@@ -283,96 +283,105 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden relative">
-      {/* Floating Elements */}
+      {/* Floating Elements - Optimized */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-blue-500/20 rounded-full"
-            animate={{
-              x: [0, 100, 0],
-              y: [0, -100, 0],
-              opacity: [0.2, 0.8, 0.2],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
+        {/* Ana uçuşan elementler - Sabit pozisyonlar */}
+        <motion.div
+          className="absolute w-2 h-2 bg-red-500/20 rounded-full"
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -100, 0],
+            opacity: [0.2, 0.8, 0.2],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            delay: 2,
+          }}
+          style={{ left: '20%', top: '30%' }}
+        />
+        <motion.div
+          className="absolute w-2 h-2 bg-red-500/20 rounded-full"
+          animate={{
+            x: [0, 80, 0],
+            y: [0, -80, 0],
+            opacity: [0.2, 0.6, 0.2],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            delay: 5,
+          }}
+          style={{ left: '60%', top: '20%' }}
+        />
         
-        {/* Büyük uçuşan elementler */}
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={`large-${i}`}
-            className="absolute w-1 h-1 bg-cyan-500/30 rounded-full"
-            animate={{
-              x: [0, 200, 0],
-              y: [0, -200, 0],
-              opacity: [0.1, 0.6, 0.1],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: Math.random() * 15 + 15,
-              repeat: Infinity,
-              delay: Math.random() * 10,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
+        {/* Yıldız şeklinde elementler - Sabit pozisyonlar */}
+        <motion.div
+          className="absolute w-1 h-1 bg-yellow-500/40"
+          style={{
+            left: '25%',
+            top: '35%',
+            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+          }}
+          animate={{
+            rotate: [0, 360],
+            opacity: [0.3, 0.8, 0.3],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            delay: 1,
+          }}
+        />
+        <motion.div
+          className="absolute w-1 h-1 bg-yellow-500/40"
+          style={{
+            left: '55%',
+            top: '45%',
+            clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+          }}
+          animate={{
+            rotate: [0, 360],
+            opacity: [0.3, 0.7, 0.3],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            delay: 4,
+          }}
+        />
         
-        {/* Yıldız şeklinde elementler */}
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={`star-${i}`}
-            className="absolute w-1 h-1 bg-yellow-500/40"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
-            }}
-            animate={{
-              rotate: [0, 360],
-              opacity: [0.3, 0.8, 0.3],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: Math.random() * 8 + 8,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-          />
-        ))}
-
-        {/* Ek küçük elementler */}
-        {[...Array(18)].map((_, i) => (
-          <motion.div
-            key={`small-${i}`}
-            className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
-            animate={{
-              x: [0, 150, 0],
-              y: [0, -150, 0],
-              opacity: [0.1, 0.5, 0.1],
-            }}
-            transition={{
-              duration: Math.random() * 12 + 12,
-              repeat: Infinity,
-              delay: Math.random() * 8,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
+        {/* Ek küçük elementler - Sabit pozisyonlar */}
+        <motion.div
+          className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
+          animate={{
+            x: [0, 150, 0],
+            y: [0, -150, 0],
+            opacity: [0.1, 0.5, 0.1],
+          }}
+          transition={{
+            duration: 16,
+            repeat: Infinity,
+            delay: 3,
+          }}
+          style={{ left: '15%', top: '50%' }}
+        />
+        <motion.div
+          className="absolute w-1 h-1 bg-purple-500/25 rounded-full"
+          animate={{
+            x: [0, 120, 0],
+            y: [0, -120, 0],
+            opacity: [0.1, 0.4, 0.1],
+          }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            delay: 6,
+          }}
+          style={{ left: '75%', top: '35%' }}
+        />
       </div>
 
       {/* Ana içerik container'ı */}

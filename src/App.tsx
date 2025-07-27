@@ -14,6 +14,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { X, Sparkles } from 'lucide-react';
 import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
+import { PerformanceMonitor } from './components/PerformanceMonitor';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
@@ -288,6 +289,7 @@ function AppContent() {
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
       />
+      <PerformanceMonitor />
     </div>
   );
 }

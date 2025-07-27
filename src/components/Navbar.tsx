@@ -284,6 +284,22 @@ export const Navbar: React.FC<NavbarProps> = ({
     setSoundEnabled(soundService.isSoundEnabled());
   };
 
+  const handleLogoClick = () => {
+    setIsMenuOpen(false);
+    setIsBottomSheetOpen(false);
+    
+    // Eğer zaten ana sayfadaysa, oyun modlarına scroll yap
+    if (location.pathname === '/home') {
+      const gameModesSection = document.getElementById('game-modes-section');
+      if (gameModesSection) {
+        gameModesSection.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }
+  };
+
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}
@@ -293,7 +309,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="flex items-center justify-between">
               <div className="flex-shrink-0 flex items-center relative">
-                <Link to="/home" onClick={() => { setIsMenuOpen(false); setIsBottomSheetOpen(false); }} className="flex items-center">
+                <Link to="/home" onClick={handleLogoClick} className="flex items-center">
                   <img src="/a.png" alt="ELC Wordplay Logo" className="h-16 md:h-24 w-auto mr-2 select-none" draggable="false" />
                 </Link>
                 {/* Mobilde seçim butonu */}
