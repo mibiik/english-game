@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:vercel": "vite build --mode production",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "lint": "eslint .",

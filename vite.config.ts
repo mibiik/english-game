@@ -5,14 +5,10 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  define: {
-    global: 'globalThis',
-  },
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
-          // Vendor chunks
           'react-vendor': ['react', 'react-dom'],
           'router-vendor': ['react-router-dom'],
           'ui-vendor': ['framer-motion', 'lucide-react', 'react-icons'],
@@ -20,16 +16,10 @@ export default defineConfig({
           'charts-vendor': ['recharts'],
         },
       },
-      external: [],
     },
     chunkSizeWarningLimit: 1000,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
+    target: 'es2015',
   },
   optimizeDeps: {
     include: [
