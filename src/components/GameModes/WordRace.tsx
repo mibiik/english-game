@@ -201,15 +201,15 @@ export function WordRace({ words }: WordRaceProps) {
   // Güvenli erişim
   if (raceWords.length === 0) {
     // Kelimeler henüz yüklenmediyse bir yükleme durumu gösterilebilir
-    return <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4">Yarış için kelimeler hazırlanıyor...</div>;
+    return <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4" style={{ paddingTop: '64px', marginTop: '-128px' }}>Yarış için kelimeler hazırlanıyor...</div>;
   }
 
   const currentWord = raceWords[currentWordIndex];
 
   // Ana Ekran ve Oyun Bitiş Ekranı
   if (!isGameActive) {
-    return (
-      <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4">
+      return (
+    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4" style={{ paddingTop: '64px', marginTop: '-128px' }}>
         <motion.div 
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -240,7 +240,7 @@ export function WordRace({ words }: WordRaceProps) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4 font-sans">
+    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4 font-sans" style={{ paddingTop: '64px', marginTop: '-128px' }}>
       <div className="w-full max-w-lg">
           {/* Süre Çubuğu */}
           <div className="w-full bg-gray-700/50 rounded-full h-3 mb-4 border border-gray-600">

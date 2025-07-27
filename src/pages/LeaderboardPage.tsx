@@ -78,7 +78,7 @@ const LeaderboardPage: React.FC = () => {
 
   return (
     // Genel Arka Plan ve Font (Varsayılan Tailwind Sans)
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black px-4 py-8 md:py-16 flex flex-col items-center font-sans">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black px-4 py-8 md:py-16 flex flex-col items-center font-sans" style={{ paddingTop: 'calc(64px + 2rem)', marginTop: '-128px' }}>
 
       {/* Önce Destekçilerimiz Bölümü (SAYFA EN ÜSTÜ) */}
       <div className="w-full max-w-3xl mx-auto mt-0 mb-8">

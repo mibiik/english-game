@@ -313,32 +313,16 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     }
   }, [words, gameWords.length, showResult, startNewGame, unit]);
 
-  // Timer başlatma ve azaltma - Optimize edilmiş versiyon
+  // Timer başlatma ve azaltma
   useEffect(() => {
     if (timerActive && timeLeft > 0 && !showResult && !infiniteMode) {
-      timerRef.current = setTimeout(() => {
-        setTimeLeft(prevTime => {
-          const newTime = prevTime - 1;
-          if (newTime <= 0) {
-            setTimerActive(false);
-            setShowResult(true);
-            return 0;
-          }
-          return newTime;
-        });
-      }, 1000);
-    } else if (!timerActive && timerRef.current) {
-      // Timer durdurulduğunda timeout'u temizle
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
+      timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    } else if (timeLeft === 0 && timerActive && !infiniteMode) {
+      setTimerActive(false);
+      setShowResult(true);
     }
-    return () => { 
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [timerActive, showResult, infiniteMode]);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [timerActive, timeLeft, showResult, infiniteMode]);
 
   // Süresiz mod değiştiğinde timer'ı güncelle ve bonusu sıfırla
   useEffect(() => {
@@ -350,26 +334,20 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     }
   }, [infiniteMode, showResult, timerDisabled]);
 
-  // Kartlara tıklama - Optimize edilmiş versiyon
-  const handleCardClick = useCallback((card: GameWord) => {
-    // Eğer kontrol ediliyorsa, eşleştirilmişse veya sonuç gösteriliyorsa tıklamayı engelle
+  // Kartlara tıklama
+  const handleCardClick = (card: GameWord) => {
     if (isChecking || matchedPairs.includes(card.headword) || showResult) return;
-    
-    // Eğer iki kart seçiliyse ve eşleşmiyorsa, seçimleri temizle
     if (selectedEnglish && selectedTurkish && selectedEnglish.headword !== selectedTurkish.headword) {
       setSelectedEnglish(null);
       setSelectedTurkish(null);
       setIsChecking(false);
-      return;
     }
-    
-    // Kart tipine göre seçim yap
     if (card.type === 'english') {
-      setSelectedEnglish(prev => prev?.id === card.id ? null : card);
+      setSelectedEnglish(card.id === selectedEnglish?.id ? null : card);
     } else if (card.type === 'turkish') {
-      setSelectedTurkish(prev => prev?.id === card.id ? null : card);
+      setSelectedTurkish(card.id === selectedTurkish?.id ? null : card);
     }
-  }, [isChecking, matchedPairs, showResult, selectedEnglish, selectedTurkish]);
+  };
   
 
 
@@ -457,15 +435,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   }
 
   // Kart render fonksiyonu
-  // Optimize edilmiş kart bileşeni
-  const GameCard = React.memo(({ card, isSelected, isMatched, isWrong, theme, onCardClick }: {
-    card: GameWord;
-    isSelected: boolean;
-    isMatched: boolean;
-    isWrong: boolean;
-    theme: 'classic' | 'blue' | 'pink';
-    onCardClick: (card: GameWord) => void;
-  }) => {
+  const renderCard = (card: GameWord) => {
+    const isSelected = card.id === selectedEnglish?.id || card.id === selectedTurkish?.id;
+    const isMatched = matchedPairs.includes(card.headword);
+    const isWrong = wrongCards.includes(card.id);
+    let cardStateClasses = '';
     const themes = {
       classic: {
         normal: 'bg-gray-800 border-gray-700 hover:border-cyan-400 text-white',
@@ -486,8 +460,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         wrong: 'bg-gradient-to-br from-red-400 to-red-500 border-red-500 text-white animate-shake shadow-lg',
       }
     };
-    
-    let cardStateClasses = themes[theme].normal;
+    cardStateClasses = themes[theme].normal;
     if (isMatched) {
       cardStateClasses = themes[theme].matched;
     } else if (isWrong) {
@@ -495,45 +468,18 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     } else if (isSelected) {
       cardStateClasses = themes[theme].selected;
     }
-    
     return (
       <div
+        key={card.id}
         className={`w-full h-20 sm:h-24 md:h-28 lg:h-32 flex items-center justify-center p-1 sm:p-2 md:p-3 rounded-lg cursor-pointer transition-all duration-300 transform border-2 ${cardStateClasses}`}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onCardClick(card);
-        }}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
+        onClick={() => handleCardClick(card)}
       >
         <h3 className="text-center text-sm sm:text-base md:text-lg lg:text-xl font-semibold px-0.5 max-w-full break-words leading-tight">
           {card.type === 'english' ? card.headword : card.turkish}
         </h3>
       </div>
     );
-  });
-
-  // Kart render fonksiyonu - Optimize edilmiş versiyon
-  const renderCard = useCallback((card: GameWord) => {
-    const isSelected = card.id === selectedEnglish?.id || card.id === selectedTurkish?.id;
-    const isMatched = matchedPairs.includes(card.headword);
-    const isWrong = wrongCards.includes(card.id);
-    
-    return (
-      <GameCard
-        key={card.id}
-        card={card}
-        isSelected={isSelected}
-        isMatched={isMatched}
-        isWrong={isWrong}
-        theme={theme}
-        onCardClick={handleCardClick}
-      />
-    );
-  }, [selectedEnglish, selectedTurkish, matchedPairs, wrongCards, theme, handleCardClick]);
+  };
 
   // Yeni: Oyun Bilgi Kartı Bileşeni
   function GameInfoCard({ unit, timeLeft, theme, setTheme, matchedPairs, totalPairs, onPreviousRound, onNextRound, infiniteMode, setInfiniteMode, timerDisabled, setTimerDisabled }: { unit: string, timeLeft: number, theme: string, setTheme: (t: any) => void, matchedPairs: string[], totalPairs: number, onPreviousRound: () => void, onNextRound: () => void, infiniteMode: boolean, setInfiniteMode: (mode: boolean) => void, timerDisabled: boolean, setTimerDisabled: (disabled: boolean) => void }) {

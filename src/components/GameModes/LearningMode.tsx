@@ -416,8 +416,8 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   }
 
   if (showOnlyDifficult && totalDifficultWordsCount === 0) {
-    return (
-      <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`}>
+      return (
+    <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 0.5rem)', marginTop: '-128px' }}>
         <div className="w-full max-w-2xl mx-auto">
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center">
             <div className="flex items-center justify-center gap-2 text-blue-700">
@@ -473,7 +473,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   }, [handlePrev, handleNext]);
 
   return (
-    <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`}>
+    <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 0.5rem)', marginTop: '-128px' }}>
       <div className="w-full max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-4">
             <div>

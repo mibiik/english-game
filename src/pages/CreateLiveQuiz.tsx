@@ -43,8 +43,8 @@ const CreateLiveQuiz = () => {
     // Bu ünite listeleri projenizin yapısına göre dinamik olarak oluşturulmalıdır.
     const units = Array.from({ length: 8 }, (_, i) => (i + 1).toString());
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4">
+      return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4" style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
             <div className="w-full max-w-md bg-gray-800/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-gray-700">
                 <div className="text-center mb-8">
                     <Zap className="w-16 h-16 mx-auto text-yellow-400 mb-4" />

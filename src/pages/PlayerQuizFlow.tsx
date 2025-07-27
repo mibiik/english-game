@@ -180,8 +180,8 @@ const PlayerQuizFlow = () => {
         }
     };
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 to-purple-900 text-white">
+      return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-800 to-purple-900 text-white" style={{ paddingTop: '64px', marginTop: '-128px' }}>
             {renderContent()}
         </div>
     );

@@ -282,7 +282,7 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden relative">
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-gray-100 overflow-x-hidden relative" style={{ paddingTop: '64px', marginTop: '-128px' }}>
       {/* Floating Elements - Optimized */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Ana uçuşan elementler - Sabit pozisyonlar */}

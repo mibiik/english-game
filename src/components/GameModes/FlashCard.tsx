@@ -232,7 +232,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
   }
 
   return (
-    <div className="flex flex-col items-center space-y-6 p-4 bg-gradient-to-br from-sky-100 to-blue-200 min-h-screen">
+    <div className="flex flex-col items-center space-y-6 p-4 bg-gradient-to-br from-sky-100 to-blue-200 min-h-screen" style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
       {/* Seçenekler */}
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 p-1.5 rounded-xl bg-white/50 mb-4">

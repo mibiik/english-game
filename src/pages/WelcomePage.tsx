@@ -62,7 +62,7 @@ export const WelcomePage: React.FC = () => {
   }, [features.length]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white overflow-hidden" style={{ paddingTop: '64px', marginTop: '-128px' }}>
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center min-h-screen px-6 pt-20">
         {/* Hero Section */}

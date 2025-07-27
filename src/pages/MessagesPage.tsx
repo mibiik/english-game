@@ -502,8 +502,8 @@ const MessagesPage: React.FC = () => {
   };
 
   if (!authService.isAuthenticated()) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white flex items-center justify-center">
+      return (
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white flex items-center justify-center" style={{ paddingTop: '64px', marginTop: '-128px' }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Giriş Yapın</h1>
           <p className="text-gray-400 mb-6">Mesajları görüntülemek için giriş yapın</p>
@@ -519,7 +519,7 @@ const MessagesPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white" style={{ paddingTop: '64px', marginTop: '-128px' }}>
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(10)].map((_, i) => (

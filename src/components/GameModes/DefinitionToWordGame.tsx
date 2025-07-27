@@ -331,8 +331,8 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
   if (unitCompleted) {
     const accuracy = Math.round((score / questions.length) * 100);
 
-    return (
-      <div className={!isDarkMode ? 'min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4' : 'min-h-screen bg-gray-950 flex items-center justify-center p-4'}>
+      return (
+    <div className={!isDarkMode ? 'min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4' : 'min-h-screen bg-gray-950 flex items-center justify-center p-4'} style={{ paddingTop: '64px', marginTop: '-128px' }}>
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -406,7 +406,7 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   return (
-    <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>
+    <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: '64px', marginTop: '-128px' }}>
       {/* Tekrar Bilgisi Modal */}
       {showReviewInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

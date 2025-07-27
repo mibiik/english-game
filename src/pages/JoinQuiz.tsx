@@ -51,8 +51,8 @@ const JoinQuiz = () => {
         }
     };
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4">
+      return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4" style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
             <div className="w-full max-w-sm bg-gray-800/80 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-gray-700 text-center">
                 <h1 className="text-4xl font-bold text-white mb-2">Kahoot!</h1>
                 <p className="text-gray-400 mb-8">Canlı Quize Katıl</p>

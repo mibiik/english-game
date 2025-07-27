@@ -380,7 +380,7 @@ const Header: React.FC<{ score: number; currentIndex: number; totalQuestions: nu
 );
 
 const InitialLoadingScreen: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center" style={{ paddingTop: '64px', marginTop: '-128px' }}>
     <div className="text-center bg-white rounded-xl shadow-lg p-8">
       <motion.div
         animate={{ rotate: 360 }}
@@ -394,7 +394,7 @@ const InitialLoadingScreen: React.FC = () => (
 );
 
 const GameSkeleton = () => (
-  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center" style={{ paddingTop: '64px', marginTop: '-128px' }}>
     <div className="text-center bg-white rounded-xl shadow-lg p-8">
       <Loader2 className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
       <p className="text-gray-600">Daha fazla soru yükleniyor...</p>
@@ -403,7 +403,7 @@ const GameSkeleton = () => (
 );
 
 const ErrorDisplay: React.FC<{ onRetry: () => void; message?: string }> = ({ onRetry, message }) => (
-  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center" style={{ paddingTop: '64px', marginTop: '-128px' }}>
     <div className="text-center bg-white rounded-xl shadow-lg p-8 max-w-md">
       <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
       <h2 className="text-xl font-bold text-gray-800 mb-4">Hata Oluştu</h2>
@@ -420,7 +420,7 @@ const ErrorDisplay: React.FC<{ onRetry: () => void; message?: string }> = ({ onR
 );
 
 const CompletedDisplay: React.FC<{ score: number; total: number; onPlayAgain: () => void; }> = ({ score, total, onPlayAgain }) => (
-  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex items-center justify-center" style={{ paddingTop: '64px', marginTop: '-128px' }}>
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}

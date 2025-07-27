@@ -58,8 +58,8 @@ const QuizLobby = () => {
         return <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">Yükleniyor...</div>;
     }
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-800 to-indigo-900 text-white p-4">
+      return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-800 to-indigo-900 text-white p-4" style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
             <div className="w-full max-w-4xl mx-auto">
                 <div className="text-center mb-8">
                     <p className="text-lg text-purple-300">Oyuna Katılım Kodu</p>

@@ -299,7 +299,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative pt-8 md:pt-14">
+    <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative" style={{ paddingTop: '64px', marginTop: '-128px' }}>
       <FeedbackButton />
       {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
       <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-0 md:pt-1">

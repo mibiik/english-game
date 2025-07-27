@@ -286,7 +286,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = React.memo(({ words
   }
 
   return (
-    <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`}>
+    <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
       {/* Tekrar Bilgisi Modal */}
       {showReviewInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

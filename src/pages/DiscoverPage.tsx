@@ -290,7 +290,7 @@ const DiscoverPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white" style={{ paddingTop: '64px', marginTop: '-128px' }}>
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(15)].map((_, i) => (

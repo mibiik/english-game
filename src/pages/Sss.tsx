@@ -2,7 +2,7 @@ import React from 'react';
 
 const Sss: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#e0e7ef] to-[#f1f5f9] flex items-center justify-center py-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#e0e7ef] to-[#f1f5f9] flex items-center justify-center py-10" style={{ paddingTop: 'calc(64px + 2.5rem)', marginTop: '-128px' }}>
       <div className="w-full max-w-2xl bg-white/90 rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-200">
         <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-2 text-purple-700 tracking-wide drop-shadow">Sıkça Sorulan Sorular</h1>
         <div className="mb-8">

@@ -65,16 +65,16 @@ const QuizHostPlay = () => {
         }
     };
     
-    if (!session) return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black">
+    if (!session)   return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black" style={{ paddingTop: '64px', marginTop: '-128px' }}>
             <Loader2 className="w-16 h-16 animate-spin text-white" />
         </div>
     );
     
     if(session.status === 'finished') {
         const sortedPlayers = Object.values(session.players).sort((a, b) => b.score - a.score);
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white p-8">
+          return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white p-8" style={{ paddingTop: 'calc(64px + 2rem)', marginTop: '-128px' }}>
                 <div className="text-center mb-8">
                     <Crown className="w-24 h-24 mx-auto text-yellow-200 animate-bounce mb-4" />
                     <h1 className="text-6xl font-black mb-4">Oyun Bitti!</h1>

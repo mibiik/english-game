@@ -285,8 +285,8 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   };
 
   if (words.length === 0) {
-    return (
-      <div className={`min-h-screen p-4 ${themeClasses.bg}`}>
+      return (
+    <div className={`min-h-screen p-4 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
         <div className="max-w-2xl mx-auto">
           <div className={`p-8 rounded-2xl ${themeClasses.cardBg} text-center`}>
             <Trophy className={`w-16 h-16 mx-auto mb-4 ${themeClasses.accent}`} />
@@ -616,7 +616,7 @@ export const DifficultWordsLearning: React.FC<DifficultWordsLearningProps> = ({ 
   );
 
   return (
-    <div className={`min-h-screen p-4 ${themeClasses.bg}`}>
+    <div className={`min-h-screen p-4 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">

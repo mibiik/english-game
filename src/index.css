@@ -270,3 +270,23 @@ img {
   perspective: 1000px;
 }
 
+/* Navbar Scroll Hide/Show - Force Override */
+.navbar-scroll-hidden {
+  transform: translateY(-100%) !important;
+  opacity: 0 !important;
+}
+
+.navbar-scroll-visible {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Ensure navbar is always on top */
+.navbar-fixed {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 9999 !important;
+}
+

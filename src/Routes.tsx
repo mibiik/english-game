@@ -32,6 +32,7 @@ const QuizHostPlay = lazy(() => import('./pages/QuizHostPlay'));
 const PlayerQuizFlow = lazy(() => import('./pages/PlayerQuizFlow'));
 const ParaphrasePage = lazy(() => import('./pages/ParaphrasePage'));
 const GrammarGamePage = lazy(() => import('./pages/GrammarGamePage'));
+const EssayWritingPage = lazy(() => import('./pages/EssayWritingPage'));
 
 // Game Modes - Lazy loading
 const MultipleChoice = lazy(() => import('./components/GameModes/MultipleChoice').then(module => ({ default: module.MultipleChoice })));
@@ -353,7 +354,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div className="pt-32">
-                <GameWrapperWithParams component={LearningMode} />
+                <EssayWritingPage />
               </div>
             </>
           </ProtectedRoute>

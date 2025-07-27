@@ -235,7 +235,7 @@ export const PrepositionMasteryGame: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 flex flex-col items-center justify-center font-sans">
+    <div className="min-h-screen bg-gray-50 p-4 flex flex-col items-center justify-center font-sans" style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
       {/* Puan Gösterimi */}
       {scoreChange && (
         <div key={scoreChange.key} className={`fixed top-1/3 left-1/2 -translate-x-1/2 z-50 pointer-events-none select-none animate-fade-in-out`}

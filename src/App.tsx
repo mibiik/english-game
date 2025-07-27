@@ -203,8 +203,6 @@ function AppContent() {
     checkMehmetModal();
   }, [isAuthenticated]);
 
-
-
   // URL parametreleri değiştiğinde state'i ve localStorage'ı güncelle
   useEffect(() => {
     const urlUnit = searchParams.get('unit');
