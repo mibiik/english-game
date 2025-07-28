@@ -1,4 +1,4 @@
-import { puter } from './puterService';
+import { puter, isPuterAvailable } from './puterService';
 
 // Oyun sorusunun yapısını tanımlayan tip
 export type SentenceQuestion = {
@@ -24,6 +24,12 @@ class SentenceCompletionServiceClass {
   public async generateSentenceCompletions(words: string[]): Promise<SentenceQuestion[]> {
     if (words.length === 0) {
       return [];
+    }
+
+    // Puter'ın kullanılabilir olup olmadığını kontrol et
+    if (!isPuterAvailable()) {
+      console.warn('⚠️ Puter.com API kullanılamıyor. Varsayılan sorular döndürülüyor.');
+      return this.generateDefaultQuestions(words);
     }
 
     // Kelimeleri rastgele karıştır
@@ -92,6 +98,30 @@ class SentenceCompletionServiceClass {
       // Hata durumunda boş dizi döndürerek uygulamanın çökmesini engelle
       return [];
     }
+  }
+
+  /**
+   * Puter.com API kullanılamadığında varsayılan sorular oluşturur
+   * @param words - Sorular oluşturulacak kelimeler
+   * @returns Varsayılan sorular
+   */
+  private generateDefaultQuestions(words: string[]): SentenceQuestion[] {
+    const defaultQuestions: SentenceQuestion[] = [];
+    
+    words.forEach(word => {
+      const sentence = `The word "${word}" is used in this context: _____`;
+      const wrongOptions = this.generateRandomOptions(word, 3);
+      const allOptions = [word, ...wrongOptions];
+      
+      defaultQuestions.push({
+        sentence,
+        options: this.shuffleArray(allOptions),
+        correctAnswer: word,
+        targetWord: word
+      });
+    });
+    
+    return this.shuffleArray(defaultQuestions);
   }
 
   /**

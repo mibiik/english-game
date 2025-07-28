@@ -1,5 +1,26 @@
-import { puter } from './puterService';
+import { puter, isPuterAvailable } from './puterService';
 import { PrepositionExercise, WordForms } from '../types';
+
+export async function generateAIResponse(prompt: string): Promise<string> {
+  try {
+    // Puter'ın kullanılabilir olup olmadığını kontrol et
+    if (!isPuterAvailable()) {
+      console.warn('⚠️ Puter.com API kullanılamıyor. Alternatif yanıt döndürülüyor.');
+      return 'Üzgünüm, şu anda AI servisi kullanılamıyor. Lütfen daha sonra tekrar deneyin.';
+    }
+
+    console.log('🤖 Puter.js ile istek yapılıyor (model: gpt-4o-mini)');
+    const result = await puter.ai.chat(prompt, {
+      model: 'gpt-4o-mini'
+    });
+    
+    console.log('🤖 Puter.js yanıtı alındı:', result.message.content);
+    return result.message.content;
+  } catch (error) {
+    console.error('Puter.js AI isteği başarısız:', error);
+    return 'Üzgünüm, AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.';
+  }
+}
 
 class AiService {
   public async generateText(prompt: string): Promise<string> {
