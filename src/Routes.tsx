@@ -77,7 +77,14 @@ const ProtectedRoute: React.FC<{
   if (!isAuthenticated) {
     // Modal aç
     window.dispatchEvent(new CustomEvent('show-auth'));
-    return null; // Hiçbir şey render etme
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#111] to-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <p className="text-gray-300">Giriş yapılıyor...</p>
+        </div>
+      </div>
+    );
   }
   
   return <>{children}</>;
@@ -114,14 +121,7 @@ const HomeRedirect: React.FC<{
   if (isAuthenticated) {
     return (
       <>
-        <Navbar 
-          onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-          currentUnit={currentUnit}
-          setCurrentUnit={setCurrentUnit}
-          currentLevel={currentLevel as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'}
-          setCurrentLevel={setCurrentLevel}
-        />
-        <div className="pt-32">
+        <div className="min-h-screen bg-gradient-to-b from-[#111] to-black">
           <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'} />
         </div>
       </>

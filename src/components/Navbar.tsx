@@ -22,7 +22,8 @@ import {
   VolumeX, 
   Shield,
   Bell,
-  Star
+  Star,
+  RefreshCw
 } from 'lucide-react';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
@@ -468,13 +469,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <User className="w-5 h-5" />
               </motion.button>
 
-              {/* Sound Toggle - Desktop Only */}
+              {/* Sound Toggle Button */}
               <motion.button 
-                onClick={toggleSound} 
-                className="hidden md:flex p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
+                onClick={toggleSound}
+                className="hidden md:flex p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:text-blue-300 hover:bg-blue-500/30 transition-all duration-200" 
                 whileHover={{ scale: 1.05 }} 
                 whileTap={{ scale: 0.95 }} 
-                title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
+                title={soundEnabled ? "Sesi Kapat" : "Sesi Aç"}
               >
                 {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </motion.button>
@@ -493,8 +494,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <Shield className="w-5 h-5" />
                 </motion.button>
               )}
-
-
 
               {/* Mobile Menu Button */}
               <motion.button

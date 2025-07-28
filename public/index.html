@@ -7,6 +7,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <title>Koç Wordplay</title>
     <!-- AdSense script kaldırıldı -->
   </head>
@@ -15,5 +21,49 @@
     <script type="module" src="/src/main.tsx"></script>
     <!-- Puter.js entegrasyonu -->
     <script src="https://cdn.puter.com/puter.js"></script>
+    
+    <!-- Cache Busting Script -->
+    <script>
+      // Build time'ı global olarak tanımla
+      window.__BUILD_TIME__ = '<%- BUILD_TIME %>';
+      
+      // Cache temizleme fonksiyonu
+      window.clearCache = function() {
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) {
+              caches.delete(name);
+            }
+          });
+        }
+        
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+        
+        // localStorage'ı temizle (isteğe bağlı)
+        // localStorage.clear();
+        
+        // Sayfayı yenile
+        window.location.reload();
+      };
+      
+      // Sayfa yüklendiğinde cache kontrolü
+      window.addEventListener('load', function() {
+        // URL'de cache temizleme parametresi varsa
+        if (window.location.search.includes('clearCache=true')) {
+          window.clearCache();
+        }
+        
+        // Force refresh parametresi varsa
+        if (window.location.search.includes('forceRefresh=true')) {
+          window.location.reload();
+        }
+      });
+    </script>
   </body>
 </html> 

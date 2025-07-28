@@ -56,8 +56,110 @@ function AppContent() {
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
   const [showMehmetModal, setShowMehmetModal] = useState(false);
 
-  // Uygulama başlangıcında monitoring'i başlat
+  // Cache temizleme fonksiyonu
+  const clearAllCaches = async () => {
+    try {
+      // Service Worker cache'lerini temizle
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+        console.log('✅ Tüm cache\'ler temizlendi');
+      }
+
+      // Service Worker'ı yeniden yükle
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+        console.log('✅ Service Worker\'lar kaldırıldı');
+      }
+
+      // IndexedDB'yi temizle
+      if ('indexedDB' in window) {
+        const databases = await indexedDB.databases();
+        for (const db of databases) {
+          if (db.name) {
+            indexedDB.deleteDatabase(db.name);
+          }
+        }
+        console.log('✅ IndexedDB temizlendi');
+      }
+
+      // Sayfayı yenile
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ Cache temizleme hatası:', error);
+      throw error; // Hatayı yukarı fırlat
+    }
+  };
+
+  // Global olarak erişilebilir hale getir
+  (window as any).clearAllCaches = clearAllCaches;
+
+  // Uygulama başlangıcında cache kontrolü
   useEffect(() => {
+    // Build time kontrolü
+    const buildTime = (window as any).__BUILD_TIME__;
+    const lastBuildTime = localStorage.getItem('lastBuildTime');
+    
+    if (buildTime && lastBuildTime && buildTime !== lastBuildTime) {
+      console.log('🔄 Yeni build tespit edildi, cache temizleniyor...');
+      localStorage.setItem('lastBuildTime', buildTime);
+      clearAllCaches();
+      return;
+    }
+
+    // İlk yüklemede build time'ı kaydet
+    if (buildTime && !lastBuildTime) {
+      localStorage.setItem('lastBuildTime', buildTime);
+    }
+
+    // Tek seferlik cache temizleme kontrolü
+    const hasClearedCache = localStorage.getItem('cacheClearedOnce');
+    if (!hasClearedCache) {
+      console.log('🔄 İlk kez cache temizleme işlemi yapılıyor...');
+      localStorage.setItem('cacheClearedOnce', 'true');
+      
+      // Kısa bir gecikme ile cache temizleme
+      setTimeout(async () => {
+        try {
+          // Service Worker cache'lerini temizle
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(
+              cacheNames.map(cacheName => caches.delete(cacheName))
+            );
+            console.log('✅ İlk kez cache temizleme tamamlandı');
+          }
+
+          // Service Worker'ı yeniden yükle
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+              await registration.unregister();
+            }
+            console.log('✅ Service Worker\'lar yeniden yüklendi');
+          }
+
+          // IndexedDB'yi temizle
+          if ('indexedDB' in window) {
+            const databases = await indexedDB.databases();
+            for (const db of databases) {
+              if (db.name) {
+                indexedDB.deleteDatabase(db.name);
+              }
+            }
+            console.log('✅ IndexedDB temizlendi');
+          }
+        } catch (error) {
+          console.error('❌ İlk cache temizleme hatası:', error);
+        }
+      }, 2000); // 2 saniye bekle
+    }
+
     console.log('🚀 Uygulama başlatılıyor - Monitoring başlatılıyor...');
     
     // Ana uygulama monitoring'i
@@ -150,8 +252,20 @@ function AppContent() {
       }
     };
 
-    // İlk yükleme
-    checkAuthState();
+    // İlk yükleme - daha güvenilir kontrol
+    const initializeAuth = async () => {
+      try {
+        // Firebase'in hazır olmasını bekle
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        checkAuthState();
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Hata durumunda varsayılan olarak false
+        setIsAuthenticated(false);
+      }
+    };
+
+    initializeAuth();
 
     // Sekme değişikliklerini dinle - daha az sıklıkta
     const handleVisibilityChange = () => {

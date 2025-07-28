@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wordplay-v1';
+const CACHE_NAME = 'wordplay-v2'; // Cache versiyonunu güncelle
 const urlsToCache = [
   '/',
   '/index.html',
@@ -204,49 +204,122 @@ function stopBackgroundMonitoring() {
 
 // Install event
 self.addEventListener('install', (event) => {
+  console.log('🔄 Service Worker yükleniyor...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('✅ Cache açıldı:', CACHE_NAME);
         return cache.addAll(urlsToCache);
       })
       .then(() => {
+        console.log('✅ Tüm dosyalar cache\'lendi');
         // Service Worker yüklendiğinde monitoring'i başlat
         startBackgroundMonitoring();
+        // Yeni service worker'ı hemen aktif et
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('❌ Cache yükleme hatası:', error);
       })
   );
 });
 
-// Fetch event
+// Fetch event - Cache stratejisini iyileştir
 self.addEventListener('fetch', (event) => {
+  // API çağrıları için cache kullanma
+  if (event.request.url.includes('/api/') || event.request.url.includes('firebase')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // HTML dosyaları için network-first stratejisi - daha esnek
+  if (event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Başarılı response'u cache'le
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network başarısız olursa cache'den döndür
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // JavaScript ve CSS dosyaları için stale-while-revalidate stratejisi
+  if (event.request.destination === 'script' || event.request.destination === 'style') {
+    event.respondWith(
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          const fetchPromise = fetch(event.request)
+            .then((networkResponse) => {
+              // Başarılı response'u cache'le
+              if (networkResponse.status === 200) {
+                const responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(event.request, responseClone);
+                });
+              }
+              return networkResponse;
+            })
+            .catch(() => {
+              // Network hatası durumunda cached response'u döndür
+              return cachedResponse;
+            });
+
+          // Önce cache'den döndür, sonra network'ten güncelle
+          return cachedResponse || fetchPromise;
+        })
+    );
+    return;
+  }
+
+  // Diğer dosyalar için cache-first stratejisi
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
           return response;
         }
         return fetch(event.request);
-      }
-    )
+      })
+      .catch(() => {
+        // Hata durumunda offline sayfası göster
+        if (event.request.destination === 'document') {
+          return caches.match('/index.html');
+        }
+      })
   );
 });
 
-// Activate event
+// Activate event - Eski cache'leri temizle
 self.addEventListener('activate', (event) => {
+  console.log('🔄 Service Worker aktifleştiriliyor...');
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('🗑️ Eski cache siliniyor:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
+      console.log('✅ Eski cache\'ler temizlendi');
       // Service Worker aktif olduğunda monitoring'i başlat
       startBackgroundMonitoring();
+      // Tüm client'ları kontrol et
+      return self.clients.claim();
     })
   );
 });

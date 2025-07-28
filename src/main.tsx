@@ -7,16 +7,62 @@ import { measureWebVitals, measurePageLoad, measureMemory, measureNetwork, preve
 // CLS önleme başlat
 preventLayoutShift();
 
-// Service Worker registration
+// Service Worker registration - İyileştirilmiş versiyon
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered: ', registration);
-      })
-      .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+  window.addEventListener('load', async () => {
+    try {
+      // Önce mevcut service worker'ları kontrol et
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      
+      // Eski service worker'ları kaldır
+      for (const registration of registrations) {
+        if (registration.active) {
+          console.log('🔄 Eski service worker kaldırılıyor...');
+          await registration.unregister();
+        }
+      }
+
+      // Yeni service worker'ı kaydet
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        updateViaCache: 'none', // Cache'i devre dışı bırak
+        scope: '/' // Root scope'u kullan
       });
+      
+      console.log('✅ Service Worker kaydedildi:', registration);
+
+      // Service worker güncellemelerini dinle
+      registration.addEventListener('updatefound', () => {
+        console.log('🔄 Service Worker güncellemesi bulundu');
+        const newWorker = registration.installing;
+        
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🔄 Yeni service worker yüklendi, sayfa yenileniyor...');
+              // Kullanıcıya bildir ve sayfayı yenile
+              if (confirm('Yeni güncelleme mevcut. Sayfa yenilensin mi?')) {
+                window.location.reload();
+              }
+            }
+          });
+        }
+      });
+
+      // Service worker mesajlarını dinle
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'CACHE_UPDATED') {
+          console.log('✅ Cache güncellendi');
+        }
+      });
+
+      // Service worker hata durumlarını dinle
+      navigator.serviceWorker.addEventListener('error', (event) => {
+        console.error('❌ Service Worker hatası:', event);
+      });
+
+    } catch (registrationError) {
+      console.error('❌ Service Worker kayıt hatası:', registrationError);
+    }
   });
 }
 
