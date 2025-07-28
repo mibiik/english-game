@@ -231,7 +231,7 @@ const LeaderboardPage: React.FC = () => {
             </div>
             <div className="text-2xl font-extrabold text-yellow-900 w-full text-center break-words whitespace-normal">{users[0].displayName}
               {(users[0].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || users[0].displayName === 'Defne') && (
-                <div className="flex flex-wrap justify-center gap-1 mt-1">
+                <div className="flex flex-row items-center justify-center gap-2 mt-1">
                   <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                     <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
