@@ -197,14 +197,14 @@ const LeaderboardPage: React.FC = () => {
             </div>
             <div className="text-xl font-bold text-purple-300 w-full text-center break-words whitespace-normal">{users[1].displayName}
               {(users[1].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || users[1].displayName === 'Defne') && (
-                <div className="flex flex-row items-center justify-center gap-2 mt-1">
+                <div className="flex flex-wrap justify-center gap-1 mt-1">
                   <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                     <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                   </span>
                   {users[1].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && (
-                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold ml-1">
                       <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                     </span>
                   )}
@@ -231,14 +231,14 @@ const LeaderboardPage: React.FC = () => {
             </div>
             <div className="text-2xl font-extrabold text-yellow-900 w-full text-center break-words whitespace-normal">{users[0].displayName}
               {(users[0].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || users[0].displayName === 'Defne') && (
-                <div className="flex flex-row items-center justify-center gap-2 mt-1">
+                <div className="flex flex-wrap justify-center gap-1 mt-1">
                   <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                     <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                   </span>
                   {users[0].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && (
-                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold ml-1">
                       <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                     </span>
                   )}
@@ -264,14 +264,14 @@ const LeaderboardPage: React.FC = () => {
             </div>
             <div className="text-xl font-bold text-pink-300 w-full text-center break-words whitespace-normal">{users[2].displayName}
               {(users[2].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || users[2].displayName === 'Defne') && (
-                <div className="flex flex-row items-center justify-center gap-2 mt-1">
+                <div className="flex flex-wrap justify-center gap-1 mt-1">
                   <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                     <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                   </span>
                   {users[2].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && (
-                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold ml-1">
                       <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                     </span>
                   )}
@@ -410,14 +410,14 @@ const LeaderboardPage: React.FC = () => {
                         </span>
                       )}
                       {(user.userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || user.displayName === 'Defne') && (
-                        <div className="flex flex-row items-center justify-center gap-2 mt-1">
+                        <div className="flex flex-wrap justify-center gap-1 mt-1">
                           <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                             <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                           </span>
                           {user.userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && (
-                            <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                            <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold ml-1">
                               <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                             </span>
                           )}

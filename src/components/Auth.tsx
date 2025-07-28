@@ -63,10 +63,21 @@ export const Auth: React.FC<AuthProps> = ({ onClose, userName, isLogin: initialI
     setIsLogin(initialIsLogin);
   }, [initialIsLogin]);
 
+  // ku.edu.tr mail kontrolü
+  function isValidKuMail(mail: string) {
+    return /@ku\.edu\.tr$/i.test(mail.trim());
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    if (!isValidKuMail(email)) {
+      setError('Sadece ku.edu.tr uzantılı e-posta adresi ile kayıt/giriş yapılabilir.');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       if (isLogin) {
