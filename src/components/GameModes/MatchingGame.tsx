@@ -98,6 +98,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
   const [showDefneModal, setShowDefneModal] = useState(false);
+  const [removeTimer, setRemoveTimer] = useState(false); // Süre kaldırıldı mı?
 
   // Kullanıcı ID'sini al
   const userId = authService.getCurrentUserId();
@@ -121,6 +122,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setShowResult(false);
     setScore(0);
     setBonus(0);
+    setRemoveTimer(false); // Her yeni oyunda süre kaldırma sıfırlanır
     setTimeLeft(60);
     setTimerActive(true);
     setScoreSaved(false); // Yeni round için puan kaydetme durumunu sıfırla
@@ -278,6 +280,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       setTimeLeft(60);
       setTimerActive(true);
       setBonus(0);
+      setRemoveTimer(false); // Süre kaldırma durumunu sıfırla
     }
     
     previousWords.current = words;
@@ -304,14 +307,14 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Timer başlatma ve azaltma
   useEffect(() => {
-    if (timerActive && timeLeft > 0 && !showResult) {
+    if (timerActive && timeLeft > 0 && !showResult && !removeTimer) {
       timerRef.current = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-    } else if (timeLeft === 0 && timerActive) {
+    } else if (timeLeft === 0 && timerActive && !removeTimer) {
       setTimerActive(false);
       setShowResult(true);
     }
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [timerActive, timeLeft, showResult]);
+  }, [timerActive, timeLeft, showResult, removeTimer]);
 
   // Kartlara tıklama
   const handleCardClick = (card: GameWord) => {
@@ -335,8 +338,9 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       setIsChecking(true);
       if (selectedEnglish.headword === selectedTurkish.headword) {
         setMatchedPairs(prev => [...prev, selectedEnglish.headword]);
-        setScore(prev => prev + 2); // Doğru eşleşmede +2 puan
-        setScoreChange({ value: +2, key: Date.now() });
+        const point = removeTimer ? 4 : 2;
+        setScore(prev => prev + point); // Doğru eşleşmede +2 veya +4 puan
+        setScoreChange({ value: +point, key: Date.now() });
         soundService.playCorrect();
         setSelectedEnglish(null);
         setSelectedTurkish(null);
@@ -356,14 +360,20 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     }
   }, [selectedEnglish, selectedTurkish]);
 
+  // Süre kaldırma butonu fonksiyonu
+  const handleRemoveTimer = () => {
+    setRemoveTimer(true);
+    setTimerActive(false);
+    setTimeLeft(Infinity); // Sonsuz süre
+  };
+
   // Round bittiğinde puanı ve bonusu kaydet
   useEffect(() => {
     const saveScore = async () => {
-      if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || timeLeft === 0) && !showResult && !scoreSaved) {
+      if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !removeTimer)) && !showResult && !scoreSaved) {
         setTimerActive(false);
-        
-        // Süre bonusu hesapla - kalan sürenin yarısı kadar bonus
-        const calculatedBonus = Math.ceil(timeLeft / 2);
+        // Süre bonusu hesapla - sadece süre kaldırılmadıysa
+        const calculatedBonus = removeTimer ? 0 : Math.ceil(timeLeft / 2);
         setBonus(calculatedBonus);
         const finalScore = score + calculatedBonus;
         
@@ -387,7 +397,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     };
     
     saveScore();
-  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds]);
+  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer]);
 
   // Tasarım ve görsel yapı korunacak, sadece puan sistemi sadeleşecek
     if (showResult) {
@@ -492,10 +502,25 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             </button>
           </div>
             </div>
-        <div className="flex items-center gap-2 md:gap-1 md:flex-col md:mt-3">
+        <div className="flex items-center gap-2 md:gap-1 md:flex-col md:mt-3 flex-col">
           <span className={timeClass}>
-            {timeLeft}s
+            {timeLeft === Infinity ? '∞' : `${timeLeft}s`}
           </span>
+          {/* Süreyi kaldırma butonu küçük ve hemen altında */}
+          {!removeTimer && timerActive && (
+            <button
+              onClick={handleRemoveTimer}
+              className="mt-1 px-2 py-1 text-xs bg-red-500 text-white rounded shadow hover:bg-red-600 transition-all"
+              style={{fontSize:'0.75rem', minWidth:'auto'}}
+            >
+              Süreyi Kaldır
+            </button>
+          )}
+          {removeTimer && (
+            <div className="mt-1 px-2 py-1 text-xs bg-gray-400 text-white rounded select-none opacity-70 cursor-not-allowed" style={{fontSize:'0.75rem', minWidth:'auto'}}>
+              Süre Kaldırıldı
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2 ml-2 md:ml-0 md:mt-3 md:flex-col">
           <button

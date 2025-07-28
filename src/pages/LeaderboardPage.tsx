@@ -322,8 +322,15 @@ const LeaderboardPage: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate text-pink-500">{user.displayName}</div>
-                    {/* Dinamik rozet sistemi - üst 3 kullanıcı için */}
-                    <div className="flex flex-wrap justify-center gap-1 mt-1">
+                    {/* Rozetler ve özel yıldız (Defne & Görkem) */}
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      {(user.userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' || user.displayName === 'Defne') && (
+                        <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
+                          <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                          </svg>
+                        </span>
+                      )}
                       {user.badges?.map((badge, index) => {
                         // Destekçi rozeti
                         if (badge === 'destekçi') {
