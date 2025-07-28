@@ -23,12 +23,14 @@ import {
   Shield,
   Bell,
   Star,
-  RefreshCw
+  RefreshCw,
+  Crown
 } from 'lucide-react';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
 import { soundService } from '../services/soundService';
 import { gameScoreService } from '../services/gameScoreService';
+import { userRankingService } from '../services/userRankingService';
 import { db } from '../config/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
@@ -49,11 +51,12 @@ const MobileMenu: React.FC<{
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
   userScore: number | null;
+  userRank: number | null;
   isAdmin: boolean;
   onShowAuth: () => void;
   soundEnabled: boolean;
   toggleSound: () => void;
-}> = ({ isOpen, onClose, currentLevel, setCurrentLevel, currentUnit, setCurrentUnit, userScore, isAdmin, onShowAuth, soundEnabled, toggleSound }) => {
+}> = ({ isOpen, onClose, currentLevel, setCurrentLevel, currentUnit, setCurrentUnit, userScore, userRank, isAdmin, onShowAuth, soundEnabled, toggleSound }) => {
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState<'level' | 'unit' | null>(null);
 
@@ -137,10 +140,16 @@ const MobileMenu: React.FC<{
                 <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-500/30">
                   <div className="flex items-center gap-3">
                     <Trophy className="w-6 h-6 text-yellow-400" />
-                    <div>
+                    <div className="flex-1">
                       <div className="text-sm text-gray-400">Toplam Puan</div>
                       <div className="text-2xl font-bold text-yellow-400">{userScore}</div>
                     </div>
+                    {userRank && (
+                      <div className="flex items-center gap-2 bg-yellow-500/20 rounded-lg px-3 py-2 border border-yellow-500/30">
+                        <Crown className="w-4 h-4 text-yellow-400" />
+                        <span className="text-sm font-bold text-yellow-400">#{userRank}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -283,6 +292,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     const stored = localStorage.getItem('userScore');
     return stored ? Number(stored) : null;
   });
+  const [userRank, setUserRank] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   
   const lastScrollY = useRef(0);
@@ -349,9 +359,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           const userEmail = data?.email || '';
           setIsAdmin(adminUserIds.includes(userId) || adminEmails.includes(userEmail));
         });
+
+        // Kullanıcı sıralamasını al
+        const fetchUserRank = async () => {
+          try {
+            const rank = await userRankingService.getUserRanking(userId);
+            setUserRank(rank);
+          } catch (error) {
+            console.error('Kullanıcı sıralaması alınırken hata:', error);
+          }
+        };
+
+        fetchUserRank();
       }
     } else {
       setUserScore(null);
+      setUserRank(null);
       setIsAdmin(false);
       localStorage.removeItem('userScore');
     }
@@ -410,29 +433,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/home" onClick={handleLogoClick} className="flex items-center">
                 <img 
                   src="/a.png" 
                   alt="ELC Wordplay Logo" 
-                  className="h-10 w-auto mr-3 select-none" 
+                  className="h-8 md:h-12 w-auto mr-2 md:mr-3 select-none" 
                   draggable="false" 
                 />
               </Link>
-              
-              {/* Mobile Level/Unit Display - Clickable */}
-              <button
-                onClick={() => setIsMenuOpen(true)}
-                className="md:hidden ml- 20 px-3 py-1.5 rounded-lg bg-gray-800/30 hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50"
-              >
-                <div className="text-sm font-semibold text-white">
-                  {currentLevel === 'foundation' ? 'Fou' : 
-                   currentLevel === 'pre-intermediate' ? 'Pre' : 
-                   currentLevel === 'intermediate' ? 'Int' : 'Upp'}-{currentUnit}
-                </div>
-              </button>
             </div>
 
             {/* Desktop Center - Unit Selector */}
@@ -446,63 +457,79 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Right Side Icons */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 md:space-x-3">
+              {/* Mobile Level/Unit Display - Clickable */}
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="md:hidden px-2 py-1 rounded-lg bg-gray-800/30 hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50"
+              >
+                <div className="text-sm font-semibold text-white">
+                  {currentLevel === 'foundation' ? 'Fou' : 
+                   currentLevel === 'pre-intermediate' ? 'Pre' : 
+                   currentLevel === 'intermediate' ? 'Int' : 'Upp'}-{currentUnit}
+                </div>
+              </button>
+
               {/* User Score */}
               {userScore !== null && (
                 <button
                   onClick={() => navigate('/leaderboard')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg border border-yellow-500/30 text-yellow-400 hover:from-yellow-500/30 hover:to-orange-500/30 transition-all duration-200"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1 md:py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg border border-yellow-500/30 text-yellow-400 hover:from-yellow-500/30 hover:to-orange-500/30 transition-all duration-200"
                 >
-                  <Trophy className="w-4 h-4" />
-                  <span className="text-sm font-semibold">{userScore}</span>
+                  <Trophy className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="text-sm md:text-base font-semibold">{userScore}</span>
+                  {userRank && (
+                    <div className="flex items-center gap-1 bg-yellow-500/20 rounded px-1 md:px-2 py-0.5 md:py-1 border border-yellow-500/30">
+                      <Crown className="w-3 h-3 md:w-4 md:h-4" />
+                      <span className="text-xs md:text-sm font-bold">#{userRank}</span>
+                    </div>
+                  )}
                 </button>
               )}
 
               {/* Profile - Desktop Only */}
               <motion.button 
                 onClick={handleProfileClick} 
-                className="hidden md:flex p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
+                className="hidden md:flex p-3 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
                 whileHover={{ scale: 1.05 }} 
                 whileTap={{ scale: 0.95 }} 
                 title="Profil"
               >
-                <User className="w-5 h-5" />
+                <User className="w-6 h-6" />
               </motion.button>
 
-              {/* Sound Toggle Button */}
+              {/* Sound Toggle - Desktop Only */}
               <motion.button 
-                onClick={toggleSound}
-                className="hidden md:flex p-2 rounded-lg bg-blue-500/20 text-blue-400 hover:text-blue-300 hover:bg-blue-500/30 transition-all duration-200" 
+                onClick={toggleSound} 
+                className="hidden md:flex p-3 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
                 whileHover={{ scale: 1.05 }} 
                 whileTap={{ scale: 0.95 }} 
-                title={soundEnabled ? "Sesi Kapat" : "Sesi Aç"}
+                title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
               >
-                {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                {soundEnabled ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
               </motion.button>
-
-
 
               {/* Admin Panel - Desktop Only */}
               {isAdmin && (
                 <motion.button 
                   onClick={() => navigate('/admin')} 
-                  className="hidden md:flex p-2 rounded-lg bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all duration-200" 
+                  className="hidden md:flex p-3 rounded-lg bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all duration-200" 
                   whileHover={{ scale: 1.05 }} 
                   whileTap={{ scale: 0.95 }} 
                   title="Admin Panel"
                 >
-                  <Shield className="w-5 h-5" />
+                  <Shield className="w-6 h-6" />
                 </motion.button>
               )}
 
               {/* Mobile Menu Button */}
               <motion.button
                 onClick={() => setIsMenuOpen(true)}
-                className="md:hidden p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
+                className="md:hidden p-2 md:p-3 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5 md:w-6 md:h-6" />
               </motion.button>
             </div>
           </div>
@@ -518,6 +545,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         currentUnit={currentUnit}
         setCurrentUnit={setCurrentUnit}
         userScore={userScore}
+        userRank={userRank}
         isAdmin={isAdmin}
         onShowAuth={onShowAuth}
         soundEnabled={soundEnabled}
@@ -525,7 +553,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       />
 
       {/* Spacer for fixed navbar */}
-      <div className="h-16"></div>
+      <div className="h-16 md:h-20"></div>
     </>
   );
 };

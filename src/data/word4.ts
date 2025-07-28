@@ -1529,7 +1529,7 @@ export interface WordDetail {
     },
     {
       headword: 'inherent',
-      turkish: 'doğasında olan',
+      turkish: 'kalıtsal',
       unit: '2',
       section: 'Listening & Speaking',
       forms: {
@@ -3439,7 +3439,7 @@ export interface WordDetail {
     },
     {
       headword: 'adopt',
-      turkish: 'benimsemek',
+      turkish: 'sahiplenmek/benimsemek',
       unit: '5',
       section: 'Reading & Writing',
       forms: { verb: ['adopt'], noun: ['adoption'], adjective: [], adverb: [] },

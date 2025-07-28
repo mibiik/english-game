@@ -24,7 +24,6 @@ export default defineConfig({
           'utils-vendor': ['axios', 'clsx', 'tailwind-merge'],
           'charts-vendor': ['recharts'],
         },
-        // Cache busting için hash ekle
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
@@ -33,9 +32,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     minify: 'esbuild',
     target: 'es2015',
-    // Build cache'ini temizle
     emptyOutDir: true,
-    // Source map'leri devre dışı bırak (production için)
     sourcemap: false,
   },
   optimizeDeps: {
@@ -50,8 +47,7 @@ export default defineConfig({
       'clsx',
       'tailwind-merge',
     ],
-    // Dependency cache'ini temizle
-    force: true,
+    force: false,
   },
   resolve: {
     alias: {
@@ -64,8 +60,19 @@ export default defineConfig({
     },
     host: 'localhost',
     port: 3000,
+    fs: {
+      strict: false,
+    },
   },
-  // Cache busting için
+  css: {
+    modules: false,
+    devSourcemap: false,
+    preprocessorOptions: {
+      css: {
+        charset: false,
+      },
+    },
+  },
   define: {
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },

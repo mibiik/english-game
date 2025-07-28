@@ -52,23 +52,27 @@ const Dropdown: React.FC<{
     <div className="relative" ref={dropdownRef}>
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors w-full justify-between"
-        whileTap={{ scale: 0.97 }}
+        className="flex items-center gap-2 px-3 py-2 bg-black/90 border border-gray-800 rounded-lg text-gray-300 hover:bg-black hover:border-gray-700 transition-all duration-150"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {icon}
-          <span className="font-semibold">{label}: {selectedOption}</span>
+          <div className="text-left">
+            <div className="text-sm font-medium text-white">{selectedOption}</div>
+          </div>
         </div>
-        <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
       </motion.button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full mt-2 w-full p-2 bg-gray-900 rounded-lg shadow-xl border border-gray-700 z-50"
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full mt-1 w-full p-1 bg-black/95 border border-gray-800 rounded-lg shadow-xl z-50"
           >
             {options.map((option) => (
               <button
@@ -77,10 +81,10 @@ const Dropdown: React.FC<{
                   onSelect(option);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
+                className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors
                   ${selectedOption === option
-                    ? 'bg-cyan-500 text-white'
-                    : 'hover:bg-gray-800 text-gray-300'
+                    ? 'bg-gray-800 text-white'
+                    : 'hover:bg-gray-900 text-gray-300'
                   }`}
               >
                 {option}
@@ -105,10 +109,10 @@ const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurr
   ];
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 ml-auto">
       <Dropdown 
         label="Kur"
-        icon={<Layers className="w-5 h-5 text-fuchsia-400" />}
+        icon={<Layers className="w-4 h-4 text-fuchsia-400" />}
         options={levels.map(l => l.name)}
         selectedOption={levels.find(l => l.id === currentLevel)?.name || 'Intermediate'}
         onSelect={(levelName) => {
@@ -118,7 +122,7 @@ const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurr
       />
       <Dropdown 
         label="Ünite"
-        icon={<Book className="w-5 h-5 text-cyan-400" />}
+        icon={<Book className="w-4 h-4 text-cyan-400" />}
         options={units}
         selectedOption={`Ünite ${currentUnit}`}
         onSelect={(unit) => setCurrentUnit(unit.replace('Ünite ', ''))}

@@ -102,3 +102,10 @@ export interface LiveQuizSession {
   unit: string;
   level: string;
 }
+
+export interface SentenceQuestion {
+  sentence: string;
+  targetWord: string;
+  options: string[];
+  correctAnswer: string;
+}
