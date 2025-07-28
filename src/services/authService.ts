@@ -44,7 +44,7 @@ class AuthService {
             }
             
             // Giriş aktivitesini kaydet
-            await userAnalyticsService.logLogin();
+            await userAnalyticsService.logActivity(user.uid, 'login');
           } catch (userError) {
             console.error('Auth state değişikliği sırasında kullanıcı kontrolü hatası:', userError);
           }
@@ -149,7 +149,7 @@ class AuthService {
         }
         
         // Giriş aktivitesini kaydet
-        await userAnalyticsService.logLogin();
+        await userAnalyticsService.logActivity(result.user.uid, 'login');
       } catch (userError) {
         console.error('Google girişi sırasında kullanıcı kontrolü hatası:', userError);
       }
@@ -202,7 +202,7 @@ class AuthService {
         try {
           await userService.updateOnlineStatus(currentUserId, false);
           // Çıkış aktivitesini kaydet
-          await userAnalyticsService.logLogout();
+          await userAnalyticsService.logActivity(currentUserId, 'logout');
         } catch (userError) {
           console.error('Kullanıcı online durumu güncellenirken hata:', userError);
           // Bu hata ana çıkış işlemini engellememeli

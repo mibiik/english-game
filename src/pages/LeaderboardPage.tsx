@@ -238,7 +238,7 @@ const LeaderboardPage: React.FC = () => {
                     </svg>
                   </span>
                   {users[0].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' && (
-                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold ml-1">
+                    <span className="inline-flex items-center px-2 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
                       <Crown className="w-4 h-4 mr-1 text-blue-500" /> İlk Destekçimiz
                     </span>
                   )}
