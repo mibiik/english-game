@@ -461,7 +461,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Mobile Level/Unit Display - Clickable */}
               <button
                 onClick={() => setIsMenuOpen(true)}
-                className="md:hidden px-2 py-1 rounded-lg bg-gray-800/30 hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50"
+                className="md:hidden px-2 py-1 rounded-xl bg-gray-800/30 hover:bg-gray-700/50 transition-all duration-200 border border-gray-700/50 hover:border-gray-600/50"
               >
                 <div className="text-sm font-semibold text-white">
                   {currentLevel === 'foundation' ? 'Fou' : 
@@ -474,12 +474,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               {userScore !== null && (
                 <button
                   onClick={() => navigate('/leaderboard')}
-                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1 md:py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg border border-yellow-500/30 text-yellow-400 hover:from-yellow-500/30 hover:to-orange-500/30 transition-all duration-200"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1 md:py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl border border-yellow-500/30 text-yellow-400 hover:from-yellow-500/30 hover:to-orange-500/30 transition-all duration-200"
                 >
                   <Trophy className="w-4 h-4 md:w-5 md:h-5" />
                   <span className="text-sm md:text-base font-semibold">{userScore}</span>
                   {userRank && (
-                    <div className="flex items-center gap-1 bg-yellow-500/20 rounded px-1 md:px-2 py-0.5 md:py-1 border border-yellow-500/30">
+                    <div className="flex items-center gap-1 bg-yellow-500/20 rounded-xl px-1 md:px-2 py-0.5 md:py-1 border border-yellow-500/30">
                       <Crown className="w-3 h-3 md:w-4 md:h-4" />
                       <span className="text-xs md:text-sm font-bold">#{userRank}</span>
                     </div>
@@ -490,7 +490,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Profile - Desktop Only */}
               <motion.button 
                 onClick={handleProfileClick} 
-                className="hidden md:flex p-3 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
+                className="hidden md:flex p-3 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
                 whileHover={{ scale: 1.05 }} 
                 whileTap={{ scale: 0.95 }} 
                 title="Profil"
@@ -501,7 +501,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Sound Toggle - Desktop Only */}
               <motion.button 
                 onClick={toggleSound} 
-                className="hidden md:flex p-3 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
+                className="hidden md:flex p-3 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200" 
                 whileHover={{ scale: 1.05 }} 
                 whileTap={{ scale: 0.95 }} 
                 title={soundEnabled ? 'Sesi Kapat' : 'Sesi Aç'}
@@ -513,7 +513,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {isAdmin && (
                 <motion.button 
                   onClick={() => navigate('/admin')} 
-                  className="hidden md:flex p-3 rounded-lg bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all duration-200" 
+                  className="hidden md:flex p-3 rounded-xl bg-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/30 transition-all duration-200" 
                   whileHover={{ scale: 1.05 }} 
                   whileTap={{ scale: 0.95 }} 
                   title="Admin Panel"
@@ -525,7 +525,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Mobile Menu Button */}
               <motion.button
                 onClick={() => setIsMenuOpen(true)}
-                className="md:hidden p-2 md:p-3 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
+                className="md:hidden p-2 md:p-3 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

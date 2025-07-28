@@ -52,7 +52,7 @@ const Dropdown: React.FC<{
     <div className="relative" ref={dropdownRef}>
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-black/90 border border-gray-800 rounded-lg text-gray-300 hover:bg-black hover:border-gray-700 transition-all duration-150"
+        className="flex items-center gap-2 px-3 py-2 bg-black/90 border border-gray-800 rounded-xl text-gray-300 hover:bg-black hover:border-gray-700 transition-all duration-150"
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
       >
@@ -72,7 +72,7 @@ const Dropdown: React.FC<{
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full mt-1 w-full p-1 bg-black/95 border border-gray-800 rounded-lg shadow-xl z-50"
+            className="absolute top-full mt-1 w-full p-1 bg-black/95 border border-gray-800 rounded-xl shadow-xl z-50"
           >
             {options.map((option) => (
               <button
@@ -81,7 +81,7 @@ const Dropdown: React.FC<{
                   onSelect(option);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors
+                className={`w-full text-left px-2 py-1.5 rounded-lg text-sm transition-colors
                   ${selectedOption === option
                     ? 'bg-gray-800 text-white'
                     : 'hover:bg-gray-900 text-gray-300'
@@ -200,7 +200,7 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
                       <button 
                         key={level.id} 
                         onClick={() => handleLevelSelect(level.id)} 
-                        className={`p-3 text-sm font-semibold rounded-lg border transition-colors duration-150 ${currentLevel === level.id 
+                        className={`p-3 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentLevel === level.id 
                           ? 'bg-white text-black border-white shadow-lg shadow-white/20' 
                           : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:border-gray-500'}`
                         }
@@ -218,7 +218,7 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
                       <button 
                         key={unit} 
                         onClick={() => handleUnitSelect(unit)} 
-                        className={`p-3 aspect-square text-sm font-semibold rounded-lg border transition-colors duration-150 ${currentUnit === unit 
+                        className={`p-3 aspect-square text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentUnit === unit 
                           ? 'bg-white text-black border-white shadow-lg shadow-white/20' 
                           : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:border-gray-500'}`
                         }
