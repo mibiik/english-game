@@ -46,20 +46,20 @@ const NotFound: React.FC = () => {
           </p>
         </div>
 
-        {/* Şaka Mesajları */}
+        {/* Teknik Bilgiler */}
         <div className="mb-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Smile className="w-5 h-5 text-yellow-600" />
-              <span className="font-semibold text-yellow-800">Şaka Yapıyoruz! 😄</span>
+              <AlertTriangle className="w-5 h-5 text-gray-600" />
+              <span className="font-semibold text-gray-800">Teknik Sorun</span>
             </div>
-            <p className="text-sm text-yellow-700">
-              Endişelenmeyin, sadece bir şaka! 
+            <p className="text-sm text-gray-700">
+              Sunucu bakımı nedeniyle geçici olarak erişim sağlanamıyor.
               <br />
               {countdown > 0 ? (
-                <span className="font-bold">{countdown} saniye sonra gerçek siteye gidebilirsiniz...</span>
+                <span className="font-bold">{countdown} saniye sonra tekrar deneyin...</span>
               ) : (
-                <span className="font-bold text-green-600">Artık gidebilirsiniz! 🎉</span>
+                <span className="font-bold text-green-600">Şimdi tekrar deneyin!</span>
               )}
             </p>
           </div>
@@ -73,7 +73,7 @@ const NotFound: React.FC = () => {
               className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               <Home className="w-5 h-5" />
-              Gerçek Siteye Git
+              Siteye Git
             </button>
           ) : (
             <button
@@ -94,10 +94,10 @@ const NotFound: React.FC = () => {
           </button>
         </div>
 
-        {/* Ekstra Şaka */}
+        {/* Teknik Detaylar */}
         <div className="mt-6 text-xs text-gray-500">
-          <p>Bu sayfa gerçekten var mıydı? 🤔</p>
-          <p>Belki de sadece hayal gücümüzde vardı... ✨</p>
+          <p>Hata Kodu: 404 - Sayfa Bulunamadı</p>
+          <p>Sunucu Yanıt Süresi: {Math.floor(Math.random() * 500) + 100}ms</p>
         </div>
       </div>
     </div>
