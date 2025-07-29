@@ -8,6 +8,7 @@ import { newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
 import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
+import NotFound from './pages/NotFound';
 
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -152,7 +153,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
-        <Route path="/" element={<HomeRedirect filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} setCurrentUnit={setCurrentUnit} setCurrentLevel={setCurrentLevel} isAuthenticated={isAuthenticated} />} />
+        <Route path="/" element={<NotFound />} />
         <Route path="/home" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Navbar 
