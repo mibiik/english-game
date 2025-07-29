@@ -7,6 +7,8 @@ import { updateWordDifficulty } from '../../data/difficultWords';
 import { authService } from '../../services/authService';
 import { awardPoints } from '../../services/scoreService';
 import { soundService } from '../../services/soundService';
+import FinalExamSupportModal from '../FinalExamSupportModal';
+import { useFinalExamModal } from '../../hooks/useFinalExamModal';
 
 interface MultipleChoiceProps {
   words: WordDetail[];
@@ -73,6 +75,7 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = React.memo(({ words
   const [reviewRound, setReviewRound] = useState(1); // Tekrar gösterim turu
   const [showReviewInfo, setShowReviewInfo] = useState(false); // Tekrar bilgisi gösterimi
   const [showCongratulations, setShowCongratulations] = useState(false); // Tebrik modalı
+  const { showFinalExamModal, setShowFinalExamModal } = useFinalExamModal();
 
   const themeClasses = useMemo(() => getThemeClasses(theme), [theme]);
   
@@ -287,6 +290,11 @@ export const MultipleChoice: React.FC<MultipleChoiceProps> = React.memo(({ words
 
   return (
     <div className={`min-h-screen p-4 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
+      {/* Final Sınavı Modal */}
+      <FinalExamSupportModal 
+        isOpen={showFinalExamModal} 
+        onClose={() => setShowFinalExamModal(false)} 
+      />
       {/* Tekrar Bilgisi Modal */}
       {showReviewInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

@@ -9,6 +9,8 @@ import { learningStatsTracker } from '../../data/learningStats';
 import { authService } from '../../services/authService';
 import { soundService } from '../../services/soundService';
 import { definitionCacheService } from '../../services/definitionCacheService';
+import FinalExamSupportModal from '../FinalExamSupportModal';
+import { useFinalExamModal } from '../../hooks/useFinalExamModal';
 
 interface FlashCardProps {
   words: WordDetail[];
@@ -42,6 +44,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
   const [isLoadingDefinition, setIsLoadingDefinition] = useState(false);
   const [definitionMode, setDefinitionMode] = useState<'turkish' | 'english'>('turkish');
   const [wordDefinitions, setWordDefinitions] = useState<Record<string, string>>({});
+  const { showFinalExamModal, setShowFinalExamModal } = useFinalExamModal();
 
   // Oyun anahtarı
   const GAME_KEY = 'flashCard';
@@ -233,6 +236,11 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
 
   return (
     <div className="flex flex-col items-center space-y-6 p-4 bg-gradient-to-br from-sky-100 to-blue-200 min-h-screen" style={{ paddingTop: 'calc(64px + 1rem)', marginTop: '-128px' }}>
+      {/* Final Sınavı Modal */}
+      <FinalExamSupportModal 
+        isOpen={showFinalExamModal} 
+        onClose={() => setShowFinalExamModal(false)} 
+      />
       {/* Seçenekler */}
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 p-1.5 rounded-xl bg-white/50 mb-4">

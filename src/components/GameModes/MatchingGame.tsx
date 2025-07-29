@@ -6,6 +6,8 @@ import { authService } from '../../services/authService';
 import { AlarmClock, Target, Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';
 import { soundService } from '../../services/soundService';
 import DefneSpecialModal from '../DefneSpecialModal';
+import FinalExamSupportModal from '../FinalExamSupportModal';
+import { useFinalExamModal } from '../../hooks/useFinalExamModal';
 
 interface GameWord extends WordDetail {
   type: 'english' | 'turkish';
@@ -100,6 +102,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [showDefneModal, setShowDefneModal] = useState(false);
   const [showWarning, setShowWarning] = useState(true);
   const [removeTimer, setRemoveTimer] = useState(false); // Süre kaldırıldı mı?
+  const { showFinalExamModal, setShowFinalExamModal } = useFinalExamModal();
 
   // Kullanıcı ID'sini al
   const userId = authService.getCurrentUserId();
@@ -110,6 +113,8 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
       setShowDefneModal(true);
     }
   }, [userId]);
+
+
 
   // Round başlatma
   const startNewGame = useCallback((customWords?: GameWord[]) => {
@@ -548,6 +553,16 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   if (showDefneModal) {
     return (
       <DefneSpecialModal onClose={() => setShowDefneModal(false)} />
+    );
+  }
+
+  // Final Sınavı Modal göster
+  if (showFinalExamModal) {
+    return (
+      <FinalExamSupportModal 
+        isOpen={showFinalExamModal} 
+        onClose={() => setShowFinalExamModal(false)} 
+      />
     );
   }
 

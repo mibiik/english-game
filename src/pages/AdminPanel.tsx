@@ -46,11 +46,36 @@ interface Feedback {
   isRead?: boolean;
 }
 
+interface FinalModalResponse {
+  id: string;
+  userId: string;
+  userName: string;
+  response: boolean;
+  timestamp: string;
+  userAgent: string;
+  screenSize: string;
+}
+
+interface SupportAction {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;
+  amount: number;
+  currency: string;
+  timestamp: string;
+  userAgent: string;
+  screenSize: string;
+  source: string;
+}
+
 const AdminPanel: React.FC = () => {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [finalModalResponses, setFinalModalResponses] = useState<FinalModalResponse[]>([]);
+  const [supportActions, setSupportActions] = useState<SupportAction[]>([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
@@ -61,27 +86,31 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'finalModal' | 'support'>('users');
 
   useEffect(() => {
     loadData();
-    // Monitoring durumunu kontrol et (uygulama başlangıcında otomatik başlar)
     setIsMonitoring(userAnalyticsService.isMonitoringActive());
   }, []);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [anomaliesData, notificationsData, usersData, feedbacksData] = await Promise.all([
+      const [anomaliesData, notificationsData, usersData, feedbacksData, finalModalResponsesData, supportActionsData] = await Promise.all([
         userAnalyticsService.getAnomalies(50),
         userAnalyticsService.getAdminNotifications(20),
         loadUsers(),
-        loadFeedbacks()
+        loadFeedbacks(),
+        loadFinalModalResponses(),
+        loadSupportActions()
       ]);
       
       setAnomalies(anomaliesData as Anomaly[]);
       setNotifications(notificationsData as AdminNotification[]);
       setUsers(usersData);
       setFeedbacks(feedbacksData);
+      setFinalModalResponses(finalModalResponsesData);
+      setSupportActions(supportActionsData);
     } catch (error) {
       console.error('Veri yüklenirken hata:', error);
     } finally {
@@ -100,7 +129,7 @@ const AdminPanel: React.FC = () => {
         const data = doc.data();
         usersData.push({
           userId: doc.id,
-          displayName: data.displayName || 'İsimsiz Kullanıcı',
+          displayName: data.displayName || data.userName || 'İsimsiz Kullanıcı',
           email: data.email || '',
           totalScore: data.totalScore || 0,
           badges: data.badges || [],
@@ -142,6 +171,63 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const loadFinalModalResponses = async (): Promise<FinalModalResponse[]> => {
+    try {
+      const responsesRef = collection(db, 'finalExamModalResponses');
+      const q = query(responsesRef, orderBy('timestamp', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const responsesData: FinalModalResponse[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        responsesData.push({
+          id: doc.id,
+          userId: data.userId || '',
+          userName: data.userName || '',
+          response: data.response || false,
+          timestamp: data.timestamp?.toDate?.()?.toLocaleString('tr-TR') || '',
+          userAgent: data.userAgent || '',
+          screenSize: data.screenSize || ''
+        });
+      });
+      
+      return responsesData;
+    } catch (error) {
+      console.error('Final modal yanıtları yüklenirken hata:', error);
+      return [];
+    }
+  };
+
+  const loadSupportActions = async (): Promise<SupportAction[]> => {
+    try {
+      const supportRef = collection(db, 'supportActions');
+      const q = query(supportRef, orderBy('timestamp', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const supportData: SupportAction[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        supportData.push({
+          id: doc.id,
+          userId: data.userId || '',
+          userName: data.userName || '',
+          action: data.action || '',
+          amount: data.amount || 0,
+          currency: data.currency || 'TRY',
+          timestamp: data.timestamp?.toDate?.()?.toLocaleString('tr-TR') || '',
+          userAgent: data.userAgent || '',
+          screenSize: data.screenSize || '',
+          source: data.source || ''
+        });
+      });
+      
+      return supportData;
+    } catch (error) {
+      console.error('Destek işlemleri yüklenirken hata:', error);
+      return [];
+    }
+  };
+
   const toggleMonitoring = () => {
     if (isMonitoring) {
       userAnalyticsService.stopMonitoring();
@@ -157,7 +243,7 @@ const AdminPanel: React.FC = () => {
       const success = await userAnalyticsService.restoreScore(anomaly.userId, anomaly.oldScore);
       if (success) {
         alert(`✅ ${anomaly.userName} kullanıcısının puanı ${anomaly.oldScore} olarak geri yüklendi`);
-        loadData(); // Verileri yenile
+        loadData();
       } else {
         alert('❌ Puan geri yüklenirken hata oluştu');
       }
@@ -180,7 +266,7 @@ const AdminPanel: React.FC = () => {
       alert(`✅ ${selectedUser.displayName} kullanıcısının puanı ${newScore} olarak güncellendi`);
       setShowScoreModal(false);
       setSelectedUser(null);
-      loadData(); // Verileri yenile
+      loadData();
     } catch (error) {
       console.error('Puan güncellenirken hata:', error);
       alert('❌ Puan güncellenirken hata oluştu');
@@ -204,7 +290,7 @@ const AdminPanel: React.FC = () => {
       setShowBadgeModal(false);
       setSelectedUser(null);
       setNewBadge('');
-      loadData(); // Verileri yenile
+      loadData();
     } catch (error) {
       console.error('Rozet eklenirken hata:', error);
       alert('❌ Rozet eklenirken hata oluştu');
@@ -225,8 +311,8 @@ const AdminPanel: React.FC = () => {
         updatedAt: new Date()
       });
       
-      alert(`✅ ${user.displayName} kullanıcısından "${badgeToRemove}" rozeti kaldırıldı`);
-      loadData(); // Verileri yenile
+      alert(`✅ "${badgeToRemove}" rozeti kaldırıldı`);
+      loadData();
     } catch (error) {
       console.error('Rozet kaldırılırken hata:', error);
       alert('❌ Rozet kaldırılırken hata oluştu');
@@ -234,19 +320,12 @@ const AdminPanel: React.FC = () => {
   };
 
   const deleteUser = async (userId: string) => {
-    const user = users.find(u => u.userId === userId);
-    if (!user) return;
-    
-    if (!confirm(`⚠️ ${user.displayName} kullanıcısını tamamen silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!`)) {
-      return;
-    }
+    if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) return;
     
     try {
-      const userRef = doc(db, 'userProfiles', userId);
-      await deleteDoc(userRef);
-      
-      alert(`✅ ${user.displayName} kullanıcısı başarıyla silindi`);
-      loadData(); // Verileri yenile
+      await deleteDoc(doc(db, 'userProfiles', userId));
+      alert('✅ Kullanıcı başarıyla silindi');
+      loadData();
     } catch (error) {
       console.error('Kullanıcı silinirken hata:', error);
       alert('❌ Kullanıcı silinirken hata oluştu');
@@ -259,15 +338,17 @@ const AdminPanel: React.FC = () => {
     try {
       const userRef = doc(db, 'userProfiles', selectedUser.userId);
       const currentBadges = selectedUser.badges || [];
-      const updatedBadges = [...currentBadges, 'destekçi'];
+      const updatedBadges = [...currentBadges, 'Destekçi'];
       
       await updateDoc(userRef, {
         badges: updatedBadges,
+        isFirstSupporter: true,
         updatedAt: new Date()
       });
       
       alert(`✅ ${selectedUser.displayName} kullanıcısına "Destekçi" rozeti eklendi`);
-      loadData(); // Verileri yenile
+      setSelectedUser(null);
+      loadData();
     } catch (error) {
       console.error('Destekçi rozeti eklenirken hata:', error);
       alert('❌ Destekçi rozeti eklenirken hata oluştu');
@@ -280,7 +361,7 @@ const AdminPanel: React.FC = () => {
     try {
       const userRef = doc(db, 'userProfiles', selectedUser.userId);
       const currentBadges = selectedUser.badges || [];
-      const updatedBadges = [...currentBadges, 'ekstra'];
+      const updatedBadges = [...currentBadges, 'Ekstra'];
       
       await updateDoc(userRef, {
         badges: updatedBadges,
@@ -288,7 +369,8 @@ const AdminPanel: React.FC = () => {
       });
       
       alert(`✅ ${selectedUser.displayName} kullanıcısına "Ekstra" rozeti eklendi`);
-      loadData(); // Verileri yenile
+      setSelectedUser(null);
+      loadData();
     } catch (error) {
       console.error('Ekstra rozet eklenirken hata:', error);
       alert('❌ Ekstra rozet eklenirken hata oluştu');
@@ -300,11 +382,11 @@ const AdminPanel: React.FC = () => {
       const feedbackRef = doc(db, 'feedbacks', feedbackId);
       await updateDoc(feedbackRef, {
         isRead: true,
-        readAt: new Date()
+        updatedAt: new Date()
       });
       
       alert('✅ Feedback okundu olarak işaretlendi');
-      loadData(); // Verileri yenile
+      loadData();
     } catch (error) {
       console.error('Feedback işaretlenirken hata:', error);
       alert('❌ Feedback işaretlenirken hata oluştu');
@@ -312,19 +394,12 @@ const AdminPanel: React.FC = () => {
   };
 
   const deleteFeedback = async (feedbackId: string) => {
-    const feedback = feedbacks.find(f => f.id === feedbackId);
-    if (!feedback) return;
-    
-    if (!confirm(`⚠️ "${feedback.name}" kullanıcısının feedback'ini silmek istediğinizden emin misiniz?`)) {
-      return;
-    }
+    if (!confirm('Bu feedback\'i silmek istediğinizden emin misiniz?')) return;
     
     try {
-      const feedbackRef = doc(db, 'feedbacks', feedbackId);
-      await deleteDoc(feedbackRef);
-      
-      alert(`✅ Feedback başarıyla silindi`);
-      loadData(); // Verileri yenile
+      await deleteDoc(doc(db, 'feedbacks', feedbackId));
+      alert('✅ Feedback başarıyla silindi');
+      loadData();
     } catch (error) {
       console.error('Feedback silinirken hata:', error);
       alert('❌ Feedback silinirken hata oluştu');
@@ -332,7 +407,11 @@ const AdminPanel: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('tr-TR');
+    try {
+      return new Date(dateString).toLocaleString('tr-TR');
+    } catch {
+      return dateString;
+    }
   };
 
   const filteredUsers = users.filter(user =>
@@ -350,128 +429,341 @@ const AdminPanel: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center">🔧 Admin Panel</h1>
         
-        {/* Kullanıcı Yönetimi */}
+        {/* Ana Yönetim Paneli */}
         <div className="bg-gray-800 rounded-lg p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">👥 Kullanıcı Yönetimi</h2>
-                         <div className="flex gap-2">
-               <button
-                 onClick={loadData}
-                 disabled={loading}
-                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-4 py-2 rounded-lg font-semibold transition-colors"
-               >
-                 {loading ? 'Yükleniyor...' : '🔄 Yenile'}
-               </button>
-             </div>
+            <h2 className="text-2xl font-semibold">🔧 Yönetim Paneli</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={loadData}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-4 py-2 rounded-lg font-semibold transition-colors"
+              >
+                {loading ? 'Yükleniyor...' : '🔄 Yenile'}
+              </button>
+            </div>
           </div>
 
-          {/* Arama */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Kullanıcı adı veya email ile ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-            />
+          {/* Tab'lar */}
+          <div className="flex border-b border-gray-600 mb-6">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-4 py-2 font-semibold transition-colors ${
+                activeTab === 'users' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              👥 Kullanıcılar ({filteredUsers.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('feedbacks')}
+              className={`px-4 py-2 font-semibold transition-colors ${
+                activeTab === 'feedbacks' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              💬 Feedback ({filteredFeedbacks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('finalModal')}
+              className={`px-4 py-2 font-semibold transition-colors ${
+                activeTab === 'finalModal' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🎓 Final Modal ({finalModalResponses.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('support')}
+              className={`px-4 py-2 font-semibold transition-colors ${
+                activeTab === 'support' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              💰 Destek İşlemleri ({supportActions.length})
+            </button>
           </div>
 
-          {/* Kullanıcı Listesi */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-600">
-                  <th className="text-left py-3 px-4">Kullanıcı</th>
-                  <th className="text-left py-3 px-4">Email</th>
-                  <th className="text-left py-3 px-4">Puan</th>
-                  <th className="text-left py-3 px-4">Rozetler</th>
-                  <th className="text-left py-3 px-4">Kayıt Tarihi</th>
-                  <th className="text-left py-3 px-4">İşlemler</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user.userId} className="border-b border-gray-700 hover:bg-gray-700">
-                    <td className="py-3 px-4 font-medium">{user.displayName}</td>
-                    <td className="py-3 px-4 text-gray-300">{user.email}</td>
-                    <td className="py-3 px-4 text-green-400 font-semibold">{user.totalScore}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex flex-wrap gap-1">
-                        {user.badges?.map((badge, index) => (
-                          <span key={index} className="inline-flex items-center px-2 py-1 bg-blue-600 text-white rounded-full text-xs">
-                            {badge}
-                            <button
-                              onClick={() => removeUserBadge(user.userId, badge)}
-                              className="ml-1 text-red-300 hover:text-red-100"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                        {user.isFirstSupporter && (
-                          <span className="inline-flex items-center px-2 py-1 bg-purple-600 text-white rounded-full text-xs">
-                            İlk Destekçi
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-gray-400 text-xs">{user.createdAt}</td>
-                                         <td className="py-3 px-4">
-                       <div className="flex gap-2">
-                         <button
-                           onClick={() => {
-                             setSelectedUser(user);
-                             setNewScore(user.totalScore);
-                             setShowScoreModal(true);
-                           }}
-                           className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs transition-colors"
-                         >
-                           Puan Düzenle
-                         </button>
-                         <button
-                           onClick={() => {
-                             setSelectedUser(user);
-                             setShowBadgeModal(true);
-                           }}
-                           className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs transition-colors"
-                         >
-                           Rozet Ekle
-                         </button>
-                         <button
-                           onClick={() => {
-                             setSelectedUser(user);
-                             addSupporterBadge();
-                           }}
-                           className="bg-yellow-600 hover:bg-yellow-700 px-2 py-1 rounded text-xs transition-colors"
-                         >
-                           Destekçi Rozeti
-                         </button>
-                         <button
-                           onClick={() => {
-                             setSelectedUser(user);
-                             addExtraBadge();
-                           }}
-                           className="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs transition-colors"
-                         >
-                           Ekstra Rozet
-                         </button>
-                         <button
-                           onClick={() => deleteUser(user.userId)}
-                           className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-xs transition-colors"
-                         >
-                           Sil
-                         </button>
-                       </div>
-                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Arama - Sadece kullanıcılar tab'ında göster */}
+          {activeTab === 'users' && (
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Kullanıcı adı veya email ile ara..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          )}
+
+          {/* Feedback Arama */}
+          {activeTab === 'feedbacks' && (
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Feedback içeriği ile ara..."
+                value={feedbackSearchTerm}
+                onChange={(e) => setFeedbackSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          )}
+
+          {/* Tab İçerikleri */}
           
-          <div className="mt-4 text-gray-400 text-sm">
-            Toplam {filteredUsers.length} kullanıcı bulundu
-          </div>
+          {/* Kullanıcılar Tab */}
+          {activeTab === 'users' && (
+            <div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-600">
+                      <th className="text-left py-3 px-4">Kullanıcı</th>
+                      <th className="text-left py-3 px-4">Email</th>
+                      <th className="text-left py-3 px-4">Puan</th>
+                      <th className="text-left py-3 px-4">Rozetler</th>
+                      <th className="text-left py-3 px-4">Kayıt Tarihi</th>
+                      <th className="text-left py-3 px-4">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user) => (
+                      <tr key={user.userId} className="border-b border-gray-700 hover:bg-gray-700">
+                        <td className="py-3 px-4 font-medium">{user.displayName}</td>
+                        <td className="py-3 px-4 text-gray-300">{user.email}</td>
+                        <td className="py-3 px-4 text-green-400 font-semibold">{user.totalScore}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            {user.badges?.map((badge, index) => (
+                              <span key={index} className="inline-flex items-center px-2 py-1 bg-blue-600 text-white rounded-full text-xs">
+                                {badge}
+                                <button
+                                  onClick={() => removeUserBadge(user.userId, badge)}
+                                  className="ml-1 text-red-300 hover:text-red-100"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                            {user.isFirstSupporter && (
+                              <span className="inline-flex items-center px-2 py-1 bg-purple-600 text-white rounded-full text-xs">
+                                İlk Destekçi
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-gray-400 text-xs">{user.createdAt}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setNewScore(user.totalScore);
+                                setShowScoreModal(true);
+                              }}
+                              className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              Puan Düzenle
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowBadgeModal(true);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              Rozet Ekle
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                addSupporterBadge();
+                              }}
+                              className="bg-yellow-600 hover:bg-yellow-700 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              Destekçi Rozeti
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                addExtraBadge();
+                              }}
+                              className="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              Ekstra Rozet
+                            </button>
+                            <button
+                              onClick={() => deleteUser(user.userId)}
+                              className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              Sil
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 text-gray-400 text-sm">
+                Toplam {filteredUsers.length} kullanıcı bulundu
+              </div>
+            </div>
+          )}
+          
+          {/* Feedback Tab */}
+          {activeTab === 'feedbacks' && (
+            <div>
+              {loading ? (
+                <div className="text-center py-8">Yükleniyor...</div>
+              ) : filteredFeedbacks.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredFeedbacks.map((feedback) => (
+                    <div key={feedback.id} className={`bg-gray-700 rounded-lg p-4 border-l-4 ${
+                      feedback.isRead ? 'border-gray-500' : 'border-blue-500'
+                    }`}>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-lg text-blue-300">{feedback.name}</h3>
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              feedback.isRead ? 'bg-gray-600 text-gray-300' : 'bg-blue-600 text-white'
+                            }`}>
+                              {feedback.isRead ? 'Okundu' : 'Yeni'}
+                            </span>
+                          </div>
+                          <p className="text-gray-300 mt-2 whitespace-pre-wrap">{feedback.feedback}</p>
+                          <p className="text-gray-400 text-sm mt-3">
+                            📅 {feedback.date}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          {!feedback.isRead && (
+                            <button
+                              onClick={() => markFeedbackAsRead(feedback.id)}
+                              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs transition-colors"
+                            >
+                              Okundu
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteFeedback(feedback.id)}
+                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs transition-colors"
+                          >
+                            Sil
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">Henüz feedback yok</p>
+              )}
+              <div className="mt-4 text-gray-400 text-sm">
+                Toplam {filteredFeedbacks.length} feedback bulundu
+              </div>
+            </div>
+          )}
+          
+          {/* Final Modal Tab */}
+          {activeTab === 'finalModal' && (
+            <div>
+              {loading ? (
+                <div className="text-center py-8">Yükleniyor...</div>
+              ) : finalModalResponses.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-600">
+                        <th className="text-left py-3 px-4">Kullanıcı</th>
+                        <th className="text-left py-3 px-4">Yanıt</th>
+                        <th className="text-left py-3 px-4">Tarih</th>
+                        <th className="text-left py-3 px-4">Ekran</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {finalModalResponses.map((response) => (
+                        <tr key={response.id} className="border-b border-gray-700 hover:bg-gray-700">
+                          <td className="py-3 px-4 font-medium">{response.userName}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              response.response 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-red-600 text-white'
+                            }`}>
+                              {response.response ? '✅ Evet' : '❌ Hayır'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">{response.timestamp}</td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">{response.screenSize}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">Henüz final modal yanıtı yok</p>
+              )}
+              <div className="mt-4 text-gray-400 text-sm">
+                Toplam {finalModalResponses.length} yanıt bulundu
+              </div>
+            </div>
+          )}
+          
+          {/* Destek İşlemleri Tab */}
+          {activeTab === 'support' && (
+            <div>
+              {loading ? (
+                <div className="text-center py-8">Yükleniyor...</div>
+              ) : supportActions.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-600">
+                        <th className="text-left py-3 px-4">Kullanıcı</th>
+                        <th className="text-left py-3 px-4">İşlem</th>
+                        <th className="text-left py-3 px-4">Tutar</th>
+                        <th className="text-left py-3 px-4">Kaynak</th>
+                        <th className="text-left py-3 px-4">Tarih</th>
+                        <th className="text-left py-3 px-4">Ekran</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {supportActions.map((action) => (
+                        <tr key={action.id} className="border-b border-gray-700 hover:bg-gray-700">
+                          <td className="py-3 px-4 font-medium">{action.userName}</td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-green-600 text-white">
+                              {action.action === 'final_modal_support' ? 'Final Modal Destek' : action.action}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-green-400 font-semibold">
+                            {action.amount} {action.currency}
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">
+                            {action.source === 'final_exam_modal' ? 'Final Modal' : action.source}
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">{action.timestamp}</td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">{action.screenSize}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-400 text-center py-8">Henüz destek işlemi yok</p>
+              )}
+              <div className="mt-4 text-gray-400 text-sm">
+                Toplam {supportActions.length} destek işlemi bulundu
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Monitoring Kontrolü */}
@@ -522,73 +814,6 @@ const AdminPanel: React.FC = () => {
           ) : (
             <p className="text-gray-400 text-center py-8">Henüz bildirim yok</p>
           )}
-        </div>
-
-        {/* Kullanıcı Feedback'leri */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">💬 Kullanıcı Feedback'leri</h2>
-          
-          {/* Feedback Arama */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Kullanıcı adı veya feedback içeriği ile ara..."
-              value={feedbackSearchTerm}
-              onChange={(e) => setFeedbackSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {loading ? (
-            <div className="text-center py-8">Yükleniyor...</div>
-          ) : filteredFeedbacks.length > 0 ? (
-            <div className="space-y-4">
-              {filteredFeedbacks.map((feedback) => (
-                <div key={feedback.id} className={`bg-gray-700 rounded-lg p-4 border-l-4 ${
-                  feedback.isRead ? 'border-gray-500' : 'border-blue-500'
-                }`}>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg text-blue-300">{feedback.name}</h3>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          feedback.isRead ? 'bg-gray-600 text-gray-300' : 'bg-blue-600 text-white'
-                        }`}>
-                          {feedback.isRead ? 'Okundu' : 'Yeni'}
-                        </span>
-                      </div>
-                      <p className="text-gray-300 mt-2 whitespace-pre-wrap">{feedback.feedback}</p>
-                      <p className="text-gray-400 text-sm mt-3">
-                        📅 {feedback.date}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      {!feedback.isRead && (
-                        <button
-                          onClick={() => markFeedbackAsRead(feedback.id)}
-                          className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs transition-colors"
-                        >
-                          Okundu İşaretle
-                        </button>
-                      )}
-                      <button
-                        onClick={() => deleteFeedback(feedback.id)}
-                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs transition-colors"
-                      >
-                        Sil
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8">Henüz feedback yok</p>
-          )}
-          
-          <div className="mt-4 text-gray-400 text-sm">
-            Toplam {filteredFeedbacks.length} feedback bulundu
-          </div>
         </div>
 
         {/* Puan Anomalileri */}
