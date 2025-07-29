@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { userAnalyticsService } from '../services/userAnalyticsService';
 import { userService } from '../services/userService';
 import { gameScoreService } from '../services/gameScoreService';
+import { notificationService, NotificationData } from '../services/notificationService';
 import { db } from '../config/firebase';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
@@ -61,6 +62,7 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
+  const [notifications404, setNotifications404] = useState<NotificationData[]>([]);
 
   useEffect(() => {
     loadData();
@@ -71,17 +73,19 @@ const AdminPanel: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [anomaliesData, notificationsData, usersData, feedbacksData] = await Promise.all([
+      const [anomaliesData, notificationsData, usersData, feedbacksData, notifications404Data] = await Promise.all([
         userAnalyticsService.getAnomalies(50),
         userAnalyticsService.getAdminNotifications(20),
         loadUsers(),
-        loadFeedbacks()
+        loadFeedbacks(),
+        notificationService.getAllNotifications()
       ]);
       
       setAnomalies(anomaliesData as Anomaly[]);
       setNotifications(notificationsData as AdminNotification[]);
       setUsers(usersData);
       setFeedbacks(feedbacksData);
+      setNotifications404(notifications404Data);
     } catch (error) {
       console.error('Veri yüklenirken hata:', error);
     } finally {
@@ -588,6 +592,62 @@ const AdminPanel: React.FC = () => {
           
           <div className="mt-4 text-gray-400 text-sm">
             Toplam {filteredFeedbacks.length} feedback bulundu
+          </div>
+        </div>
+
+        {/* 404 Bildirimleri */}
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
+          <h2 className="text-2xl font-semibold mb-4">🚨 404 Bildirimleri</h2>
+          {loading ? (
+            <div className="text-center py-8">Yükleniyor...</div>
+          ) : notifications404.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-600">
+                    <th className="text-left py-3 px-4">Kullanıcı</th>
+                    <th className="text-left py-3 px-4">Email</th>
+                    <th className="text-left py-3 px-4">Sayfa URL</th>
+                    <th className="text-left py-3 px-4">Mesaj</th>
+                    <th className="text-left py-3 px-4">Tarih</th>
+                    <th className="text-left py-3 px-4">Durum</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {notifications404.map((notification) => (
+                    <tr key={notification.id} className="border-b border-gray-700 hover:bg-gray-700">
+                      <td className="py-3 px-4 font-medium">{notification.userName}</td>
+                      <td className="py-3 px-4 text-gray-300">{notification.userEmail}</td>
+                      <td className="py-3 px-4 text-blue-400">
+                        <a href={notification.pageUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          {notification.pageUrl}
+                        </a>
+                      </td>
+                      <td className="py-3 px-4 text-gray-300">{notification.message}</td>
+                      <td className="py-3 px-4 text-gray-400">
+                        {notification.timestamp ? formatDate(notification.timestamp.toDate?.() || notification.timestamp) : 'N/A'}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          notification.status === 'pending' ? 'bg-yellow-600 text-yellow-100' :
+                          notification.status === 'reviewed' ? 'bg-blue-600 text-blue-100' :
+                          'bg-green-600 text-green-100'
+                        }`}>
+                          {notification.status === 'pending' ? 'Bekliyor' :
+                           notification.status === 'reviewed' ? 'İncelendi' : 'Çözüldü'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-center py-8">Henüz 404 bildirimi yok</p>
+          )}
+          
+          <div className="mt-4 text-gray-400 text-sm">
+            Toplam {notifications404.length} 404 bildirimi bulundu
           </div>
         </div>
 
