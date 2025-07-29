@@ -98,6 +98,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
   const [showDefneModal, setShowDefneModal] = useState(false);
+  const [showWarning, setShowWarning] = useState(true);
   const [removeTimer, setRemoveTimer] = useState(false); // Süre kaldırıldı mı?
 
   // Kullanıcı ID'sini al
@@ -547,6 +548,33 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   if (showDefneModal) {
     return (
       <DefneSpecialModal onClose={() => setShowDefneModal(false)} />
+    );
+  }
+
+  // Uyarı Modal göster
+  if (showWarning) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl border-2 border-blue-200">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-3">Önemli Uyarı!</h3>
+            <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              Kelimeleri sadece İngilizce-Türkçe karşılığında çalışmak yeterli olmayacaktır. Lütfen kelimeleri farklı formlarıyla cümle içinde de kullanmaya ve farklı anlamlarını öğrenmeye çalışın.
+            </p>
+            <button
+              onClick={() => setShowWarning(false)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl"
+            >
+              Anladım, Oyunu Başlat
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
