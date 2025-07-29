@@ -34,27 +34,86 @@ const LeaderboardPage: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     const db = getFirestore(app);
-    const q = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      let fetchedUsers: UserProfile[] = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          userId: doc.id,
-          displayName: data.displayName || '',
-          email: data.email || '',
-          photoURL: data.photoURL || undefined,
-          totalScore: data.totalScore || 0,
-          badges: data.badges || [],
-          isFirstSupporter: !!data.isFirstSupporter,
-        };
-      });
-      // Sıralamayı güncel puana göre yap
-      // Sıralamayı güncel puana göre yap
-      fetchedUsers = fetchedUsers.filter(u => u.displayName && u.displayName.trim() !== '').sort((a, b) => b.totalScore - a.totalScore);
-      setUsers(fetchedUsers);
-      setLoading(false);
+    
+    // Hem userProfiles hem de users koleksiyonlarından veri çek
+    const profilesQuery = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
+    const usersQuery = query(collection(db, 'users'), orderBy('totalScore', 'desc'));
+    
+    const unsubscribeProfiles = onSnapshot(profilesQuery, (profilesSnapshot) => {
+      const unsubscribeUsers = onSnapshot(usersQuery, (usersSnapshot) => {
+        // Her iki koleksiyondan gelen verileri birleştir
+        const profilesData = new Map();
+        const usersData = new Map();
+        
+        // userProfiles verilerini işle
+        profilesSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          profilesData.set(doc.id, {
+            userId: doc.id,
+            displayName: data.displayName || '',
+            email: data.email || '',
+            photoURL: data.photoURL || undefined,
+            totalScore: data.totalScore || 0,
+            badges: data.badges || [],
+            isFirstSupporter: !!data.isFirstSupporter,
+          });
+        });
+        
+        // users verilerini işle
+        usersSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          usersData.set(doc.id, {
+            userId: doc.id,
+            displayName: data.displayName || '',
+            email: data.email || '',
+            photoURL: data.photoURL || undefined,
+            totalScore: data.totalScore || 0,
+            badges: data.badges || [],
+            isFirstSupporter: !!data.isFirstSupporter,
+          });
+        });
+        
+        // Verileri birleştir - users koleksiyonundaki fotoğraf bilgisi öncelikli
+        const mergedUsers = new Map();
+        
+        // Önce userProfiles verilerini ekle
+        profilesData.forEach((user, userId) => {
+          mergedUsers.set(userId, user);
+        });
+        
+        // Sonra users verilerini ekle/güncelle (fotoğraf bilgisi için)
+        usersData.forEach((user, userId) => {
+          if (mergedUsers.has(userId)) {
+            // Mevcut kullanıcıyı güncelle, fotoğraf bilgisi varsa ekle
+            const existing = mergedUsers.get(userId);
+            mergedUsers.set(userId, {
+              ...existing,
+              photoURL: user.photoURL || existing.photoURL,
+              badges: user.badges || existing.badges,
+              isFirstSupporter: user.isFirstSupporter || existing.isFirstSupporter,
+            });
+          } else {
+            // Yeni kullanıcı ekle
+            mergedUsers.set(userId, user);
+          }
+        });
+        
+        let fetchedUsers: UserProfile[] = Array.from(mergedUsers.values());
+        
+        // Sıralamayı güncel puana göre yap
+        fetchedUsers = fetchedUsers.filter(u => u.displayName && u.displayName.trim() !== '').sort((a, b) => b.totalScore - a.totalScore);
+        setUsers(fetchedUsers);
+        setLoading(false);
+      }, () => setLoading(false));
+      
+      return () => {
+        unsubscribeUsers();
+      };
     }, () => setLoading(false));
-    return () => unsubscribe();
+    
+    return () => {
+      unsubscribeProfiles();
+    };
   }, []);
 
   // Türkçe karakter ve boşluk-normalizasyon fonksiyonu
@@ -230,7 +289,7 @@ const LeaderboardPage: React.FC = () => {
               <span className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-yellow-500 text-white text-xl font-bold flex items-center justify-center shadow-lg">1</span>
             </div>
             <div className="text-2xl font-extrabold text-yellow-900 w-full text-center break-words whitespace-normal">{users[0].displayName}
-              {(users[0].userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || users[0].displayName === 'Defne') && (
+              {(['VtSQP9JxPSVmRrHUyeMX9aYBMDq1'].includes(users[0].userId) || users[0].displayName === 'Defne') && (
                 <div className="flex flex-wrap justify-center gap-1 mt-1">
                   <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                     <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -306,7 +365,7 @@ const LeaderboardPage: React.FC = () => {
             <li className="text-center py-10 text-gray-400 text-lg">Aramanıza uygun kullanıcı bulunamadı.</li>
           ) : (
             filteredUsers.map((user, index) => (
-              user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' ? (
+              (user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43') ? (
                 <li key={user.userId} className={`flex items-center gap-3 px-3 md:px-6 py-3 md:py-4 transition-all duration-200 ease-in-out ${index % 2 === 0 ? 'bg-gray-900/20' : 'bg-gray-800/30'} hover:bg-gray-800/50`}>
                   <div className={`w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full
                     ${index === 0 ? 'bg-yellow-500 text-yellow-900' :
@@ -324,7 +383,7 @@ const LeaderboardPage: React.FC = () => {
                     <div className="font-semibold truncate text-pink-500">{user.displayName}</div>
                     {/* Rozetler ve özel yıldız (Defne & Görkem) */}
                     <div className="flex flex-wrap items-center gap-1 mt-1">
-                      {(user.userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || user.userId === 'uckYnXidETgbgd8sI6ehlgZQnT43' || user.displayName === 'Defne') && (
+                      {(['VtSQP9JxPSVmRrHUyeMX9aYBMDq1', 'uckYnXidETgbgd8sI6ehlgZQnT43'].includes(user.userId) || user.displayName === 'Defne') && (
                         <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                           <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
@@ -409,7 +468,7 @@ const LeaderboardPage: React.FC = () => {
                           <Crown className="w-4 h-4 text-white mr-1" /> Founder of WordPlay
                         </span>
                       )}
-                      {(user.userId === 'VtSQP9JxPSVmRrHUyeMX9aYBMDq1' || user.displayName === 'Defne') && (
+                      {(['VtSQP9JxPSVmRrHUyeMX9aYBMDq1'].includes(user.userId) || user.displayName === 'Defne') && (
                         <div className="flex flex-wrap justify-center gap-1 mt-1">
                           <span className="inline-flex items-center px-2 py-1 bg-green-600 rounded-full text-xs font-semibold">
                             <svg className="w-4 h-4 mr-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
