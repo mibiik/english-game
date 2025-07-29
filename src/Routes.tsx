@@ -12,7 +12,6 @@ import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
 const WelcomePage = lazy(() => import('./pages/WelcomePage'));
-const NotFound = lazy(() => import('./components/NotFound'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AboutFounder = lazy(() => import('./pages/AboutFounder'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
@@ -129,7 +128,7 @@ const HomeRedirect: React.FC<{
     );
   }
   
-  return <NotFound />;
+  return <WelcomePage />;
 };
 
 interface AppRoutesProps {
@@ -153,9 +152,21 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
-        <Route path="/" element={<NotFound />} />
-        <Route path="/home" element={<NotFound />} />
-        <Route path="/welcome" element={<NotFound />} />
+        <Route path="/" element={<HomeRedirect filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} setCurrentUnit={setCurrentUnit} setCurrentLevel={setCurrentLevel} isAuthenticated={isAuthenticated} />} />
+        <Route path="/home" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+              </div>
+          </ProtectedRoute>
+        } />
         <Route path="/profile" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <>
