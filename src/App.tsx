@@ -169,10 +169,10 @@ function AppContent() {
         localStorage.setItem('lastAuthCheck', new Date().toISOString());
         localStorage.setItem('authUserId', user.uid);
         
-        // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
-        if (location.pathname === '/') {
-          navigate('/home', { replace: true });
-        }
+        // Şaka için geçici olarak yönlendirmeyi devre dışı bırak
+        // if (location.pathname === '/') {
+        //   navigate('/home', { replace: true });
+        // }
       } else {
         // Kullanıcı çıkış yapmış
         console.log('User is not authenticated');
