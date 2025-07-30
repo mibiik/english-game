@@ -199,13 +199,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
     
-    setCurrentRound(prev => {
-      if (prev <= 1) return totalRounds;
-      return prev - 1;
-    });
+    // Önceki round numarasını hesapla
+    const prevRound = currentRound <= 1 ? totalRounds : currentRound - 1;
+    
+    // State'i güncelle
+    setCurrentRound(prevRound);
     
     // Yeni round için oyunu başlat
-    const prevRound = currentRound <= 1 ? totalRounds : currentRound - 1;
     const roundStartIndex = (prevRound - 1) * 9;
     const roundEndIndex = Math.min(roundStartIndex + 9, total);
     const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
@@ -233,16 +233,25 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
     
-    setCurrentRound(prev => {
-      if (prev >= totalRounds) return 1;
-      return prev + 1;
-    });
+    // Yeni round numarasını hesapla
+    const nextRound = currentRound >= totalRounds ? 1 : currentRound + 1;
+    
+    // State'i güncelle
+    setCurrentRound(nextRound);
     
     // Yeni round için oyunu başlat
-    const nextRound = currentRound >= totalRounds ? 1 : currentRound + 1;
     const roundStartIndex = (nextRound - 1) * 9;
     const roundEndIndex = Math.min(roundStartIndex + 9, total);
     const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
+    
+    console.log('🔄 MatchingGame - handleNextRound:', { 
+      currentRound, 
+      nextRound, 
+      totalRounds, 
+      roundStartIndex, 
+      roundEndIndex, 
+      roundWordsCount: roundWords.length 
+    });
     
     const englishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'english' as const }));
     const turkishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'turkish' as const }));
@@ -388,19 +397,33 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             await gameScoreService.addScore(userId, 'matching', finalScore);
             console.log('✅ Puan başarıyla eklendi:', finalScore);
             setScoreSaved(true);
-        } catch (error) {
+          } catch (error) {
             console.error('❌ Puan eklenirken hata:', error);
-        }
-      } else {
+          }
+        } else {
           console.error('❌ Kullanıcı ID bulunamadı');
         }
         
-            setShowResult(true);
+        // Son round ise sonuç ekranını göster, değilse otomatik olarak sonraki round'a geç
+        const currentUnitWords = words.filter(word => word.unit === unit);
+        const total = currentUnitWords.length;
+        const calculatedTotalRounds = Math.ceil(total / 9);
+        
+        if (currentRound >= calculatedTotalRounds) {
+          // Son round - sonuç ekranını göster
+          setShowResult(true);
+        } else {
+          // Sonraki round'a otomatik geç
+          console.log('🔄 MatchingGame - Otomatik olarak sonraki round\'a geçiliyor');
+          setTimeout(() => {
+            handleNextRound();
+          }, 1000); // 1 saniye bekle
+        }
       }
     };
     
     saveScore();
-  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer]);
+  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer, words]);
 
   // Tasarım ve görsel yapı korunacak, sadece puan sistemi sadeleşecek
     if (showResult) {
