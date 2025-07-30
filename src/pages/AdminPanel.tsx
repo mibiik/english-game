@@ -36,8 +36,6 @@ interface User {
   isFirstSupporter?: boolean;
   createdAt?: string;
   lastSeen?: string;
-  finalExamModalShownCount?: number;
-  finalExamModalLastShown?: string;
 }
 
 interface Feedback {
@@ -48,15 +46,7 @@ interface Feedback {
   isRead?: boolean;
 }
 
-interface FinalModalResponse {
-  id: string;
-  userId: string;
-  userName: string;
-  response: boolean;
-  timestamp: string;
-  userAgent: string;
-  screenSize: string;
-}
+
 
 interface SupportAction {
   id: string;
@@ -76,7 +66,7 @@ const AdminPanel: React.FC = () => {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [finalModalResponses, setFinalModalResponses] = useState<FinalModalResponse[]>([]);
+
   const [supportActions, setSupportActions] = useState<SupportAction[]>([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -88,7 +78,7 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'finalModal' | 'support'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support'>('users');
 
   useEffect(() => {
     loadData();
@@ -98,12 +88,12 @@ const AdminPanel: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [anomaliesData, notificationsData, usersData, feedbacksData, finalModalResponsesData, supportActionsData] = await Promise.all([
+      const [anomaliesData, notificationsData, usersData, feedbacksData, supportActionsData] = await Promise.all([
         userAnalyticsService.getAnomalies(50),
         userAnalyticsService.getAdminNotifications(20),
         loadUsers(),
         loadFeedbacks(),
-        loadFinalModalResponses(),
+
         loadSupportActions()
       ]);
       
@@ -111,7 +101,7 @@ const AdminPanel: React.FC = () => {
       setNotifications(notificationsData as AdminNotification[]);
       setUsers(usersData);
       setFeedbacks(feedbacksData);
-      setFinalModalResponses(finalModalResponsesData);
+
       setSupportActions(supportActionsData);
     } catch (error) {
       console.error('Veri yüklenirken hata:', error);
@@ -138,8 +128,7 @@ const AdminPanel: React.FC = () => {
           isFirstSupporter: data.isFirstSupporter || false,
           createdAt: data.createdAt?.toDate?.()?.toLocaleString('tr-TR') || '',
           lastSeen: data.lastSeen?.toDate?.()?.toLocaleString('tr-TR') || '',
-          finalExamModalShownCount: data.finalExamModalShownCount || 0,
-          finalExamModalLastShown: data.finalExamModalLastShown?.toDate?.()?.toLocaleString('tr-TR') || ''
+
         });
       });
       
@@ -175,32 +164,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const loadFinalModalResponses = async (): Promise<FinalModalResponse[]> => {
-    try {
-      const responsesRef = collection(db, 'finalExamModalResponses');
-      const q = query(responsesRef, orderBy('timestamp', 'desc'));
-      const querySnapshot = await getDocs(q);
-      
-      const responsesData: FinalModalResponse[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        responsesData.push({
-          id: doc.id,
-          userId: data.userId || '',
-          userName: data.userName || '',
-          response: data.response || false,
-          timestamp: data.timestamp?.toDate?.()?.toLocaleString('tr-TR') || '',
-          userAgent: data.userAgent || '',
-          screenSize: data.screenSize || ''
-        });
-      });
-      
-      return responsesData;
-    } catch (error) {
-      console.error('Final modal yanıtları yüklenirken hata:', error);
-      return [];
-    }
-  };
+
 
   const loadSupportActions = async (): Promise<SupportAction[]> => {
     try {
@@ -381,24 +345,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const resetFinalExamModalCount = async (userId: string) => {
-    if (!confirm('Bu kullanıcının final exam modal sayacını sıfırlamak istediğinizden emin misiniz?')) return;
-    
-    try {
-      const userRef = doc(db, 'userProfiles', userId);
-      await updateDoc(userRef, {
-        finalExamModalShownCount: 0,
-        finalExamModalLastShown: null,
-        updatedAt: new Date()
-      });
-      
-      alert('✅ Final exam modal sayacı sıfırlandı');
-      loadData();
-    } catch (error) {
-      console.error('Final exam modal sayacı sıfırlanırken hata:', error);
-      alert('❌ Final exam modal sayacı sıfırlanırken hata oluştu');
-    }
-  };
+
 
   const markFeedbackAsRead = async (feedbackId: string) => {
     try {
@@ -448,19 +395,19 @@ const AdminPanel: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-6">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white p-2 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">🔧 Admin Panel</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8 text-center">🔧 Admin Panel</h1>
         
         {/* Ana Yönetim Paneli */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">🔧 Yönetim Paneli</h2>
-            <div className="flex gap-2">
+        <div className="bg-gray-800 rounded-lg p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-semibold">🔧 Yönetim Paneli</h2>
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={loadData}
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-4 py-2 rounded-lg font-semibold transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base w-full sm:w-auto"
               >
                 {loading ? 'Yükleniyor...' : '🔄 Yenile'}
               </button>
@@ -489,16 +436,7 @@ const AdminPanel: React.FC = () => {
             >
               💬 Feedback ({filteredFeedbacks.length})
             </button>
-            <button
-              onClick={() => setActiveTab('finalModal')}
-              className={`px-4 py-2 font-semibold transition-colors ${
-                activeTab === 'finalModal' 
-                  ? 'text-blue-400 border-b-2 border-blue-400' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              🎓 Final Modal ({finalModalResponses.length})
-            </button>
+
             <button
               onClick={() => setActiveTab('support')}
               className={`px-4 py-2 font-semibold transition-colors ${
@@ -550,7 +488,7 @@ const AdminPanel: React.FC = () => {
                       <th className="text-left py-3 px-4">Email</th>
                       <th className="text-left py-3 px-4">Puan</th>
                       <th className="text-left py-3 px-4">Rozetler</th>
-                      <th className="text-left py-3 px-4">Final Modal</th>
+
                       <th className="text-left py-3 px-4">Kayıt Tarihi</th>
                       <th className="text-left py-3 px-4">İşlemler</th>
                     </tr>
@@ -581,18 +519,7 @@ const AdminPanel: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="text-xs">
-                            <div className="text-blue-400 font-semibold">
-                              {user.finalExamModalShownCount}/3
-                            </div>
-                            {user.finalExamModalLastShown && (
-                              <div className="text-gray-500 text-xs">
-                                Son: {user.finalExamModalLastShown}
-                              </div>
-                            )}
-                          </div>
-                        </td>
+
                         <td className="py-3 px-4 text-gray-400 text-xs">{user.createdAt}</td>
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
@@ -639,12 +566,7 @@ const AdminPanel: React.FC = () => {
                             >
                               Sil
                             </button>
-                            <button
-                              onClick={() => resetFinalExamModalCount(user.userId)}
-                              className="bg-orange-600 hover:bg-orange-700 px-2 py-1 rounded text-xs transition-colors"
-                            >
-                              Modal Sıfırla
-                            </button>
+
                           </div>
                         </td>
                       </tr>
@@ -713,50 +635,7 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
           
-          {/* Final Modal Tab */}
-          {activeTab === 'finalModal' && (
-            <div>
-              {loading ? (
-                <div className="text-center py-8">Yükleniyor...</div>
-              ) : finalModalResponses.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-600">
-                        <th className="text-left py-3 px-4">Kullanıcı</th>
-                        <th className="text-left py-3 px-4">Yanıt</th>
-                        <th className="text-left py-3 px-4">Tarih</th>
-                        <th className="text-left py-3 px-4">Ekran</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {finalModalResponses.map((response) => (
-                        <tr key={response.id} className="border-b border-gray-700 hover:bg-gray-700">
-                          <td className="py-3 px-4 font-medium">{response.userName}</td>
-                          <td className="py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                              response.response 
-                                ? 'bg-green-600 text-white' 
-                                : 'bg-red-600 text-white'
-                            }`}>
-                              {response.response ? '✅ Evet' : '❌ Hayır'}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-gray-400 text-xs">{response.timestamp}</td>
-                          <td className="py-3 px-4 text-gray-400 text-xs">{response.screenSize}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-gray-400 text-center py-8">Henüz final modal yanıtı yok</p>
-              )}
-              <div className="mt-4 text-gray-400 text-sm">
-                Toplam {finalModalResponses.length} yanıt bulundu
-              </div>
-            </div>
-          )}
+
           
           {/* Destek İşlemleri Tab */}
           {activeTab === 'support' && (

@@ -13,7 +13,7 @@ import { collection, getDocs, getFirestore, orderBy, query, onSnapshot, doc, get
 import app from '../config/firebase';
 import SupportModal from '../components/SupportModal';
 import FeedbackButton from '../components/FeedbackButton';
-import FinalExamSupportModal from '../components/FinalExamSupportModal';
+
 import { debounce } from '../lib/performance';
 
 export interface Word {
@@ -100,7 +100,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   const navigate = useNavigate();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const [showFinalExamModal, setShowFinalExamModal] = useState(false);
+
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -151,47 +151,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     };
   }, [debouncedAuthCheck]);
 
-  // Final sınavı modal kontrolü - Destek olmayan kullanıcılara göster
-  useEffect(() => {
-    const checkFinalExamModal = async () => {
-      if (!isAuthenticated) return;
-      
-      try {
-        const userId = authService.getCurrentUserId();
-        if (!userId) return;
 
-        const db = getFirestore(app);
-        const userProfileRef = doc(db, 'userProfiles', userId);
-        const userDoc = await getDoc(userProfileRef);
-        
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const hasSupported = userData?.hasSupported;
-          
-          // Sadece destek olmayan kullanıcılara göster
-          if (!hasSupported) {
-            // 3-4 saniye sonra modalı göster
-            setTimeout(() => {
-              setShowFinalExamModal(true);
-            }, 3000);
-          }
-        } else {
-          // Kullanıcı profili yoksa göster
-          setTimeout(() => {
-            setShowFinalExamModal(true);
-          }, 3000);
-        }
-      } catch (error) {
-        console.error('Final sınavı modal kontrolü sırasında hata:', error);
-        // Hata durumunda da göster
-        setTimeout(() => {
-          setShowFinalExamModal(true);
-        }, 3000);
-      }
-    };
-
-    checkFinalExamModal();
-  }, [isAuthenticated]);
 
   // Memoized leaderboard data
   const leaderboardData = useMemo(() => {
@@ -906,11 +866,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
         <FeedbackButton />
       </div>
 
-      {/* Final Sınavı Modal */}
-      <FinalExamSupportModal 
-        isOpen={showFinalExamModal} 
-        onClose={() => setShowFinalExamModal(false)} 
-      />
+
     </div>
   );
 });

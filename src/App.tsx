@@ -14,7 +14,6 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { X, Sparkles } from 'lucide-react';
 import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
-import FinalExamSupportModal from './components/FinalExamSupportModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { userAnalyticsService } from './services/userAnalyticsService';
 
@@ -56,10 +55,6 @@ function AppContent() {
 
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
   const [showMehmetModal, setShowMehmetModal] = useState(false);
-  const [showFinalExamModal, setShowFinalExamModal] = useState(false);
-  const [hasShownFinalModalThisSession, setHasShownFinalModalThisSession] = useState(() => {
-    return sessionStorage.getItem('hasShownFinalModalThisSession') === 'true';
-  });
 
   // Cache temizleme fonksiyonu
   const clearAllCaches = async () => {
@@ -273,69 +268,7 @@ function AppContent() {
     checkMehmetModal();
   }, [isAuthenticated]);
 
-  // Final sınavı modal kontrolü - Her kullanıcıya sadece 3 defa göster
-  useEffect(() => {
-    const checkFinalExamModal = async () => {
-      // Sadece homepage'de göster
-      if (location.pathname !== '/' && location.pathname !== '/home') {
-        return;
-      }
-      
-      // Bu session'da zaten gösterildiyse gösterme
-      if (hasShownFinalModalThisSession) {
-        return;
-      }
-      
-      if (!isAuthenticated) return;
-      
-      try {
-        const userId = authService.getCurrentUserId();
-        if (!userId) return;
 
-        const { doc, getDoc } = await import('firebase/firestore');
-        const userProfileRef = doc(db, 'userProfiles', userId);
-        const userDoc = await getDoc(userProfileRef);
-        
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const shownCount = userData?.finalExamModalShownCount || 0;
-          
-          // Modal 3 defadan az gösterildiyse göster
-          if (shownCount < 3) {
-            setTimeout(() => {
-              setShowFinalExamModal(true);
-              setHasShownFinalModalThisSession(true);
-              sessionStorage.setItem('hasShownFinalModalThisSession', 'true');
-            }, 3000);
-          }
-        } else {
-          // Kullanıcı profili yoksa ilk kez göster
-          setTimeout(() => {
-            setShowFinalExamModal(true);
-            setHasShownFinalModalThisSession(true);
-            sessionStorage.setItem('hasShownFinalModalThisSession', 'true');
-          }, 3000);
-        }
-      } catch (error) {
-        console.error('Final sınavı modal kontrolü sırasında hata:', error);
-        // Hata durumunda da göster
-        setTimeout(() => {
-          setShowFinalExamModal(true);
-          setHasShownFinalModalThisSession(true);
-          sessionStorage.setItem('hasShownFinalModalThisSession', 'true');
-        }, 3000);
-      }
-    };
-
-    checkFinalExamModal();
-  }, [isAuthenticated, location.pathname, hasShownFinalModalThisSession]);
-
-  // Sayfa değiştiğinde modal'ı kapat
-  useEffect(() => {
-    if (location.pathname !== '/' && location.pathname !== '/home') {
-      setShowFinalExamModal(false);
-    }
-  }, [location.pathname]);
 
 
 
@@ -408,10 +341,6 @@ function AppContent() {
       <MehmetModal 
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
-      />
-      <FinalExamSupportModal 
-        isOpen={showFinalExamModal} 
-        onClose={() => setShowFinalExamModal(false)} 
       />
       <PerformanceMonitor />
     </div>
