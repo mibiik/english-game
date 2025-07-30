@@ -3,7 +3,7 @@ import { userAnalyticsService } from '../services/userAnalyticsService';
 import { userService } from '../services/userService';
 import { gameScoreService } from '../services/gameScoreService';
 import { db } from '../config/firebase';
-import { collection, getDocs, getDoc, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 interface Anomaly {
   id: string;
@@ -224,93 +224,23 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // Firebase bağlantısını test et
-  const testFirebaseConnection = async () => {
-    try {
-      console.log('🔍 Firebase bağlantısı test ediliyor...');
-      const testRef = doc(db, 'userProfiles', 'test-connection');
-      await getDoc(testRef);
-      console.log('✅ Firebase bağlantısı başarılı');
-      return true;
-    } catch (error) {
-      console.error('❌ Firebase bağlantı hatası:', error);
-      return false;
-    }
-  };
-
   const updateUserScore = async () => {
-    if (!selectedUser) {
-      console.error('❌ selectedUser bulunamadı');
-      alert('❌ Kullanıcı seçilmedi');
-      return;
-    }
-    
-    // Firebase bağlantısını test et
-    const isConnected = await testFirebaseConnection();
-    if (!isConnected) {
-      alert('❌ Firebase bağlantısı kurulamadı. Lütfen internet bağlantınızı kontrol edin.');
-      return;
-    }
-    
-    console.log('🔄 Puan güncelleniyor:', { 
-      userId: selectedUser.userId, 
-      displayName: selectedUser.displayName, 
-      oldScore: selectedUser.totalScore, 
-      newScore 
-    });
+    if (!selectedUser) return;
     
     try {
       const userRef = doc(db, 'userProfiles', selectedUser.userId);
-      
-      console.log('📝 Firebase güncelleme başlatılıyor...');
-      console.log('📝 Güncellenecek veri:', {
+      await updateDoc(userRef, {
         totalScore: newScore,
         updatedAt: new Date()
       });
       
-      // Firebase güncelleme işlemini timeout ile sarmalayalım
-      const updatePromise = updateDoc(userRef, {
-        totalScore: newScore,
-        updatedAt: new Date()
-      });
-      
-      // 10 saniye timeout ekleyelim
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Firebase güncelleme timeout - 10 saniye geçti')), 10000);
-      });
-      
-      await Promise.race([updatePromise, timeoutPromise]);
-      
-      console.log('✅ Firebase güncelleme başarılı');
       alert(`✅ ${selectedUser.displayName} kullanıcısının puanı ${newScore} olarak güncellendi`);
       setShowScoreModal(false);
       setSelectedUser(null);
-      setNewScore(0);
       loadData();
     } catch (error) {
-      console.error('❌ Puan güncellenirken hata:', error);
-      console.error('❌ Hata detayları:', {
-        userId: selectedUser.userId,
-        newScore,
-        errorMessage: error instanceof Error ? error.message : 'Bilinmeyen hata',
-        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-        errorStack: error instanceof Error ? error.stack : 'Stack yok'
-      });
-      
-      let errorMessage = 'Bilinmeyen hata';
-      if (error instanceof Error) {
-        if (error.message.includes('permission-denied')) {
-          errorMessage = 'Yetki hatası - Firebase güvenlik kuralları güncellemeye izin vermiyor';
-        } else if (error.message.includes('not-found')) {
-          errorMessage = 'Kullanıcı bulunamadı';
-        } else if (error.message.includes('timeout')) {
-          errorMessage = 'Bağlantı zaman aşımı - İnternet bağlantınızı kontrol edin';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      alert(`❌ Puan güncellenirken hata oluştu: ${errorMessage}`);
+      console.error('Puan güncellenirken hata:', error);
+      alert('❌ Puan güncellenirken hata oluştu');
     }
   };
 

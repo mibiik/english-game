@@ -261,11 +261,13 @@ self.addEventListener('fetch', (event) => {
         .then((cachedResponse) => {
           const fetchPromise = fetch(event.request)
             .then((networkResponse) => {
-              // Başarılı response'u cache'le
-              if (networkResponse.status === 200) {
+              // Başarılı response'u cache'le (chrome-extension hariç)
+              if (networkResponse.status === 200 && !event.request.url.startsWith('chrome-extension://')) {
                 const responseClone = networkResponse.clone();
                 caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(event.request, responseClone);
+                  cache.put(event.request, responseClone).catch(error => {
+                    console.warn('Cache put hatası:', error);
+                  });
                 });
               }
               return networkResponse;
