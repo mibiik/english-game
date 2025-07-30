@@ -352,7 +352,7 @@ function AppContent() {
 
 function App() {
   // Bakım modu aktif - true yaparak sitenizi geçici olarak kapatabilirsiniz
-  const MAINTENANCE_MODE = true;
+  const MAINTENANCE_MODE = false;
 
   if (MAINTENANCE_MODE) {
     return <MaintenanceMode />;
