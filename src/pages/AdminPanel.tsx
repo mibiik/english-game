@@ -225,22 +225,42 @@ const AdminPanel: React.FC = () => {
   };
 
   const updateUserScore = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser) {
+      console.error('❌ selectedUser bulunamadı');
+      alert('❌ Kullanıcı seçilmedi');
+      return;
+    }
+    
+    console.log('🔄 Puan güncelleniyor:', { 
+      userId: selectedUser.userId, 
+      displayName: selectedUser.displayName, 
+      oldScore: selectedUser.totalScore, 
+      newScore 
+    });
     
     try {
       const userRef = doc(db, 'userProfiles', selectedUser.userId);
+      
+      console.log('📝 Firebase güncelleme başlatılıyor...');
       await updateDoc(userRef, {
         totalScore: newScore,
         updatedAt: new Date()
       });
       
+      console.log('✅ Firebase güncelleme başarılı');
       alert(`✅ ${selectedUser.displayName} kullanıcısının puanı ${newScore} olarak güncellendi`);
       setShowScoreModal(false);
       setSelectedUser(null);
+      setNewScore(0);
       loadData();
     } catch (error) {
-      console.error('Puan güncellenirken hata:', error);
-      alert('❌ Puan güncellenirken hata oluştu');
+      console.error('❌ Puan güncellenirken hata:', error);
+      console.error('❌ Hata detayları:', {
+        userId: selectedUser.userId,
+        newScore,
+        errorMessage: error instanceof Error ? error.message : 'Bilinmeyen hata'
+      });
+      alert(`❌ Puan güncellenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
     }
   };
 
