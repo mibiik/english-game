@@ -70,6 +70,18 @@ export const migrateScores = async () => {
     
     console.log(`✅ ${userProfiles.length} kullanıcı profili bulundu`);
     
+    // Admin kullanıcılarını kontrol et ve güncelle
+    const adminUserIds = ['VtSQP9JxPSVmRrHUyeMX9aYBMDq1', 'D1QC2'];
+    const adminEmails = ['mbirlik24@ku.edu.tr'];
+    
+    console.log('🔍 Admin kullanıcıları kontrol ediliyor...');
+    for (const userProfile of userProfiles) {
+      const isAdmin = adminUserIds.includes(userProfile.userId) || adminEmails.includes(userProfile.email);
+      if (isAdmin) {
+        console.log(`👑 Admin kullanıcı bulundu: ${userProfile.displayName} (${userProfile.email})`);
+      }
+    }
+    
     // 2. Eski Firebase'den oyun skorlarını al
     console.log('📥 Eski Firebase\'den oyun skorları alınıyor...');
     const gameScoresSnapshot = await getDocs(collection(oldDb, 'gameScores'));
@@ -147,6 +159,42 @@ export const migrateScores = async () => {
       success: false,
       error: error instanceof Error ? error.message : 'Bilinmeyen hata'
     };
+  }
+};
+
+// Otomatik migration - uygulama başlatıldığında çalışır
+export const autoMigrateIfNeeded = async () => {
+  try {
+    console.log('🔍 Otomatik migration kontrolü başlatılıyor...');
+    
+    // Yeni Firebase'de veri var mı kontrol et
+    const newUserProfilesSnapshot = await getDocs(collection(newDb, 'userProfiles'));
+    const newGameScoresSnapshot = await getDocs(collection(newDb, 'gameScores'));
+    
+    if (newUserProfilesSnapshot.size === 0 && newGameScoresSnapshot.size === 0) {
+      console.log('📊 Yeni Firebase boş - otomatik migration başlatılıyor...');
+      
+      // Migration'ı başlat
+      const result = await migrateScores();
+      
+      if (result.success) {
+        console.log('🎉 Otomatik migration başarılı!');
+        console.log(`📊 Sonuçlar: ${result.migratedUsers} kullanıcı, ${result.migratedScores} skor`);
+        
+        // Kullanıcıya bilgi ver
+        if (typeof window !== 'undefined') {
+          setTimeout(() => {
+            alert(`✅ Otomatik migration tamamlandı!\n${result.migratedUsers} kullanıcı ve ${result.migratedScores} skor aktarıldı.`);
+          }, 1000);
+        }
+      } else {
+        console.error('❌ Otomatik migration başarısız:', result.error);
+      }
+    } else {
+      console.log('📊 Yeni Firebase\'de veri mevcut - migration gerekmiyor');
+    }
+  } catch (error) {
+    console.error('❌ Otomatik migration kontrolü hatası:', error);
   }
 };
 

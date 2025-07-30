@@ -17,6 +17,7 @@ import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { userAnalyticsService } from './services/userAnalyticsService';
 import MaintenanceMode from './components/MaintenanceMode';
+import { autoMigrateIfNeeded } from './utils/migrateScores';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
@@ -93,8 +94,20 @@ function AppContent() {
     }
   };
 
-  // Uygulama başlangıcında cache kontrolü
+  // Uygulama başlangıcında cache kontrolü ve otomatik migration
   useEffect(() => {
+    // Otomatik migration kontrolü
+    const runAutoMigration = async () => {
+      try {
+        await autoMigrateIfNeeded();
+      } catch (error) {
+        console.error('❌ Otomatik migration hatası:', error);
+      }
+    };
+    
+    // Migration'ı 2 saniye sonra çalıştır (sayfa yüklendikten sonra)
+    setTimeout(runAutoMigration, 2000);
+    
     // Build time kontrolü
     const buildTime = (window as any).__BUILD_TIME__;
     const lastBuildTime = localStorage.getItem('lastBuildTime');
