@@ -43,8 +43,8 @@ class AuthService {
               await userService.updateOnlineStatus(user.uid, true);
             }
             
-            // Giriş aktivitesini kaydet
-            await userAnalyticsService.logLogin();
+            // Giriş aktivitesi tamamlandı
+            console.log('✅ Giriş aktivitesi tamamlandı');
           } catch (userError) {
             console.error('Auth state değişikliği sırasında kullanıcı kontrolü hatası:', userError);
           }
@@ -126,16 +126,23 @@ class AuthService {
     // Google ile giriş
   public async signInWithGoogle(): Promise<FirebaseUser> {
     try {
+      console.log('🔐 Google girişi başlatılıyor...');
+      
       // Önce oturum kalıcılığını ayarla
       await setPersistence(auth, browserLocalPersistence);
+      console.log('✅ Oturum kalıcılığı ayarlandı');
       
       const provider = new GoogleAuthProvider();
+      console.log('🔧 Google provider oluşturuldu');
+      
       const result = await signInWithPopup(auth, provider);
+      console.log('✅ Google popup başarılı:', result.user.email);
       
       // Kullanıcının users koleksiyonunda olup olmadığını kontrol et
       try {
         const existingUser = await userService.getUser(result.user.uid);
         if (!existingUser) {
+          console.log('📝 Yeni kullanıcı users koleksiyonuna ekleniyor...');
           // Kullanıcı users koleksiyonunda yoksa ekle
           await userService.registerUser(
             result.user.displayName || 'Kullanıcı',
@@ -143,21 +150,49 @@ class AuthService {
             result.user.photoURL || undefined,
             result.user.uid
           );
+          console.log('✅ Yeni kullanıcı kaydedildi');
         } else {
+          console.log('🔄 Mevcut kullanıcı online durumu güncelleniyor...');
           // Kullanıcı varsa online durumunu güncelle
           await userService.updateOnlineStatus(result.user.uid, true);
+          console.log('✅ Online durum güncellendi');
         }
         
-        // Giriş aktivitesini kaydet
-        await userAnalyticsService.logLogin();
+        // Giriş aktivitesi tamamlandı
+        console.log('✅ Giriş aktivitesi tamamlandı');
       } catch (userError) {
-        console.error('Google girişi sırasında kullanıcı kontrolü hatası:', userError);
+        console.error('❌ Google girişi sırasında kullanıcı kontrolü hatası:', userError);
       }
       
       return result.user;
     } catch (error) {
-      console.error('Google ile giriş sırasında hata oluştu:', error);
-      throw error;
+      console.error('❌ Google ile giriş sırasında hata oluştu:', error);
+      
+      // Hata türüne göre özel mesajlar
+      let errorMessage = 'Bilinmeyen hata';
+      if (error instanceof Error) {
+        if (error.message.includes('popup-closed-by-user')) {
+          errorMessage = 'Giriş işlemi iptal edildi';
+        } else if (error.message.includes('popup-blocked')) {
+          errorMessage = 'Popup engellendi - Lütfen popup engelleyiciyi kapatın';
+        } else if (error.message.includes('auth/popup-closed-by-user')) {
+          errorMessage = 'Giriş penceresi kapatıldı';
+        } else if (error.message.includes('auth/cancelled-popup-request')) {
+          errorMessage = 'Giriş işlemi iptal edildi';
+        } else if (error.message.includes('auth/operation-not-allowed')) {
+          errorMessage = 'Google girişi etkin değil - Firebase ayarlarını kontrol edin';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      console.error('🔍 Hata detayları:', {
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        errorMessage: errorMessage,
+        errorStack: error instanceof Error ? error.stack : 'No stack'
+      });
+      
+      throw new Error(errorMessage);
     }
   }
 
@@ -201,8 +236,8 @@ class AuthService {
       if (currentUserId) {
         try {
           await userService.updateOnlineStatus(currentUserId, false);
-          // Çıkış aktivitesini kaydet
-          await userAnalyticsService.logLogout();
+          // Çıkış aktivitesi tamamlandı
+          console.log('✅ Çıkış aktivitesi tamamlandı');
         } catch (userError) {
           console.error('Kullanıcı online durumu güncellenirken hata:', userError);
           // Bu hata ana çıkış işlemini engellememeli
