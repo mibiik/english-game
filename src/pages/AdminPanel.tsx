@@ -36,6 +36,8 @@ interface User {
   isFirstSupporter?: boolean;
   createdAt?: string;
   lastSeen?: string;
+  finalExamModalShownCount?: number;
+  finalExamModalLastShown?: string;
 }
 
 interface Feedback {
@@ -47,6 +49,16 @@ interface Feedback {
 }
 
 
+
+interface FinalModalResponse {
+  id: string;
+  userId: string;
+  userName: string;
+  response: boolean;
+  timestamp: string;
+  userAgent: string;
+  screenSize: string;
+}
 
 interface SupportAction {
   id: string;
@@ -66,7 +78,7 @@ const AdminPanel: React.FC = () => {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-
+  const [finalModalResponses, setFinalModalResponses] = useState<FinalModalResponse[]>([]);
   const [supportActions, setSupportActions] = useState<SupportAction[]>([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -78,7 +90,7 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'finalModal' | 'support'>('users');
 
   useEffect(() => {
     loadData();
@@ -86,14 +98,16 @@ const AdminPanel: React.FC = () => {
   }, []);
 
   const loadData = async () => {
+    if (loading) return; // Eğer zaten yükleniyorsa çık
+    
     setLoading(true);
     try {
-      const [anomaliesData, notificationsData, usersData, feedbacksData, supportActionsData] = await Promise.all([
+      const [anomaliesData, notificationsData, usersData, feedbacksData, finalModalResponsesData, supportActionsData] = await Promise.all([
         userAnalyticsService.getAnomalies(50),
         userAnalyticsService.getAdminNotifications(20),
         loadUsers(),
         loadFeedbacks(),
-
+        loadFinalModalResponses(),
         loadSupportActions()
       ]);
       
@@ -101,7 +115,7 @@ const AdminPanel: React.FC = () => {
       setNotifications(notificationsData as AdminNotification[]);
       setUsers(usersData);
       setFeedbacks(feedbacksData);
-
+      setFinalModalResponses(finalModalResponsesData);
       setSupportActions(supportActionsData);
     } catch (error) {
       console.error('Veri yüklenirken hata:', error);
@@ -128,6 +142,8 @@ const AdminPanel: React.FC = () => {
           isFirstSupporter: data.isFirstSupporter || false,
           createdAt: data.createdAt?.toDate?.()?.toLocaleString('tr-TR') || '',
           lastSeen: data.lastSeen?.toDate?.()?.toLocaleString('tr-TR') || '',
+          finalExamModalShownCount: data.finalExamModalShownCount || 0,
+          finalExamModalLastShown: data.finalExamModalLastShown?.toDate?.()?.toLocaleString('tr-TR') || ''
 
         });
       });
@@ -160,6 +176,33 @@ const AdminPanel: React.FC = () => {
       return feedbacksData;
     } catch (error) {
       console.error('Feedback\'ler yüklenirken hata:', error);
+      return [];
+    }
+  };
+
+  const loadFinalModalResponses = async (): Promise<FinalModalResponse[]> => {
+    try {
+      const responsesRef = collection(db, 'finalExamModalResponses');
+      const q = query(responsesRef, orderBy('timestamp', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const responsesData: FinalModalResponse[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        responsesData.push({
+          id: doc.id,
+          userId: data.userId || '',
+          userName: data.userName || '',
+          response: data.response || false,
+          timestamp: data.timestamp?.toDate?.()?.toLocaleString('tr-TR') || '',
+          userAgent: data.userAgent || '',
+          screenSize: data.screenSize || ''
+        });
+      });
+      
+      return responsesData;
+    } catch (error) {
+      console.error('Final modal yanıtları yüklenirken hata:', error);
       return [];
     }
   };
@@ -415,10 +458,10 @@ const AdminPanel: React.FC = () => {
           </div>
 
           {/* Tab'lar */}
-          <div className="flex border-b border-gray-600 mb-6">
+          <div className="flex flex-wrap border-b border-gray-600 mb-4 sm:mb-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 font-semibold transition-colors ${
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'users' 
                   ? 'text-blue-400 border-b-2 border-blue-400' 
                   : 'text-gray-400 hover:text-white'
@@ -428,7 +471,7 @@ const AdminPanel: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('feedbacks')}
-              className={`px-4 py-2 font-semibold transition-colors ${
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'feedbacks' 
                   ? 'text-blue-400 border-b-2 border-blue-400' 
                   : 'text-gray-400 hover:text-white'
@@ -436,16 +479,25 @@ const AdminPanel: React.FC = () => {
             >
               💬 Feedback ({filteredFeedbacks.length})
             </button>
-
+            <button
+              onClick={() => setActiveTab('finalModal')}
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'finalModal' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🎓 Final Modal ({finalModalResponses.length})
+            </button>
             <button
               onClick={() => setActiveTab('support')}
-              className={`px-4 py-2 font-semibold transition-colors ${
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
                 activeTab === 'support' 
                   ? 'text-blue-400 border-b-2 border-blue-400' 
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              💰 Destek İşlemleri ({supportActions.length})
+              💰 Destek ({supportActions.length})
             </button>
           </div>
 
@@ -457,7 +509,7 @@ const AdminPanel: React.FC = () => {
                 placeholder="Kullanıcı adı veya email ile ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 sm:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
               />
             </div>
           )}
@@ -470,7 +522,7 @@ const AdminPanel: React.FC = () => {
                 placeholder="Feedback içeriği ile ara..."
                 value={feedbackSearchTerm}
                 onChange={(e) => setFeedbackSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 sm:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
               />
             </div>
           )}
@@ -480,7 +532,98 @@ const AdminPanel: React.FC = () => {
           {/* Kullanıcılar Tab */}
           {activeTab === 'users' && (
             <div>
-              <div className="overflow-x-auto">
+              {/* Mobile için kart görünümü */}
+              <div className="block md:hidden space-y-4">
+                {filteredUsers.map((user) => (
+                  <div key={user.userId} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-semibold text-white">{user.displayName}</h3>
+                        <p className="text-gray-300 text-sm">{user.email}</p>
+                        <p className="text-green-400 font-semibold text-lg">{user.totalScore} puan</p>
+                        <p className="text-blue-400 text-sm">
+                          Final Modal: {user.finalExamModalShownCount}/1
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-gray-400 text-xs">{user.createdAt}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Rozetler */}
+                    <div className="mb-4">
+                      <div className="flex flex-wrap gap-1">
+                        {user.badges?.map((badge, index) => (
+                          <span key={index} className="inline-flex items-center px-2 py-1 bg-blue-600 text-white rounded-full text-xs">
+                            {badge}
+                            <button
+                              onClick={() => removeUserBadge(user.userId, badge)}
+                              className="ml-1 text-red-300 hover:text-red-100"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                        {user.isFirstSupporter && (
+                          <span className="inline-flex items-center px-2 py-1 bg-purple-600 text-white rounded-full text-xs">
+                            İlk Destekçi
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* İşlem butonları */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setNewScore(user.totalScore);
+                          setShowScoreModal(true);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 px-2 py-1 rounded text-xs transition-colors"
+                      >
+                        Puan Düzenle
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setShowBadgeModal(true);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs transition-colors"
+                      >
+                        Rozet Ekle
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          addSupporterBadge();
+                        }}
+                        className="bg-yellow-600 hover:bg-yellow-700 px-2 py-1 rounded text-xs transition-colors"
+                      >
+                        Destekçi Rozeti
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
+                          addExtraBadge();
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs transition-colors"
+                      >
+                        Ekstra Rozet
+                      </button>
+                      <button
+                        onClick={() => deleteUser(user.userId)}
+                        className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-xs transition-colors col-span-2"
+                      >
+                        Kullanıcıyı Sil
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Desktop için tablo görünümü */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-600">
@@ -488,7 +631,7 @@ const AdminPanel: React.FC = () => {
                       <th className="text-left py-3 px-4">Email</th>
                       <th className="text-left py-3 px-4">Puan</th>
                       <th className="text-left py-3 px-4">Rozetler</th>
-
+                      <th className="text-left py-3 px-4">Final Modal</th>
                       <th className="text-left py-3 px-4">Kayıt Tarihi</th>
                       <th className="text-left py-3 px-4">İşlemler</th>
                     </tr>
@@ -519,7 +662,18 @@ const AdminPanel: React.FC = () => {
                             )}
                           </div>
                         </td>
-
+                        <td className="py-3 px-4">
+                          <div className="text-xs">
+                            <div className="text-blue-400 font-semibold">
+                              {user.finalExamModalShownCount}/1
+                            </div>
+                            {user.finalExamModalLastShown && (
+                              <div className="text-gray-500 text-xs">
+                                Son: {user.finalExamModalLastShown}
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-gray-400 text-xs">{user.createdAt}</td>
                         <td className="py-3 px-4">
                           <div className="flex gap-2">
@@ -566,7 +720,6 @@ const AdminPanel: React.FC = () => {
                             >
                               Sil
                             </button>
-
                           </div>
                         </td>
                       </tr>
@@ -588,36 +741,36 @@ const AdminPanel: React.FC = () => {
               ) : filteredFeedbacks.length > 0 ? (
                 <div className="space-y-4">
                   {filteredFeedbacks.map((feedback) => (
-                    <div key={feedback.id} className={`bg-gray-700 rounded-lg p-4 border-l-4 ${
+                    <div key={feedback.id} className={`bg-gray-700 rounded-lg p-3 sm:p-4 border-l-4 ${
                       feedback.isRead ? 'border-gray-500' : 'border-blue-500'
                     }`}>
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg text-blue-300">{feedback.name}</h3>
-                            <span className={`px-2 py-1 rounded text-xs ${
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-base sm:text-lg text-blue-300">{feedback.name}</h3>
+                            <span className={`px-2 py-1 rounded text-xs w-fit ${
                               feedback.isRead ? 'bg-gray-600 text-gray-300' : 'bg-blue-600 text-white'
                             }`}>
                               {feedback.isRead ? 'Okundu' : 'Yeni'}
                             </span>
                           </div>
-                          <p className="text-gray-300 mt-2 whitespace-pre-wrap">{feedback.feedback}</p>
-                          <p className="text-gray-400 text-sm mt-3">
+                          <p className="text-gray-300 mt-2 whitespace-pre-wrap text-sm sm:text-base">{feedback.feedback}</p>
+                          <p className="text-gray-400 text-xs sm:text-sm mt-3">
                             📅 {feedback.date}
                           </p>
                         </div>
-                        <div className="flex gap-2 ml-4">
+                        <div className="flex gap-2 w-full sm:w-auto">
                           {!feedback.isRead && (
                             <button
                               onClick={() => markFeedbackAsRead(feedback.id)}
-                              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs transition-colors"
+                              className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs transition-colors flex-1 sm:flex-none"
                             >
                               Okundu
                             </button>
                           )}
                           <button
                             onClick={() => deleteFeedback(feedback.id)}
-                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs transition-colors"
+                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs transition-colors flex-1 sm:flex-none"
                           >
                             Sil
                           </button>
@@ -635,7 +788,82 @@ const AdminPanel: React.FC = () => {
             </div>
           )}
           
-
+          {/* Final Modal Tab */}
+          {activeTab === 'finalModal' && (
+            <div>
+              {loading ? (
+                <div className="text-center py-8">Yükleniyor...</div>
+              ) : finalModalResponses.length > 0 ? (
+                <>
+                  {/* Mobile için kart görünümü */}
+                  <div className="block md:hidden space-y-4">
+                    {finalModalResponses.map((response) => (
+                      <div key={response.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-white">{response.userName}</h3>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              response.response 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-red-600 text-white'
+                            }`}>
+                              {response.response ? '✅ Evet' : '❌ Hayır'}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-gray-400 text-xs">{response.timestamp}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm">
+                          <p className="text-gray-300">
+                            <span className="text-gray-400">Ekran:</span> {response.screenSize}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Desktop için tablo görünümü */}
+                  <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-600">
+                        <th className="text-left py-3 px-4">Kullanıcı</th>
+                        <th className="text-left py-3 px-4">Yanıt</th>
+                        <th className="text-left py-3 px-4">Tarih</th>
+                        <th className="text-left py-3 px-4">Ekran</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {finalModalResponses.map((response) => (
+                        <tr key={response.id} className="border-b border-gray-700 hover:bg-gray-700">
+                          <td className="py-3 px-4 font-medium">{response.userName}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              response.response 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-red-600 text-white'
+                            }`}>
+                              {response.response ? '✅ Evet' : '❌ Hayır'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">{response.timestamp}</td>
+                          <td className="py-3 px-4 text-gray-400 text-xs">{response.screenSize}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                </>
+              ) : (
+                <p className="text-gray-400 text-center py-8">Henüz final modal yanıtı yok</p>
+              )}
+              <div className="mt-4 text-gray-400 text-sm">
+                Toplam {finalModalResponses.length} yanıt bulundu
+              </div>
+            </div>
+          )}
           
           {/* Destek İşlemleri Tab */}
           {activeTab === 'support' && (
@@ -643,7 +871,42 @@ const AdminPanel: React.FC = () => {
               {loading ? (
                 <div className="text-center py-8">Yükleniyor...</div>
               ) : supportActions.length > 0 ? (
-                <div className="overflow-x-auto">
+                <>
+                  {/* Mobile için kart görünümü */}
+                  <div className="block md:hidden space-y-4">
+                    {supportActions.map((action) => (
+                      <div key={action.id} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-white">{action.userName}</h3>
+                            <p className="text-green-400 font-semibold text-lg">
+                              {action.amount} {action.currency}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-green-600 text-white">
+                              {action.action === 'final_modal_support' ? 'Final Modal Destek' : action.action}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm">
+                          <p className="text-gray-300">
+                            <span className="text-gray-400">Kaynak:</span> {action.source === 'final_exam_modal' ? 'Final Modal' : action.source}
+                          </p>
+                          <p className="text-gray-300">
+                            <span className="text-gray-400">Tarih:</span> {action.timestamp}
+                          </p>
+                          <p className="text-gray-300">
+                            <span className="text-gray-400">Ekran:</span> {action.screenSize}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Desktop için tablo görünümü */}
+                  <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-600">
@@ -677,6 +940,7 @@ const AdminPanel: React.FC = () => {
                     </tbody>
                   </table>
                 </div>
+                </>
               ) : (
                 <p className="text-gray-400 text-center py-8">Henüz destek işlemi yok</p>
               )}
@@ -688,42 +952,42 @@ const AdminPanel: React.FC = () => {
         </div>
 
         {/* Monitoring Kontrolü */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">📊 Puan Anomalisi Monitoring</h2>
+        <div className="bg-gray-800 rounded-lg p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">📊 Puan Anomalisi Monitoring</h2>
           <div className="flex items-center gap-4">
             <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-900 text-green-300">
               ✅ Sürekli Aktif
             </span>
           </div>
-          <p className="text-gray-400 mt-2">
+          <p className="text-gray-400 mt-2 text-sm sm:text-base">
             Monitoring sürekli açık tutulmaktadır. Kullanıcı puanlarındaki ani düşüşler otomatik olarak algılanır ve kaydedilir.
           </p>
-          <p className="text-green-400 mt-2 text-sm">
+          <p className="text-green-400 mt-2 text-xs sm:text-sm">
             ✅ Arka plan monitoring aktif - Uygulama kapalıyken bile çalışır
           </p>
-          <p className="text-yellow-400 mt-2 text-sm">
+          <p className="text-yellow-400 mt-2 text-xs sm:text-sm">
             ⚠️ Not: Service Worker ile 30 saniyede bir kontrol edilir
           </p>
         </div>
 
         {/* Admin Bildirimleri */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">📢 Admin Bildirimleri</h2>
+        <div className="bg-gray-800 rounded-lg p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">📢 Admin Bildirimleri</h2>
           {loading ? (
             <div className="text-center py-8">Yükleniyor...</div>
           ) : notifications.length > 0 ? (
             <div className="space-y-4">
               {notifications.map((notification) => (
-                <div key={notification.id} className="bg-gray-700 rounded-lg p-4 border-l-4 border-red-500">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-lg">{notification.title}</h3>
-                      <p className="text-gray-300 mt-1">{notification.message}</p>
-                      <p className="text-gray-400 text-sm mt-2">
+                <div key={notification.id} className="bg-gray-700 rounded-lg p-3 sm:p-4 border-l-4 border-red-500">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg">{notification.title}</h3>
+                      <p className="text-gray-300 mt-1 text-sm sm:text-base">{notification.message}</p>
+                      <p className="text-gray-400 text-xs sm:text-sm mt-2">
                         {formatDate(notification.timestamp)}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs ${
+                    <span className={`px-2 py-1 rounded text-xs w-fit ${
                       notification.isRead ? 'bg-gray-600 text-gray-300' : 'bg-red-600 text-white'
                     }`}>
                       {notification.isRead ? 'Okundu' : 'Yeni'}
@@ -738,8 +1002,8 @@ const AdminPanel: React.FC = () => {
         </div>
 
         {/* Puan Anomalileri */}
-        <div className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-2xl font-semibold mb-4">🚨 Puan Anomalileri</h2>
+        <div className="bg-gray-800 rounded-lg p-3 sm:p-4 md:p-6">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">🚨 Puan Anomalileri</h2>
           {loading ? (
             <div className="text-center py-8">Yükleniyor...</div>
           ) : anomalies.length > 0 ? (
@@ -787,20 +1051,20 @@ const AdminPanel: React.FC = () => {
 
         {/* Puan Düzenleme Modal */}
         {showScoreModal && selectedUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-96">
-              <h3 className="text-xl font-semibold mb-4">Puan Düzenle</h3>
-              <p className="text-gray-300 mb-4">{selectedUser.displayName} kullanıcısının puanını düzenleyin:</p>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md">
+              <h3 className="text-lg sm:text-xl font-semibold mb-4">Puan Düzenle</h3>
+              <p className="text-gray-300 mb-4 text-sm sm:text-base">{selectedUser.displayName} kullanıcısının puanını düzenleyin:</p>
               <input
                 type="number"
                 value={newScore}
                 onChange={(e) => setNewScore(Number(e.target.value))}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white mb-4"
+                className="w-full px-3 sm:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white mb-4 text-sm sm:text-base"
               />
               <div className="flex gap-2">
                 <button
                   onClick={updateUserScore}
-                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-green-600 hover:bg-green-700 px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base flex-1"
                 >
                   Güncelle
                 </button>
@@ -809,7 +1073,7 @@ const AdminPanel: React.FC = () => {
                     setShowScoreModal(false);
                     setSelectedUser(null);
                   }}
-                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-gray-600 hover:bg-gray-700 px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base flex-1"
                 >
                   İptal
                 </button>
@@ -820,21 +1084,21 @@ const AdminPanel: React.FC = () => {
 
         {/* Rozet Ekleme Modal */}
         {showBadgeModal && selectedUser && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-96">
-              <h3 className="text-xl font-semibold mb-4">Rozet Ekle</h3>
-              <p className="text-gray-300 mb-4">{selectedUser.displayName} kullanıcısına rozet ekleyin:</p>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md">
+              <h3 className="text-lg sm:text-xl font-semibold mb-4">Rozet Ekle</h3>
+              <p className="text-gray-300 mb-4 text-sm sm:text-base">{selectedUser.displayName} kullanıcısına rozet ekleyin:</p>
               <input
                 type="text"
                 value={newBadge}
                 onChange={(e) => setNewBadge(e.target.value)}
                 placeholder="Rozet adı..."
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white mb-4"
+                className="w-full px-3 sm:px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white mb-4 text-sm sm:text-base"
               />
               <div className="flex gap-2">
                 <button
                   onClick={addUserBadge}
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base flex-1"
                 >
                   Ekle
                 </button>
@@ -844,7 +1108,7 @@ const AdminPanel: React.FC = () => {
                     setSelectedUser(null);
                     setNewBadge('');
                   }}
-                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors"
+                  className="bg-gray-600 hover:bg-gray-700 px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base flex-1"
                 >
                   İptal
                 </button>
