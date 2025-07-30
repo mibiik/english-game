@@ -226,6 +226,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setTimerActive(true);
     setScoreSaved(false);
     setShowResult(false); // Round bitiş ekranını kapat
+    console.log('🔄 MatchingGame - handleNextRound tamamlandı, scoreSaved: false');
   };
 
   const handleNextRound = () => {
@@ -416,7 +417,42 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           // Sonraki round'a otomatik geç
           console.log('🔄 MatchingGame - Otomatik olarak sonraki round\'a geçiliyor');
           setTimeout(() => {
-            handleNextRound();
+            // scoreSaved'ı false yapmadan önce handleNextRound'u çağır
+            const nextRound = currentRound >= calculatedTotalRounds ? 1 : currentRound + 1;
+            
+            // State'i güncelle
+            setCurrentRound(nextRound);
+            
+            // Yeni round için oyunu başlat
+            const roundStartIndex = (nextRound - 1) * 9;
+            const roundEndIndex = Math.min(roundStartIndex + 9, total);
+            const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
+            
+            console.log('🔄 MatchingGame - handleNextRound (otomatik):', { 
+              currentRound, 
+              nextRound, 
+              calculatedTotalRounds, 
+              roundStartIndex, 
+              roundEndIndex, 
+              roundWordsCount: roundWords.length 
+            });
+            
+            const englishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'english' as const }));
+            const turkishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'turkish' as const }));
+            const allCards = [...englishCards, ...turkishCards].sort(() => 0.5 - Math.random());
+            
+            setGameWords(allCards);
+            setLastRoundWords(allCards);
+            setMatchedPairs([]);
+            setSelectedEnglish(null);
+            setSelectedTurkish(null);
+            setIsChecking(false);
+            setScore(0);
+            setBonus(0);
+            setTimeLeft(60);
+            setTimerActive(true);
+            setScoreSaved(false); // Burada false yap
+            setShowResult(false);
           }, 1000); // 1 saniye bekle
         }
       }
