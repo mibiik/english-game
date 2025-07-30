@@ -4,6 +4,7 @@ import { userService } from '../services/userService';
 import { gameScoreService } from '../services/gameScoreService';
 import { db } from '../config/firebase';
 import { collection, getDocs, getDoc, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { migrateScores, checkMigrationStatus } from '../utils/migrateScores';
 
 interface Anomaly {
   id: string;
@@ -79,7 +80,9 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support' | 'migration'>('users');
+  const [migrationStatus, setMigrationStatus] = useState<{ userProfiles: number; gameScores: number } | null>(null);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -457,6 +460,38 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // Migration fonksiyonları
+  const handleMigration = async () => {
+    if (!confirm('Eski Firebase\'den yeni Firebase\'e puan aktarımı başlatılsın mı? Bu işlem biraz zaman alabilir.')) {
+      return;
+    }
+    
+    setIsMigrating(true);
+    try {
+      const result = await migrateScores();
+      if (result.success) {
+        alert(`✅ Migration başarılı!\n${result.migratedUsers}/${result.totalUsers} kullanıcı\n${result.migratedScores}/${result.totalScores} skor aktarıldı`);
+        await handleCheckMigrationStatus();
+      } else {
+        alert(`❌ Migration hatası: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Migration hatası:', error);
+      alert('❌ Migration sırasında hata oluştu');
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  const handleCheckMigrationStatus = async () => {
+    try {
+      const status = await checkMigrationStatus();
+      setMigrationStatus(status);
+    } catch (error) {
+      console.error('Migration durumu kontrol hatası:', error);
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -519,6 +554,16 @@ const AdminPanel: React.FC = () => {
               }`}
             >
               💰 Destek ({supportActions.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('migration')}
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'migration' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🔄 Migration
             </button>
           </div>
 
@@ -878,6 +923,73 @@ const AdminPanel: React.FC = () => {
               )}
               <div className="mt-4 text-gray-400 text-sm">
                 Toplam {supportActions.length} destek işlemi bulundu
+              </div>
+            </div>
+          )}
+
+          {/* Migration Tab */}
+          {activeTab === 'migration' && (
+            <div>
+              <div className="bg-gray-700 rounded-lg p-4 border border-gray-600 mb-6">
+                <h3 className="text-lg font-semibold mb-4">🔄 Firebase Migration</h3>
+                <p className="text-gray-300 mb-4 text-sm">
+                  Eski Firebase projesinden (engllish-e9b66) yeni Firebase projesine (kutiy2025) puan aktarımı yapın.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gray-600 rounded-lg p-3">
+                    <h4 className="font-semibold text-red-400 mb-2">Eski Firebase</h4>
+                    <p className="text-sm text-gray-300">engllish-e9b66</p>
+                    <p className="text-sm text-gray-400">Kotası aşıldı</p>
+                  </div>
+                  <div className="bg-gray-600 rounded-lg p-3">
+                    <h4 className="font-semibold text-green-400 mb-2">Yeni Firebase</h4>
+                    <p className="text-sm text-gray-300">kutiy2025</p>
+                    <p className="text-sm text-gray-400">Aktif proje</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button
+                    onClick={handleMigration}
+                    disabled={isMigrating}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+                  >
+                    {isMigrating ? '🔄 Migration yapılıyor...' : '🚀 Migration Başlat'}
+                  </button>
+                  <button
+                    onClick={handleCheckMigrationStatus}
+                    className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+                  >
+                    📊 Durumu Kontrol Et
+                  </button>
+                </div>
+
+                {migrationStatus && (
+                  <div className="mt-4 bg-gray-600 rounded-lg p-3">
+                    <h4 className="font-semibold mb-2">📊 Yeni Firebase Durumu</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Kullanıcı Profilleri:</span>
+                        <span className="text-white ml-2">{migrationStatus.userProfiles}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Oyun Skorları:</span>
+                        <span className="text-white ml-2">{migrationStatus.gameScores}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-yellow-900 rounded-lg p-4 border border-yellow-600">
+                <h4 className="font-semibold text-yellow-300 mb-2">⚠️ Önemli Notlar</h4>
+                <ul className="text-sm text-yellow-200 space-y-1">
+                  <li>• Migration işlemi tüm kullanıcı profillerini ve oyun skorlarını aktarır</li>
+                  <li>• İşlem sırasında uygulama kullanılmamalıdır</li>
+                  <li>• Migration sonrası yeni Firebase projesi aktif olacak</li>
+                  <li>• Eski veriler korunur, sadece kopyalanır</li>
+                </ul>
               </div>
             </div>
           )}

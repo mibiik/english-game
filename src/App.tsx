@@ -16,6 +16,7 @@ import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { userAnalyticsService } from './services/userAnalyticsService';
+import MaintenanceMode from './components/MaintenanceMode';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
@@ -350,6 +351,13 @@ function AppContent() {
 }
 
 function App() {
+  // Bakım modu aktif - true yaparak sitenizi geçici olarak kapatabilirsiniz
+  const MAINTENANCE_MODE = true;
+
+  if (MAINTENANCE_MODE) {
+    return <MaintenanceMode />;
+  }
+
   return (
     <BrowserRouter>
       <AppContent />
