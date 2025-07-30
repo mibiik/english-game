@@ -384,6 +384,16 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Round bittiğinde puanı ve bonusu kaydet
   useEffect(() => {
+    console.log('🔄 saveScore useEffect çalıştı:', {
+      scoreSaved,
+      matchedPairsLength: matchedPairs.length,
+      gameWordsLength: gameWords.length,
+      timeLeft,
+      removeTimer,
+      showResult,
+      shouldSave: gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !removeTimer)) && !showResult && !scoreSaved
+    });
+    
     const saveScore = async () => {
       if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !removeTimer)) && !showResult && !scoreSaved) {
         setTimerActive(false);
@@ -412,11 +422,20 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         const total = currentUnitWords.length;
         const calculatedTotalRounds = Math.ceil(total / 9);
         
+        console.log('🎯 Round tamamlama kontrolü:', {
+          currentRound,
+          calculatedTotalRounds,
+          isLastRound: currentRound >= calculatedTotalRounds,
+          showRoundComplete: false
+        });
+        
         if (currentRound >= calculatedTotalRounds) {
           // Son round - sonuç ekranını göster
+          console.log('🏁 Son round - showResult true yapılıyor');
           setShowResult(true);
         } else {
           // Round tamamlama ekranını göster - kullanıcı manuel olarak geçecek
+          console.log('🔄 Ara round - showRoundComplete true yapılıyor');
           setShowRoundComplete(true);
         }
       }
@@ -424,6 +443,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     
     saveScore();
   }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer, words]);
+
+  // showRoundComplete state değişikliklerini izle
+  useEffect(() => {
+    console.log('👀 showRoundComplete state değişti:', showRoundComplete);
+  }, [showRoundComplete]);
 
   // Round tamamlama ekranı
   if (showRoundComplete) {
