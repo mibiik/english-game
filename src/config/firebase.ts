@@ -7,13 +7,13 @@ import { getAnalytics } from "firebase/analytics";
 // Firebase yapılandırma bilgileri
 // Environment variables'dan al, yoksa fallback değerleri kullan
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBv5CmjWcqUD-IoUR6fRODD1QkD6rRd_dc",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "engllish-e9b66.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "engllish-e9b66",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "engllish-e9b66.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "108757647621",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:108757647621:web:42842dc88178c7058bb76c",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-ND05BVBP39"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBEVHXctBk-AZh2T5lhMwA3j2KoCg3589g",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "wordplay-99044.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "wordplay-99044",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "wordplay-99044.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "458350131750",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:458350131750:web:d23ef859dd519ecc7d84e7",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-J0SS2K3GZT"
 };
 
 // Geliştirme ortamında Firebase yapılandırmasını kontrol et
