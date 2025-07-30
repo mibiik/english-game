@@ -100,6 +100,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [showDefneModal, setShowDefneModal] = useState(false);
   const [showWarning, setShowWarning] = useState(true);
   const [removeTimer, setRemoveTimer] = useState(false); // Süre kaldırıldı mı?
+  const [showRoundComplete, setShowRoundComplete] = useState(false); // Round tamamlama ekranı
 
   // Kullanıcı ID'sini al
   const userId = authService.getCurrentUserId();
@@ -123,6 +124,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     });
     
     setShowResult(false);
+    setShowRoundComplete(false);
     setScore(0);
     setBonus(0);
     setRemoveTimer(false); // Her yeni oyunda süre kaldırma sıfırlanır
@@ -414,10 +416,14 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
           // Son round - sonuç ekranını göster
           setShowResult(true);
         } else {
-          // Sonraki round'a otomatik geç
-          console.log('🔄 MatchingGame - Otomatik olarak sonraki round\'a geçiliyor');
+          // Round tamamlama ekranını göster
+          setShowRoundComplete(true);
+          
+          // 3 saniye sonra sonraki round'a geç
           setTimeout(() => {
-            // scoreSaved'ı false yapmadan önce handleNextRound'u çağır
+            setShowRoundComplete(false);
+            
+            // Sonraki round'a geç
             const nextRound = currentRound >= calculatedTotalRounds ? 1 : currentRound + 1;
             
             // State'i güncelle
@@ -451,15 +457,39 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
             setBonus(0);
             setTimeLeft(60);
             setTimerActive(true);
-            setScoreSaved(false); // Burada false yap
+            setScoreSaved(false);
             setShowResult(false);
-          }, 1000); // 1 saniye bekle
+          }, 3000); // 3 saniye bekle
         }
       }
     };
     
     saveScore();
   }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer, words]);
+
+  // Round tamamlama ekranı
+  if (showRoundComplete) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-emerald-100" style={{ marginTop: '-160px' }}>
+        <div className="text-center p-8 rounded-2xl shadow-2xl w-full max-w-lg border bg-white border-green-200">
+          <h2 className="text-4xl font-black mb-4 text-green-600">Round Tamamlandı! 🎯</h2>
+          <div className="p-4 rounded-xl mb-6 border bg-gradient-to-r from-green-50 to-emerald-50 border-green-100">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <span className="font-semibold text-green-600">Round Skoru</span>
+            </div>
+            <p className="text-3xl font-bold text-green-800">{score} + <span className="text-blue-600">{bonus} Bonus</span></p>
+            <p className="mt-2 text-green-700">Toplam: {score + bonus} puan</p>
+            <p className="mt-2 text-green-700">{matchedPairs.length} / {gameWords.length / 2} kelime eşleştirdin</p>
+            <p className="mt-2 text-green-700">Round {currentRound} / {Math.ceil(words.filter(word => word.unit === unit).length / 9)}</p>
+          </div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-green-600 font-semibold">Sonraki round'a geçiliyor...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Tasarım ve görsel yapı korunacak, sadece puan sistemi sadeleşecek
     if (showResult) {
