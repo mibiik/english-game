@@ -405,17 +405,26 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         // Kullanıcı ID'sini al ve puanı topla
         const userId = authService.getCurrentUserId();
         console.log('🔥 MatchingGame - Round bitti:', { userId, finalScore, score, calculatedBonus, currentRound, totalRounds });
+        
+        // Firebase quota sorunu olsa bile round tamamlama ekranını göster
+        let scoreSavedSuccessfully = false;
+        
         if (userId) {
           try {
             await gameScoreService.addScore(userId, 'matching', finalScore);
             console.log('✅ Puan başarıyla eklendi:', finalScore);
-            setScoreSaved(true);
+            scoreSavedSuccessfully = true;
           } catch (error) {
             console.error('❌ Puan eklenirken hata:', error);
+            // Firebase hatası olsa bile devam et
+            scoreSavedSuccessfully = true; // Kullanıcı deneyimi için true yap
           }
         } else {
           console.error('❌ Kullanıcı ID bulunamadı');
+          scoreSavedSuccessfully = true; // Kullanıcı deneyimi için true yap
         }
+        
+        setScoreSaved(scoreSavedSuccessfully);
         
         // Son round ise sonuç ekranını göster, değilse otomatik olarak sonraki round'a geç
         const currentUnitWords = words.filter(word => word.unit === unit);
@@ -444,9 +453,11 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     saveScore();
   }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer, words]);
 
-  // showRoundComplete state değişikliklerini izle
+  // showRoundComplete state değişikliklerini izle (sadece development'ta)
   useEffect(() => {
-    console.log('👀 showRoundComplete state değişti:', showRoundComplete);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('👀 showRoundComplete state değişti:', showRoundComplete);
+    }
   }, [showRoundComplete]);
 
   // Round tamamlama ekranı
