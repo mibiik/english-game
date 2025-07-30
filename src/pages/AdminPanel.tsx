@@ -579,7 +579,7 @@ const AdminPanel: React.FC = () => {
                       <th className="text-left py-3 px-4">Email</th>
                       <th className="text-left py-3 px-4">Puan</th>
                       <th className="text-left py-3 px-4">Rozetler</th>
-                      <th className="text-left py-3 px-4">Final Modal</th>
+
                       <th className="text-left py-3 px-4">Kayıt Tarihi</th>
                       <th className="text-left py-3 px-4">İşlemler</th>
                     </tr>
@@ -747,14 +747,14 @@ const AdminPanel: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <span className="px-2 py-1 rounded text-xs font-semibold bg-green-600 text-white">
-                              {action.action === 'final_modal_support' ? 'Final Modal Destek' : action.action}
+                              {action.action}
                             </span>
                           </div>
                         </div>
                         
                         <div className="space-y-2 text-sm">
                           <p className="text-gray-300">
-                            <span className="text-gray-400">Kaynak:</span> {action.source === 'final_exam_modal' ? 'Final Modal' : action.source}
+                            <span className="text-gray-400">Kaynak:</span> {action.source}
                           </p>
                           <p className="text-gray-300">
                             <span className="text-gray-400">Tarih:</span> {action.timestamp}
@@ -786,14 +786,14 @@ const AdminPanel: React.FC = () => {
                           <td className="py-3 px-4 font-medium">{action.userName}</td>
                           <td className="py-3 px-4">
                             <span className="px-2 py-1 rounded text-xs font-semibold bg-green-600 text-white">
-                              {action.action === 'final_modal_support' ? 'Final Modal Destek' : action.action}
+                              {action.action}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-green-400 font-semibold">
                             {action.amount} {action.currency}
                           </td>
                           <td className="py-3 px-4 text-gray-400 text-xs">
-                            {action.source === 'final_exam_modal' ? 'Final Modal' : action.source}
+                            {action.source}
                           </td>
                           <td className="py-3 px-4 text-gray-400 text-xs">{action.timestamp}</td>
                           <td className="py-3 px-4 text-gray-400 text-xs">{action.screenSize}</td>
