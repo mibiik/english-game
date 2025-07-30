@@ -33,6 +33,7 @@ const PlayerQuizFlow = lazy(() => import('./pages/PlayerQuizFlow'));
 const ParaphrasePage = lazy(() => import('./pages/ParaphrasePage'));
 const GrammarGamePage = lazy(() => import('./pages/GrammarGamePage'));
 const EssayWritingPage = lazy(() => import('./pages/EssayWritingPage'));
+const AllWordsPage = lazy(() => import('./pages/AllWordsPage'));
 
 
 // Game Modes - Lazy loading
@@ -546,6 +547,22 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/hakkimizda" element={<Hakkimizda />} />
         <Route path="/sss" element={<Sss />} />
         <Route path="/about-founder" element={<AboutFounder />} />
+        <Route path="/all-words" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <AllWordsPage currentLevel={currentLevel} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
 
 
       </Routes>

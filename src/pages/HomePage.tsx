@@ -110,6 +110,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   // Memoized game modes
   const gameModes = useMemo(() => [
     { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    { id: 'all-words', title: 'Tüm Kelimeler', icon: <HiBookOpen />, link: `/all-words`, color: '', shadow: '' },
     { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
     { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
     { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
@@ -784,6 +785,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             // Başlığa göre dosya adı eşleştirme
             const imageMap: Record<string, string> = {
               'Öğretici Mod': 'ogrenmemodu.jpg',
+              'Tüm Kelimeler': 'kelimekartlari.jpg', // Kelime kartları görselini kullan
               'Çoktan Seçmeli': 'coktansecmeli.jpg',
               'Eşleştirme': 'eşeştirme.jpg',
               'Boşluk Doldurma': 'boslukdoldurma.jpg',
