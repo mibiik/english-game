@@ -33,7 +33,7 @@ const PlayerQuizFlow = lazy(() => import('./pages/PlayerQuizFlow'));
 const ParaphrasePage = lazy(() => import('./pages/ParaphrasePage'));
 const GrammarGamePage = lazy(() => import('./pages/GrammarGamePage'));
 const EssayWritingPage = lazy(() => import('./pages/EssayWritingPage'));
-
+const FirebaseTestPage = lazy(() => import('./pages/FirebaseTestPage'));
 
 // Game Modes - Lazy loading
 const MultipleChoice = lazy(() => import('./components/GameModes/MultipleChoice').then(module => ({ default: module.MultipleChoice })));
@@ -546,7 +546,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/hakkimizda" element={<Hakkimizda />} />
         <Route path="/sss" element={<Sss />} />
         <Route path="/about-founder" element={<AboutFounder />} />
-
+        <Route path="/firebase-test" element={<FirebaseTestPage />} />
 
       </Routes>
     </Suspense>

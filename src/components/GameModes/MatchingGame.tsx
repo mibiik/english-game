@@ -100,7 +100,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [showDefneModal, setShowDefneModal] = useState(false);
   const [showWarning, setShowWarning] = useState(true);
   const [removeTimer, setRemoveTimer] = useState(false); // Süre kaldırıldı mı?
-  const [showRoundComplete, setShowRoundComplete] = useState(false); // Round tamamlama ekranı
 
   // Kullanıcı ID'sini al
   const userId = authService.getCurrentUserId();
@@ -124,7 +123,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     });
     
     setShowResult(false);
-    setShowRoundComplete(false);
     setScore(0);
     setBonus(0);
     setRemoveTimer(false); // Her yeni oyunda süre kaldırma sıfırlanır
@@ -201,13 +199,13 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
     
-    // Önceki round numarasını hesapla
-    const prevRound = currentRound <= 1 ? totalRounds : currentRound - 1;
-    
-    // State'i güncelle
-    setCurrentRound(prevRound);
+    setCurrentRound(prev => {
+      if (prev <= 1) return totalRounds;
+      return prev - 1;
+    });
     
     // Yeni round için oyunu başlat
+    const prevRound = currentRound <= 1 ? totalRounds : currentRound - 1;
     const roundStartIndex = (prevRound - 1) * 9;
     const roundEndIndex = Math.min(roundStartIndex + 9, total);
     const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
@@ -228,7 +226,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     setTimerActive(true);
     setScoreSaved(false);
     setShowResult(false); // Round bitiş ekranını kapat
-    console.log('🔄 MatchingGame - handleNextRound tamamlandı, scoreSaved: false');
   };
 
   const handleNextRound = () => {
@@ -236,25 +233,16 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     const total = currentUnitWords.length;
     const totalRounds = Math.ceil(total / 9);
     
-    // Yeni round numarasını hesapla
-    const nextRound = currentRound >= totalRounds ? 1 : currentRound + 1;
-    
-    // State'i güncelle
-    setCurrentRound(nextRound);
+    setCurrentRound(prev => {
+      if (prev >= totalRounds) return 1;
+      return prev + 1;
+    });
     
     // Yeni round için oyunu başlat
+    const nextRound = currentRound >= totalRounds ? 1 : currentRound + 1;
     const roundStartIndex = (nextRound - 1) * 9;
     const roundEndIndex = Math.min(roundStartIndex + 9, total);
     const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
-    
-    console.log('🔄 MatchingGame - handleNextRound:', { 
-      currentRound, 
-      nextRound, 
-      totalRounds, 
-      roundStartIndex, 
-      roundEndIndex, 
-      roundWordsCount: roundWords.length 
-    });
     
     const englishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'english' as const }));
     const turkishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'turkish' as const }));
@@ -384,16 +372,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
 
   // Round bittiğinde puanı ve bonusu kaydet
   useEffect(() => {
-    console.log('🔄 saveScore useEffect çalıştı:', {
-      scoreSaved,
-      matchedPairsLength: matchedPairs.length,
-      gameWordsLength: gameWords.length,
-      timeLeft,
-      removeTimer,
-      showResult,
-      shouldSave: gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !removeTimer)) && !showResult && !scoreSaved
-    });
-    
     const saveScore = async () => {
       if (gameWords.length > 0 && (matchedPairs.length === gameWords.length / 2 || (timeLeft === 0 && !removeTimer)) && !showResult && !scoreSaved) {
         setTimerActive(false);
@@ -405,126 +383,24 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
         // Kullanıcı ID'sini al ve puanı topla
         const userId = authService.getCurrentUserId();
         console.log('🔥 MatchingGame - Round bitti:', { userId, finalScore, score, calculatedBonus, currentRound, totalRounds });
-        
-        // Firebase quota sorunu olsa bile round tamamlama ekranını göster
-        let scoreSavedSuccessfully = false;
-        
         if (userId) {
           try {
             await gameScoreService.addScore(userId, 'matching', finalScore);
             console.log('✅ Puan başarıyla eklendi:', finalScore);
-            scoreSavedSuccessfully = true;
-          } catch (error) {
+            setScoreSaved(true);
+        } catch (error) {
             console.error('❌ Puan eklenirken hata:', error);
-            // Firebase hatası olsa bile devam et
-            scoreSavedSuccessfully = true; // Kullanıcı deneyimi için true yap
-          }
-        } else {
+        }
+      } else {
           console.error('❌ Kullanıcı ID bulunamadı');
-          scoreSavedSuccessfully = true; // Kullanıcı deneyimi için true yap
         }
         
-        setScoreSaved(scoreSavedSuccessfully);
-        
-        // Son round ise sonuç ekranını göster, değilse otomatik olarak sonraki round'a geç
-        const currentUnitWords = words.filter(word => word.unit === unit);
-        const total = currentUnitWords.length;
-        const calculatedTotalRounds = Math.ceil(total / 9);
-        
-        console.log('🎯 Round tamamlama kontrolü:', {
-          currentRound,
-          calculatedTotalRounds,
-          isLastRound: currentRound >= calculatedTotalRounds,
-          showRoundComplete: false
-        });
-        
-        if (currentRound >= calculatedTotalRounds) {
-          // Son round - sonuç ekranını göster
-          console.log('🏁 Son round - showResult true yapılıyor');
-          setShowResult(true);
-        } else {
-          // Round tamamlama ekranını göster - kullanıcı manuel olarak geçecek
-          console.log('🔄 Ara round - showRoundComplete true yapılıyor');
-          setShowRoundComplete(true);
-        }
+            setShowResult(true);
       }
     };
     
     saveScore();
-  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer, words]);
-
-  // showRoundComplete state değişikliklerini izle (sadece development'ta)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('👀 showRoundComplete state değişti:', showRoundComplete);
-    }
-  }, [showRoundComplete]);
-
-  // Round tamamlama ekranı
-  if (showRoundComplete) {
-    const currentUnitWords = words.filter(word => word.unit === unit);
-    const totalRounds = Math.ceil(currentUnitWords.length / 9);
-    const isLastRound = currentRound >= totalRounds;
-    
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-emerald-100" style={{ marginTop: '-160px' }}>
-        <div className="text-center p-8 rounded-2xl shadow-2xl w-full max-w-lg border bg-white border-green-200">
-          <h2 className="text-4xl font-black mb-4 text-green-600">Round Tamamlandı! 🎯</h2>
-          <div className="p-4 rounded-xl mb-6 border bg-gradient-to-r from-green-50 to-emerald-50 border-green-100">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="font-semibold text-green-600">Round Skoru</span>
-            </div>
-            <p className="text-3xl font-bold text-green-800">{score} + <span className="text-blue-600">{bonus} Bonus</span></p>
-            <p className="mt-2 text-green-700">Toplam: {score + bonus} puan</p>
-            <p className="mt-2 text-green-700">{matchedPairs.length} / {gameWords.length / 2} kelime eşleştirdin</p>
-            <p className="mt-2 text-green-700">Round {currentRound} / {totalRounds}</p>
-          </div>
-          
-          {isLastRound ? (
-            // Son round - oyun tamamlandı
-            <div>
-              <button onClick={() => setShowRoundComplete(false)} className="w-full text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 mb-4">Oyunu Tamamla</button>
-              <button onClick={handleReplayRound} className="w-full text-center rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-yellow-500 hover:to-yellow-700 transition-all duration-200 mb-4">Tekrar Oyna</button>
-              <button onClick={() => navigate('/')} className="w-full text-center rounded-xl bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-slate-500 hover:to-slate-600 transition-all duration-200">Ana Sayfaya Git</button>
-            </div>
-          ) : (
-            // Ara round - sonraki round'a geç
-            <div>
-              <button onClick={() => {
-                setShowRoundComplete(false);
-                // Manuel olarak sonraki round'a geç
-                const nextRound = currentRound + 1;
-                setCurrentRound(nextRound);
-                
-                const roundStartIndex = (nextRound - 1) * 9;
-                const roundEndIndex = Math.min(roundStartIndex + 9, currentUnitWords.length);
-                const roundWords = currentUnitWords.slice(roundStartIndex, roundEndIndex);
-                
-                const englishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'english' as const }));
-                const turkishCards = roundWords.map(word => ({ ...word, id: Math.random(), type: 'turkish' as const }));
-                const allCards = [...englishCards, ...turkishCards].sort(() => 0.5 - Math.random());
-                
-                setGameWords(allCards);
-                setLastRoundWords(allCards);
-                setMatchedPairs([]);
-                setSelectedEnglish(null);
-                setSelectedTurkish(null);
-                setIsChecking(false);
-                setScore(0);
-                setBonus(0);
-                setTimeLeft(60);
-                setTimerActive(true);
-                setScoreSaved(false);
-                setShowResult(false);
-              }} className="w-full text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-all duration-200 mb-4">Sonraki Round</button>
-              <button onClick={handleReplayRound} className="w-full text-center rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-yellow-500 hover:to-yellow-700 transition-all duration-200 mb-4">Tekrar Oyna</button>
-              <button onClick={() => navigate('/')} className="w-full text-center rounded-xl bg-gradient-to-r from-slate-400 to-slate-500 px-6 py-3 text-lg font-semibold text-white shadow-lg hover:shadow-xl hover:from-slate-500 hover:to-slate-600 transition-all duration-200">Ana Sayfaya Git</button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  }, [matchedPairs, gameWords, score, unit, timeLeft, showResult, scoreSaved, currentRound, totalRounds, removeTimer]);
 
   // Tasarım ve görsel yapı korunacak, sadece puan sistemi sadeleşecek
     if (showResult) {
