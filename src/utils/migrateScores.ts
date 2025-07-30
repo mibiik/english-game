@@ -13,15 +13,15 @@ const oldFirebaseConfig = {
   measurementId: "G-ND05BVBP39"
 };
 
-// Yeni Firebase konfigürasyonu (kutiy2025)
+// Yeni Firebase konfigürasyonu (wordplay-99044)
 const newFirebaseConfig = {
-  apiKey: "AIzaSyDo4GTXcYZHfSBW_KaKWlxKUv8AYfAJpcI",
-  authDomain: "kutiy2025.firebaseapp.com",
-  projectId: "kutiy2025",
-  storageBucket: "kutiy2025.firebasestorage.app",
-  messagingSenderId: "851823899365",
-  appId: "1:851823899365:web:f260e3b395c4626c7b1a0c",
-  measurementId: "G-MGP1MJBK32"
+  apiKey: "AIzaSyBEVHXctBk-AZh2T5lhMwA3j2KoCg3589g",
+  authDomain: "wordplay-99044.firebaseapp.com",
+  projectId: "wordplay-99044",
+  storageBucket: "wordplay-99044.firebasestorage.app",
+  messagingSenderId: "458350131750",
+  appId: "1:458350131750:web:d23ef859dd519ecc7d84e7",
+  measurementId: "G-J0SS2K3GZT"
 };
 
 // Firebase uygulamalarını başlat

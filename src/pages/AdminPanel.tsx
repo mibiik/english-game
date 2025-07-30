@@ -933,7 +933,7 @@ const AdminPanel: React.FC = () => {
               <div className="bg-gray-700 rounded-lg p-4 border border-gray-600 mb-6">
                 <h3 className="text-lg font-semibold mb-4">🔄 Firebase Migration</h3>
                 <p className="text-gray-300 mb-4 text-sm">
-                  Eski Firebase projesinden (engllish-e9b66) yeni Firebase projesine (kutiy2025) puan aktarımı yapın.
+                  Eski Firebase projesinden (engllish-e9b66) yeni Firebase projesine (wordplay-99044) puan aktarımı yapın.
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -944,7 +944,7 @@ const AdminPanel: React.FC = () => {
                   </div>
                   <div className="bg-gray-600 rounded-lg p-3">
                     <h4 className="font-semibold text-green-400 mb-2">Yeni Firebase</h4>
-                    <p className="text-sm text-gray-300">kutiy2025</p>
+                    <p className="text-sm text-gray-300">wordplay-99044</p>
                     <p className="text-sm text-gray-400">Aktif proje</p>
                   </div>
                 </div>
