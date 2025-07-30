@@ -273,7 +273,7 @@ function AppContent() {
     checkMehmetModal();
   }, [isAuthenticated]);
 
-  // Final sınavı modal kontrolü - Sadece homepage'de göster
+  // Final sınavı modal kontrolü - Her kullanıcıya sadece 3 defa göster
   useEffect(() => {
     const checkFinalExamModal = async () => {
       // Sadece homepage'de göster
@@ -296,12 +296,26 @@ function AppContent() {
         const userProfileRef = doc(db, 'userProfiles', userId);
         const userDoc = await getDoc(userProfileRef);
         
-        // Sadece ilk girişte veya sayfa yenilemesinde göster
-        setTimeout(() => {
-          setShowFinalExamModal(true);
-          setHasShownFinalModalThisSession(true);
-          sessionStorage.setItem('hasShownFinalModalThisSession', 'true');
-        }, 3000);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const shownCount = userData?.finalExamModalShownCount || 0;
+          
+          // Modal 3 defadan az gösterildiyse göster
+          if (shownCount < 3) {
+            setTimeout(() => {
+              setShowFinalExamModal(true);
+              setHasShownFinalModalThisSession(true);
+              sessionStorage.setItem('hasShownFinalModalThisSession', 'true');
+            }, 3000);
+          }
+        } else {
+          // Kullanıcı profili yoksa ilk kez göster
+          setTimeout(() => {
+            setShowFinalExamModal(true);
+            setHasShownFinalModalThisSession(true);
+            sessionStorage.setItem('hasShownFinalModalThisSession', 'true');
+          }, 3000);
+        }
       } catch (error) {
         console.error('Final sınavı modal kontrolü sırasında hata:', error);
         // Hata durumunda da göster

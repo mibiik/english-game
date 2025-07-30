@@ -20,14 +20,9 @@ export const useFinalExamModal = () => {
             const shownCount = data?.finalExamModalShownCount || 0;
             const lastShown = data?.finalExamModalLastShown;
             
-            // Modal 4 defadan az gösterildiyse ve son gösterimden 24 saat geçtiyse göster
-            if (shownCount < 4) {
-              const shouldShow = !lastShown || 
-                (new Date().getTime() - lastShown.toDate().getTime()) > 24 * 60 * 60 * 1000;
-              
-              if (shouldShow) {
-                setShowFinalExamModal(true);
-              }
+            // Modal 3 defadan az gösterildiyse göster
+            if (shownCount < 3) {
+              setShowFinalExamModal(true);
             }
           } else {
             // Kullanıcı profili yoksa ilk kez göster

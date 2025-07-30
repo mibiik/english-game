@@ -36,6 +36,8 @@ interface User {
   isFirstSupporter?: boolean;
   createdAt?: string;
   lastSeen?: string;
+  finalExamModalShownCount?: number;
+  finalExamModalLastShown?: string;
 }
 
 interface Feedback {
@@ -135,7 +137,9 @@ const AdminPanel: React.FC = () => {
           badges: data.badges || [],
           isFirstSupporter: data.isFirstSupporter || false,
           createdAt: data.createdAt?.toDate?.()?.toLocaleString('tr-TR') || '',
-          lastSeen: data.lastSeen?.toDate?.()?.toLocaleString('tr-TR') || ''
+          lastSeen: data.lastSeen?.toDate?.()?.toLocaleString('tr-TR') || '',
+          finalExamModalShownCount: data.finalExamModalShownCount || 0,
+          finalExamModalLastShown: data.finalExamModalLastShown?.toDate?.()?.toLocaleString('tr-TR') || ''
         });
       });
       
@@ -377,6 +381,25 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const resetFinalExamModalCount = async (userId: string) => {
+    if (!confirm('Bu kullanıcının final exam modal sayacını sıfırlamak istediğinizden emin misiniz?')) return;
+    
+    try {
+      const userRef = doc(db, 'userProfiles', userId);
+      await updateDoc(userRef, {
+        finalExamModalShownCount: 0,
+        finalExamModalLastShown: null,
+        updatedAt: new Date()
+      });
+      
+      alert('✅ Final exam modal sayacı sıfırlandı');
+      loadData();
+    } catch (error) {
+      console.error('Final exam modal sayacı sıfırlanırken hata:', error);
+      alert('❌ Final exam modal sayacı sıfırlanırken hata oluştu');
+    }
+  };
+
   const markFeedbackAsRead = async (feedbackId: string) => {
     try {
       const feedbackRef = doc(db, 'feedbacks', feedbackId);
@@ -527,6 +550,7 @@ const AdminPanel: React.FC = () => {
                       <th className="text-left py-3 px-4">Email</th>
                       <th className="text-left py-3 px-4">Puan</th>
                       <th className="text-left py-3 px-4">Rozetler</th>
+                      <th className="text-left py-3 px-4">Final Modal</th>
                       <th className="text-left py-3 px-4">Kayıt Tarihi</th>
                       <th className="text-left py-3 px-4">İşlemler</th>
                     </tr>
@@ -554,6 +578,18 @@ const AdminPanel: React.FC = () => {
                               <span className="inline-flex items-center px-2 py-1 bg-purple-600 text-white rounded-full text-xs">
                                 İlk Destekçi
                               </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="text-xs">
+                            <div className="text-blue-400 font-semibold">
+                              {user.finalExamModalShownCount}/3
+                            </div>
+                            {user.finalExamModalLastShown && (
+                              <div className="text-gray-500 text-xs">
+                                Son: {user.finalExamModalLastShown}
+                              </div>
                             )}
                           </div>
                         </td>
@@ -602,6 +638,12 @@ const AdminPanel: React.FC = () => {
                               className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-xs transition-colors"
                             >
                               Sil
+                            </button>
+                            <button
+                              onClick={() => resetFinalExamModalCount(user.userId)}
+                              className="bg-orange-600 hover:bg-orange-700 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              Modal Sıfırla
                             </button>
                           </div>
                         </td>

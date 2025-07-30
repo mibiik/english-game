@@ -46,7 +46,38 @@ export const FinalExamSupportModal: React.FC<FinalExamSupportModalProps> = ({ is
     }
   }, [isOpen]);
 
-  const handleClose = () => {
+  const handleClose = async () => {
+    // Modal kapatıldığında sayaç artır
+    try {
+      const userId = authService.getCurrentUserId();
+      if (userId) {
+        const { doc, getDoc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+        
+        const userProfileRef = doc(db, 'userProfiles', userId);
+        const userDoc = await getDoc(userProfileRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentCount = userData?.finalExamModalShownCount || 0;
+          
+          await updateDoc(userProfileRef, {
+            finalExamModalShownCount: currentCount + 1,
+            finalExamModalLastShown: serverTimestamp(),
+            lastUpdated: serverTimestamp()
+          });
+        } else {
+          // Kullanıcı profili yoksa oluştur
+          await updateDoc(userProfileRef, {
+            finalExamModalShownCount: 1,
+            finalExamModalLastShown: serverTimestamp(),
+            lastUpdated: serverTimestamp()
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Final modal sayaç güncellenirken hata:', error);
+    }
+    
     onClose();
   };
 
@@ -57,15 +88,33 @@ export const FinalExamSupportModal: React.FC<FinalExamSupportModalProps> = ({ is
     try {
       const userId = authService.getCurrentUserId();
       if (userId) {
-        const { doc, updateDoc, collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+        const { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } = await import('firebase/firestore');
         
-        // Kullanıcı profilini güncelle
         const userProfileRef = doc(db, 'userProfiles', userId);
-        await updateDoc(userProfileRef, {
-          finalExamModalResponse: helpful,
-          finalExamModalResponseAt: serverTimestamp(),
-          lastUpdated: serverTimestamp()
-        });
+        const userDoc = await getDoc(userProfileRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentCount = userData?.finalExamModalShownCount || 0;
+          
+          // Kullanıcı profilini güncelle
+          await updateDoc(userProfileRef, {
+            finalExamModalResponse: helpful,
+            finalExamModalResponseAt: serverTimestamp(),
+            finalExamModalShownCount: currentCount + 1,
+            finalExamModalLastShown: serverTimestamp(),
+            lastUpdated: serverTimestamp()
+          });
+        } else {
+          // Kullanıcı profili yoksa oluştur
+          await updateDoc(userProfileRef, {
+            finalExamModalResponse: helpful,
+            finalExamModalResponseAt: serverTimestamp(),
+            finalExamModalShownCount: 1,
+            finalExamModalLastShown: serverTimestamp(),
+            lastUpdated: serverTimestamp()
+          });
+        }
         
         // Ayrı bir koleksiyona detaylı kayıt ekle
         await addDoc(collection(db, 'finalExamModalResponses'), {
@@ -94,17 +143,39 @@ export const FinalExamSupportModal: React.FC<FinalExamSupportModalProps> = ({ is
     try {
       const userId = authService.getCurrentUserId();
       if (userId) {
-        const { doc, updateDoc, collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+        const { doc, getDoc, updateDoc, collection, addDoc, serverTimestamp } = await import('firebase/firestore');
         
-        // Firebase'de destek olundu flag'ini güncelle
         const userProfileRef = doc(db, 'userProfiles', userId);
-        await updateDoc(userProfileRef, {
-          finalExamModalShown: true,
-          finalExamModalShownAt: new Date(),
-          wordplayHelpful: true,
-          hasSupported: true,
-          supportedAt: new Date()
-        });
+        const userDoc = await getDoc(userProfileRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const currentCount = userData?.finalExamModalShownCount || 0;
+          
+          // Firebase'de destek olundu flag'ini güncelle
+          await updateDoc(userProfileRef, {
+            finalExamModalShown: true,
+            finalExamModalShownAt: new Date(),
+            finalExamModalShownCount: currentCount + 1,
+            finalExamModalLastShown: serverTimestamp(),
+            wordplayHelpful: true,
+            hasSupported: true,
+            supportedAt: new Date(),
+            lastUpdated: serverTimestamp()
+          });
+        } else {
+          // Kullanıcı profili yoksa oluştur
+          await updateDoc(userProfileRef, {
+            finalExamModalShown: true,
+            finalExamModalShownAt: new Date(),
+            finalExamModalShownCount: 1,
+            finalExamModalLastShown: serverTimestamp(),
+            wordplayHelpful: true,
+            hasSupported: true,
+            supportedAt: new Date(),
+            lastUpdated: serverTimestamp()
+          });
+        }
         
         // Destek işlemini ayrı koleksiyona kaydet
         await addDoc(collection(db, 'supportActions'), {
@@ -319,8 +390,38 @@ export const FinalExamSupportModal: React.FC<FinalExamSupportModalProps> = ({ is
                 {/* Butonlar */}
                 <div className="space-y-3">
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setShowFeedbackModal(false);
+                      // Feedback butonunu tetiklemeden önce sayaç artır
+                      try {
+                        const userId = authService.getCurrentUserId();
+                        if (userId) {
+                          const { doc, getDoc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+                          
+                          const userProfileRef = doc(db, 'userProfiles', userId);
+                          const userDoc = await getDoc(userProfileRef);
+                          
+                          if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            const currentCount = userData?.finalExamModalShownCount || 0;
+                            
+                            await updateDoc(userProfileRef, {
+                              finalExamModalShownCount: currentCount + 1,
+                              finalExamModalLastShown: serverTimestamp(),
+                              lastUpdated: serverTimestamp()
+                            });
+                          } else {
+                            await updateDoc(userProfileRef, {
+                              finalExamModalShownCount: 1,
+                              finalExamModalLastShown: serverTimestamp(),
+                              lastUpdated: serverTimestamp()
+                            });
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Final modal sayaç güncellenirken hata:', error);
+                      }
+                      
                       onClose(); // Ana modalı da kapat
                       // Kısa bir gecikme sonra feedback butonunu tetikle
                       setTimeout(() => {
@@ -337,7 +438,38 @@ export const FinalExamSupportModal: React.FC<FinalExamSupportModalProps> = ({ is
                   </button>
                   
                   <button
-                    onClick={() => setShowFeedbackModal(false)}
+                    onClick={async () => {
+                      setShowFeedbackModal(false);
+                      // Sayaç artır
+                      try {
+                        const userId = authService.getCurrentUserId();
+                        if (userId) {
+                          const { doc, getDoc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+                          
+                          const userProfileRef = doc(db, 'userProfiles', userId);
+                          const userDoc = await getDoc(userProfileRef);
+                          
+                          if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            const currentCount = userData?.finalExamModalShownCount || 0;
+                            
+                            await updateDoc(userProfileRef, {
+                              finalExamModalShownCount: currentCount + 1,
+                              finalExamModalLastShown: serverTimestamp(),
+                              lastUpdated: serverTimestamp()
+                            });
+                          } else {
+                            await updateDoc(userProfileRef, {
+                              finalExamModalShownCount: 1,
+                              finalExamModalLastShown: serverTimestamp(),
+                              lastUpdated: serverTimestamp()
+                            });
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Final modal sayaç güncellenirken hata:', error);
+                      }
+                    }}
                     className="w-full bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg hover:bg-gray-300 transition-all duration-200"
                   >
                     Şimdilik Kapat
