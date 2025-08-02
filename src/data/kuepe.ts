@@ -1685,4 +1685,5 @@ export interface WordDetail {
         'high demand',
         'demanding job',
       ],
-    
+    },
+  ];
