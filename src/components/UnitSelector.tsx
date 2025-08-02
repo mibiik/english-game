@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Book, Layers, X } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
+import { authService } from '../services/authService';
 
 // Ekran boyutunu kontrol etmek için basit bir hook
 const useMediaQuery = (query: string) => {
@@ -26,6 +27,19 @@ interface UnitSelectorProps {
   currentLevel: Level;
   setCurrentLevel: (level: Level) => void;
 }
+
+// KUEPE yetkisi kontrolü
+const isKuepeAuthorized = () => {
+  if (!authService.isAuthenticated()) return false;
+  
+  const currentUser = authService.getStoredUser();
+  if (!currentUser || !currentUser.email) return false;
+  
+  const email = currentUser.email.toLowerCase();
+  
+  // Sadece defne ve mbirlik24@ku.edu.tr kullanıcılarına göster
+  return email === 'oz.defne2004@gmail.com' || email === 'mbirlik24@ku.edu.tr';
+};
 
 // --- MASAÜSTÜ İÇİN DROPDOWN BİLEŞENİ ---
 const Dropdown: React.FC<{
@@ -106,8 +120,15 @@ const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurr
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
-    { id: 'kuepe', name: 'KUEPE' },
+    ...(isKuepeAuthorized() ? [{ id: 'kuepe' as Level, name: 'KUEPE' }] : []),
   ];
+
+  // Eğer kullanıcı KUEPE seviyesindeyse ama yetkili değilse, intermediate'e geç
+  useEffect(() => {
+    if (currentLevel === 'kuepe' && !isKuepeAuthorized()) {
+      setCurrentLevel('intermediate');
+    }
+  }, [currentLevel, setCurrentLevel]);
 
   return (
     <div className="flex items-center gap-2 ml-auto">
@@ -150,7 +171,7 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
-    { id: 'kuepe', name: 'KUEPE' },
+    ...(isKuepeAuthorized() ? [{ id: 'kuepe' as Level, name: 'KUEPE' }] : []),
   ];
 
   const handleLevelSelect = (levelId: Level) => {
