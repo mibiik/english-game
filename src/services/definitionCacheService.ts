@@ -73,29 +73,9 @@ class DefinitionCacheService {
         return cached.definition;
       }
 
-      // 2. Firebase'de yok veya tanım geçersiz, AI'dan üret
-      console.log('🤖 AI\'dan definition üretiliyor...');
-      const aiDefinition = await aiService.generateDefinition(word, language);
-      
-      // 3. AI'dan gelen definition'ı kontrol et ve sadece geçerliyse Firebase'e kaydet
-      if (aiDefinition && this.isValidDefinition(aiDefinition)) {
-        try {
-          await this.saveToFirebase(word, aiDefinition, language, 'ai');
-          console.log('💾 Geçerli definition Firebase\'e kaydedildi');
-        } catch (saveError) {
-          console.error('❌ Firebase kaydetme hatası (definition kullanılabilir):', saveError);
-          // Kaydetme hatası olsa bile definition'ı döndür
-        }
-      } else {
-        console.warn('⚠️ AI\'dan gelen definition geçersiz:', aiDefinition);
-      }
-      
-      // 4. Geçerli definition varsa döndür, yoksa fallback
-      if (aiDefinition && this.isValidDefinition(aiDefinition)) {
-        return aiDefinition;
-      } else {
-        return `Definition for "${word}" could not be loaded.`;
-      }
+      // 2. Firebase'de yok veya tanım geçersiz - AI üretimi geçici olarak devre dışı
+      console.log('⚠️ Definition Firebase\'de yok - AI üretimi geçici olarak devre dışı');
+      return `Definition for "${word}" not found in Firebase.`;
 
     } catch (error) {
       console.error('❌ Definition cache hatası:', error);
@@ -134,47 +114,13 @@ class DefinitionCacheService {
       }
     });
 
-    // 2. Eksik kelimeler için AI'dan toplu üret
+    // 2. Eksik kelimeler için AI üretimi geçici olarak devre dışı
     if (missingWords.length > 0) {
-      console.log('🤖 AI\'dan toplu definition üretiliyor:', missingWords);
+      console.log('⚠️ AI üretimi geçici olarak devre dışı - Eksik kelimeler:', missingWords);
       
-      try {
-        // Eksik tüm kelimeleri tek seferde AI'a gönder
-        const aiDefinitions = await aiService.generateBatchDefinitions(missingWords, language);
-        
-        // 3. AI sonuçlarını filtrele ve sadece geçerli olanları Firebase'e kaydet
-        const validAiDefinitions = Object.entries(aiDefinitions).reduce((acc, [word, definition]) => {
-            if (definition && this.isValidDefinition(definition)) {
-                acc[word] = definition;
-            }
-            return acc;
-        }, {} as Record<string, string>);
-
-        if (Object.keys(validAiDefinitions).length > 0) {
-            try {
-                await this.saveBatchToFirebase(validAiDefinitions, language, 'ai');
-                console.log('💾 Geçerli toplu definitions Firebase\'e kaydedildi');
-            } catch (saveError) {
-                console.error('❌ Firebase toplu kaydetme hatası (definitions kullanılabilir):', saveError);
-                // Kaydetme hatası olsa bile geçerli definitions'ları kullan
-            }
-        }
-        
-        // 4. Sonuçları birleştir (geçerli olanları)
-        Object.entries(aiDefinitions).forEach(([word, definition]) => {
-          if (this.isValidDefinition(definition)) {
-            result[word] = definition;
-          } else {
-            result[word] = `Definition for "${word}" could not be loaded.`;
-          }
-        });
-        
-      } catch (error) {
-        console.error('❌ AI toplu definition hatası:', error);
-        // Hata durumunda fallback definitions
-        for (const word of missingWords) {
-          result[word] = `Definition for "${word}" could not be loaded.`;
-        }
+      // Eksik kelimeler için "Firebase'de yok" mesajı
+      for (const word of missingWords) {
+        result[word] = `Definition for "${word}" not found in Firebase.`;
       }
     }
 

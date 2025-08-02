@@ -867,6 +867,20 @@ const AdminPanel: React.FC = () => {
             <div>
               <div className="bg-gray-700 rounded-lg p-4 mb-6">
                 <h3 className="text-lg font-semibold mb-4">📊 Cache İstatistikleri</h3>
+                
+                {/* AI Üretimi Geçici Devre Dışı Uyarısı */}
+                <div className="bg-yellow-900 border border-yellow-600 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-yellow-300 text-lg">⚠️</span>
+                    <div>
+                      <div className="font-semibold text-yellow-300">AI Üretimi Geçici Olarak Devre Dışı</div>
+                      <div className="text-yellow-200 text-sm">
+                        Definition üretme problemleri nedeniyle sadece Firebase'deki mevcut tanımlar gösteriliyor.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-gray-600 rounded-lg p-3 text-center">
                     <div className="text-2xl font-bold text-blue-400">{cacheStats.total}</div>
