@@ -174,6 +174,13 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
     ...(isKuepeAuthorized() ? [{ id: 'kuepe' as Level, name: 'KUEPE' }] : []),
   ];
 
+  // Eğer kullanıcı KUEPE seviyesindeyse ama yetkili değilse, intermediate'e geç
+  useEffect(() => {
+    if (currentLevel === 'kuepe' && !isKuepeAuthorized()) {
+      setCurrentLevel('intermediate');
+    }
+  }, [currentLevel, setCurrentLevel]);
+
   const handleLevelSelect = (levelId: Level) => {
     setCurrentLevel(levelId);
     setCurrentUnit('1'); // Seviye değişince üniteyi 1'e sıfırla
