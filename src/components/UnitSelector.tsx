@@ -277,6 +277,13 @@ export const UnitSelector: React.FC<UnitSelectorProps> = (props) => {
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Eğer kullanıcı KUEPE seviyesindeyse ama yetkili değilse, intermediate'e geç
+    useEffect(() => {
+        if (props.currentLevel === 'kuepe' && !isKuepeAuthorized()) {
+            props.setCurrentLevel('intermediate');
+        }
+    }, [props.currentLevel, props.setCurrentLevel]);
+
     if (isMobile) {
         return (
             <>
@@ -286,7 +293,7 @@ export const UnitSelector: React.FC<UnitSelectorProps> = (props) => {
                 >
                     <Layers className="w-4 h-4 text-fuchsia-400" />
                     <span>
-                        {props.currentLevel === 'kuepe' 
+                        {props.currentLevel === 'kuepe' && isKuepeAuthorized()
                             ? 'KUEPE' 
                             : `${props.currentLevel.replace('-', ' ')} / Unit ${props.currentUnit}`
                         }
