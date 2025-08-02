@@ -60,12 +60,25 @@ const MobileMenu: React.FC<{
   const navigate = useNavigate();
   const [openDropdown, setOpenDropdown] = useState<'level' | 'unit' | null>(null);
 
+  // KUEPE yetkisi kontrolü
+  const isKuepeAuthorized = () => {
+    if (!authService.isAuthenticated()) return false;
+    
+    const currentUser = authService.getStoredUser();
+    if (!currentUser || !currentUser.email) return false;
+    
+    const email = currentUser.email.toLowerCase();
+    
+    // Sadece defne ve mbirlik24@ku.edu.tr kullanıcılarına göster
+    return email === 'oz.defne2004@gmail.com' || email === 'mbirlik24@ku.edu.tr';
+  };
+
   const levels = [
     { id: 'foundation', name: 'Foundation' },
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
-    { id: 'kuepe', name: 'KUEPE' },
+    ...(isKuepeAuthorized() ? [{ id: 'kuepe', name: 'KUEPE' }] : []),
   ];
 
   const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
@@ -76,17 +89,10 @@ const MobileMenu: React.FC<{
       setCurrentLevel(selectedLevel.id as any);
       
       // KUEPE seçildiğinde direkt KUEPE moduna yönlendir
-      if (selectedLevel.id === 'kuepe') {
-        const currentUser = authService.getStoredUser();
-        const isKuepeAuthorized = currentUser && currentUser.email && 
-          (currentUser.email.toLowerCase() === 'oz.defne2004@gmail.com' || 
-           currentUser.email.toLowerCase() === 'mbirlik24@ku.edu.tr');
-        
-        if (isKuepeAuthorized) {
-          navigate('/kuepe-mode?unit=1&level=kuepe');
-          onClose();
-          return;
-        }
+      if (selectedLevel.id === 'kuepe' && isKuepeAuthorized()) {
+        navigate('/kuepe-mode?unit=1&level=kuepe');
+        onClose();
+        return;
       }
     }
     setOpenDropdown(null); // Dropdown'ı kapat
