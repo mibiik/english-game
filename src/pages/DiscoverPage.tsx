@@ -46,7 +46,8 @@ const DiscoverPage: React.FC = () => {
     { id: 'foundation', name: 'Foundation' },
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
-    { id: 'upper-intermediate', name: 'Upper-Intermediate' }
+    { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+    { id: 'kuepe', name: 'KUEPE' }
   ];
 
   useEffect(() => {
@@ -258,6 +259,7 @@ const DiscoverPage: React.FC = () => {
       case 'pre-intermediate': return 'bg-blue-500';
       case 'intermediate': return 'bg-purple-500';
       case 'upper-intermediate': return 'bg-orange-500';
+      case 'kuepe': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -268,6 +270,7 @@ const DiscoverPage: React.FC = () => {
       case 'pre-intermediate': return 'Pre-Int';
       case 'intermediate': return 'Int';
       case 'upper-intermediate': return 'Up-Int';
+      case 'kuepe': return 'KUEPE';
       default: return 'Unknown';
     }
   };

@@ -6,6 +6,7 @@ import { newDetailedWords_part1 as foundationWords } from '../data/word1';
 import { newDetailedWords_part1 as preIntermediateWords } from '../data/word2';
 import { detailedWords_part1 as upperIntermediateWords } from '../data/word4';
 import { newDetailedWords_part1 as intermediateWords } from '../data/words';
+import { kuepeWords } from '../data/kuepe';
 import { definitionCacheService } from '../services/definitionCacheService';
 import { ArrowLeft, ArrowRight, ArrowUp, Lightbulb, Star, Loader2, Volume2, Bookmark, Sparkles, Zap, CheckCircle } from 'lucide-react';
 
@@ -146,6 +147,9 @@ const AllWordsPage: React.FC<AllWordsPageProps> = ({ currentLevel }) => {
       case 'upper-intermediate':
         words = upperIntermediateWords;
         break;
+      case 'kuepe':
+        words = kuepeWords;
+        break;
       case 'intermediate':
       default:
         words = intermediateWords;
@@ -165,7 +169,8 @@ const AllWordsPage: React.FC<AllWordsPageProps> = ({ currentLevel }) => {
         word.headword.toLowerCase().includes(searchTerm.toLowerCase()) || 
         word.turkish.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesUnit = selectedUnit === 'all' || word.unit === selectedUnit;
+      // KUEPE için ünite filtrelemesi yok
+      const matchesUnit = currentLevel === 'kuepe' || selectedUnit === 'all' || word.unit === selectedUnit;
       
       return matchesSearch && matchesUnit;
     });
@@ -288,20 +293,22 @@ const AllWordsPage: React.FC<AllWordsPageProps> = ({ currentLevel }) => {
 
             {/* Unit Filter and Theme Toggle Row */}
             <div className="flex gap-2 md:gap-4">
-              {/* Unit Filter */}
-              <div className="relative flex-1">
-                <select
-                  value={selectedUnit}
-                  onChange={(e) => setSelectedUnit(e.target.value)}
-                  className={`w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border text-sm md:text-base ${themeClasses.text} ${themeClasses.formButton} focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 md:pr-10`}
-                >
-                  <option value="all">Tüm Üniteler</option>
-                  {units.map(unit => (
-                    <option key={unit} value={unit}>Ünite {unit}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5 pointer-events-none" />
-              </div>
+              {/* Unit Filter - KUEPE için gizle */}
+              {currentLevel !== 'kuepe' && (
+                <div className="relative flex-1">
+                  <select
+                    value={selectedUnit}
+                    onChange={(e) => setSelectedUnit(e.target.value)}
+                    className={`w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border text-sm md:text-base ${themeClasses.text} ${themeClasses.formButton} focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-8 md:pr-10`}
+                  >
+                    <option value="all">Tüm Üniteler</option>
+                    {units.map(unit => (
+                      <option key={unit} value={unit}>Ünite {unit}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5 pointer-events-none" />
+                </div>
+              )}
 
               {/* Theme Toggle */}
               <button
@@ -361,7 +368,7 @@ const AllWordsPage: React.FC<AllWordsPageProps> = ({ currentLevel }) => {
                      )}
                    </p>
                    <span className={`text-xs px-2 py-1 rounded-full ${themeClasses.secondaryButton}`}>
-                     Ünite {word.unit}
+                     {currentLevel === 'kuepe' ? 'KUEPE' : `Ünite ${word.unit}`}
                    </span>
                  </div>
               </motion.div>

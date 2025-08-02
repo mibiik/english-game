@@ -18,7 +18,7 @@ const useMediaQuery = (query: string) => {
   return matches;
 };
 
-type Level = 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+type Level = 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
 
 interface UnitSelectorProps {
   currentUnit: string;
@@ -106,6 +106,7 @@ const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurr
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+    { id: 'kuepe', name: 'KUEPE' },
   ];
 
   return (
@@ -120,13 +121,16 @@ const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurr
           if (selectedLevel) setCurrentLevel(selectedLevel.id);
         }}
       />
-      <Dropdown 
-        label="Ünite"
-        icon={<Book className="w-4 h-4 text-cyan-400" />}
-        options={units}
-        selectedOption={`Ünite ${currentUnit}`}
-        onSelect={(unit) => setCurrentUnit(unit.replace('Ünite ', ''))}
-      />
+      {/* KUEPE seçildiğinde ünite dropdown'ını gizle */}
+      {currentLevel !== 'kuepe' && (
+        <Dropdown 
+          label="Ünite"
+          icon={<Book className="w-4 h-4 text-cyan-400" />}
+          options={units}
+          selectedOption={`Ünite ${currentUnit}`}
+          onSelect={(unit) => setCurrentUnit(unit.replace('Ünite ', ''))}
+        />
+      )}
     </div>
   );
 };
@@ -146,6 +150,7 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+    { id: 'kuepe', name: 'KUEPE' },
   ];
 
   const handleLevelSelect = (levelId: Level) => {
@@ -210,24 +215,26 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
                     ))}
                   </div>
                 </div>
-                {/* Ünite Seçimi */}
-                <div>
-                  <h4 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-2 px-1">Ünite</h4>
-                  <div className="grid grid-cols-4 gap-2">
-                    {units.map(unit => (
-                      <button 
-                        key={unit} 
-                        onClick={() => handleUnitSelect(unit)} 
-                        className={`p-3 aspect-square text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentUnit === unit 
-                          ? 'bg-white text-black border-white shadow-lg shadow-white/20' 
-                          : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:border-gray-500'}`
-                        }
-                      >
-                        {unit}
-                      </button>
-                    ))}
+                {/* Ünite Seçimi - KUEPE için gizle */}
+                {currentLevel !== 'kuepe' && (
+                  <div>
+                    <h4 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-2 px-1">Ünite</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {units.map(unit => (
+                        <button 
+                          key={unit} 
+                          onClick={() => handleUnitSelect(unit)} 
+                          className={`p-3 aspect-square text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentUnit === unit 
+                            ? 'bg-white text-black border-white shadow-lg shadow-white/20' 
+                            : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:border-gray-500'}`
+                          }
+                        >
+                          {unit}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </Dialog.Panel>
           </Transition.Child>
@@ -250,7 +257,12 @@ export const UnitSelector: React.FC<UnitSelectorProps> = (props) => {
                     className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors text-sm"
                 >
                     <Layers className="w-4 h-4 text-fuchsia-400" />
-                    <span>{props.currentLevel.replace('-', ' ')} / Unit {props.currentUnit}</span>
+                    <span>
+                        {props.currentLevel === 'kuepe' 
+                            ? 'KUEPE' 
+                            : `${props.currentLevel.replace('-', ' ')} / Unit ${props.currentUnit}`
+                        }
+                    </span>
                     <ChevronDown className="w-4 h-4" />
                 </button>
                 <MobileUnitSelector {...props} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />

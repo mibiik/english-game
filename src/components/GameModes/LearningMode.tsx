@@ -9,6 +9,7 @@ import { newDetailedWords_part1 as foundationWords } from '../../data/word1';
 import { newDetailedWords_part1 as preIntermediateWords } from '../../data/word2';
 import { detailedWords_part1 as upperIntermediateWords } from '../../data/word4';
 import { newDetailedWords_part1 as intermediateWords } from '../../data/words';
+import { kuepeWords } from '../../data/kuepe';
 import { awardPoints } from '../../services/scoreService';
 import { userService } from '../../services/userService';
 import { authService } from '../../services/authService';
@@ -93,6 +94,25 @@ const WordFormsDisplay: React.FC<{ forms: WordDetail['forms'] }> = ({ forms }) =
   );
 };
 
+const SynonymDisplay: React.FC<{ synonyms: string[] }> = ({ synonyms }) => {
+  if (!synonyms || synonyms.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <h3 className="font-semibold text-white text-md mb-2 mt-4">Eş Anlamlılar:</h3>
+      <div className="flex flex-wrap gap-2">
+        {synonyms.map((synonym, index) => (
+          <div key={index} className="bg-purple-700 rounded-md px-3 py-1">
+            <span className="text-sm text-purple-200">{synonym}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   // ALL HOOKS MUST BE CALLED FIRST - BEFORE ANY CONDITIONAL RETURNS
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -125,7 +145,8 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     ...foundationWords,
     ...preIntermediateWords,
     ...upperIntermediateWords,
-    ...intermediateWords
+    ...intermediateWords,
+    ...kuepeWords
   ], []);
 
   const wordsToDisplay = useMemo(() => {
@@ -405,6 +426,28 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     );
   }, [currentWord, themeClasses, theme, currentIndex, definitionState, handleWordFormClick]);
 
+  // KUEPE için synonym render fonksiyonu
+  const renderSynonyms = useCallback(() => {
+    if (!currentWord || !currentWord.synonyms || currentWord.synonyms.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="mt-6">
+        <h3 className={`text-lg font-semibold ${themeClasses.headerText} mb-3 flex items-center`}>
+          <Zap className="w-5 h-5 mr-2" /> Eş Anlamlılar
+        </h3>
+        <div className="flex flex-wrap gap-3">
+          {currentWord.synonyms.map((synonym: string, index: number) => (
+            <div key={index} className={`px-4 py-2 rounded-lg transition-all duration-200 ${theme === 'classic' ? 'bg-purple-700 text-purple-200' : theme === 'blue' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`}>
+              <span className="font-medium">{synonym}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }, [currentWord, themeClasses, theme]);
+
   // 2. Koşullu return'lar hook'lardan sonra olacak.
   if (!words || words.length === 0) {
     return (
@@ -478,7 +521,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         <div className="flex justify-between items-center mb-4">
             <div>
                 <h2 className={`text-2xl md:text-3xl font-bold ${themeClasses.headerText}`}>
-                    {words.length > 0 ? `${words.length} Kelime` : 'Kelime Listesi'}
+                    {wordsToDisplay.length > 0 ? `${wordsToDisplay.length} Kelime` : 'Kelime Listesi'}
                 </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -604,6 +647,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
                 )}
                 
                 {renderWordForms()}
+                {renderSynonyms()}
               </motion.div>
             </AnimatePresence>
           </motion.div>

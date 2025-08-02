@@ -20,11 +20,29 @@ class AiService {
   }
 
   public async generateDefinition(word: string, language: 'en' | 'tr' = 'en'): Promise<string> {
-    const prompt = `Provide a short, clear definition for the English word "${word}". Keep it under 15 words. Give only the definition, no additional explanation.`;
+    const prompt = `Provide a clear, concise definition for the English word "${word}". 
+    
+Requirements:
+- Keep it under 15 words
+- Use simple, clear language
+- Focus on the most common meaning
+- Return ONLY the definition, no additional text
+- If the word doesn't exist or you're unsure, return "Definition not available"
+
+Example format:
+"apple" → "A round fruit with red or green skin"
+"run" → "To move quickly on foot"`;
     
     try {
       const response = await this.generateText(prompt);
-      return response.trim();
+      const cleanedResponse = response.trim();
+      
+      // Hata kontrolü
+      if (!cleanedResponse || cleanedResponse.toLowerCase().includes('definition not available')) {
+        throw new Error('AI could not generate a valid definition');
+      }
+      
+      return cleanedResponse;
     } catch (error) {
       console.error('Definition generation failed:', error);
       throw new Error(`Failed to generate definition for "${word}".`);
@@ -32,11 +50,17 @@ class AiService {
   }
 
   public async generateBatchDefinitions(words: string[], language: 'en' | 'tr' = 'en'): Promise<Record<string, string>> {
-    const prompt = `Provide short, clear definitions for these English words. Keep each definition under 15 words. Return in JSON format:
+    const prompt = `Provide clear, concise definitions for these English words. 
+
+Requirements:
+- Keep each definition under 15 words
+- Use simple, clear language
+- Focus on the most common meaning
+- If a word doesn't exist or you're unsure, use "Definition not available"
 
 Words: ${words.join(', ')}
 
-JSON format:
+Return in this exact JSON format:
 {
   "${words[0]}": "short definition",
   "${words[1]}": "short definition"
@@ -47,7 +71,23 @@ Only return the JSON object, no additional text.`;
     try {
       const response = await this.generateText(prompt);
       const cleanedJson = this.cleanJson(response);
-      return JSON.parse(cleanedJson);
+      const parsed = JSON.parse(cleanedJson);
+      
+      // Sonuçları doğrula ve temizle
+      const validated: Record<string, string> = {};
+      for (const word of words) {
+        const definition = parsed[word];
+        if (definition && 
+            typeof definition === 'string' && 
+            definition.trim() !== '' && 
+            !definition.toLowerCase().includes('definition not available')) {
+          validated[word] = definition.trim();
+        } else {
+          validated[word] = `Definition for "${word}" could not be loaded.`;
+        }
+      }
+      
+      return validated;
     } catch (error) {
       console.error('Batch definitions generation failed:', error);
       // Fallback: return empty definitions for each word

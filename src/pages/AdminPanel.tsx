@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { userAnalyticsService } from '../services/userAnalyticsService';
 import { userService } from '../services/userService';
 import { gameScoreService } from '../services/gameScoreService';
+import { definitionCacheService } from '../services/definitionCacheService';
 import { db } from '../config/firebase';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
@@ -79,7 +80,10 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support' | 'definitions'>('users');
+  const [cacheStats, setCacheStats] = useState<{ ai: number; manual: number; total: number; invalid: number }>({ ai: 0, manual: 0, total: 0, invalid: 0 });
+  const [testDefinition, setTestDefinition] = useState('');
+  const [testResult, setTestResult] = useState<{ isValid: boolean; reasons: string[] } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -91,12 +95,13 @@ const AdminPanel: React.FC = () => {
     
     setLoading(true);
     try {
-      const [anomaliesData, notificationsData, usersData, feedbacksData, supportActionsData] = await Promise.all([
+      const [anomaliesData, notificationsData, usersData, feedbacksData, supportActionsData, statsData] = await Promise.all([
         userAnalyticsService.getAnomalies(50),
         userAnalyticsService.getAdminNotifications(20),
         loadUsers(),
         loadFeedbacks(),
-        loadSupportActions()
+        loadSupportActions(),
+        definitionCacheService.getCacheStats()
       ]);
       
       setAnomalies(anomaliesData as Anomaly[]);
@@ -104,6 +109,7 @@ const AdminPanel: React.FC = () => {
       setUsers(usersData);
       setFeedbacks(feedbacksData);
       setSupportActions(supportActionsData);
+      setCacheStats(statsData);
     } catch (error) {
       console.error('Veri yüklenirken hata:', error);
     } finally {
@@ -387,6 +393,40 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // Definition Cache Yönetimi Fonksiyonları
+  const testDefinitionQuality = () => {
+    if (!testDefinition.trim()) {
+      alert('Lütfen test edilecek tanımı girin');
+      return;
+    }
+    const result = definitionCacheService.testDefinitionQuality(testDefinition);
+    setTestResult(result);
+  };
+
+  const cleanupInvalidDefinitions = async () => {
+    if (!confirm('Geçersiz tanımları temizlemek istediğinizden emin misiniz?')) {
+      return;
+    }
+    
+    try {
+      const result = await definitionCacheService.cleanupInvalidDefinitions();
+      alert(`✅ ${result.cleaned} geçersiz tanım temizlendi. ${result.errors} hata oluştu.`);
+      loadData(); // Cache istatistiklerini yenile
+    } catch (error) {
+      console.error('Temizleme hatası:', error);
+      alert('❌ Temizleme sırasında hata oluştu');
+    }
+  };
+
+  const refreshCacheStats = async () => {
+    try {
+      const stats = await definitionCacheService.getCacheStats();
+      setCacheStats(stats);
+    } catch (error) {
+      console.error('Cache istatistikleri yenilenirken hata:', error);
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -449,6 +489,16 @@ const AdminPanel: React.FC = () => {
               }`}
             >
               💰 Destek ({supportActions.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('definitions')}
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'definitions' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📚 Tanımlar ({cacheStats.total})
             </button>
           </div>
 
@@ -808,6 +858,93 @@ const AdminPanel: React.FC = () => {
               )}
               <div className="mt-4 text-gray-400 text-sm">
                 Toplam {supportActions.length} destek işlemi bulundu
+              </div>
+            </div>
+          )}
+
+          {/* Definition Cache Yönetimi Tab */}
+          {activeTab === 'definitions' && (
+            <div>
+              <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">📊 Cache İstatistikleri</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-600 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-blue-400">{cacheStats.total}</div>
+                    <div className="text-sm text-gray-300">Toplam Tanım</div>
+                  </div>
+                  <div className="bg-gray-600 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-green-400">{cacheStats.ai}</div>
+                    <div className="text-sm text-gray-300">AI Üretimi</div>
+                  </div>
+                  <div className="bg-gray-600 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-yellow-400">{cacheStats.manual}</div>
+                    <div className="text-sm text-gray-300">Manuel</div>
+                  </div>
+                  <div className="bg-gray-600 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-red-400">{cacheStats.invalid}</div>
+                    <div className="text-sm text-gray-300">Geçersiz</div>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={refreshCacheStats}
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+                  >
+                    🔄 İstatistikleri Yenile
+                  </button>
+                  <button
+                    onClick={cleanupInvalidDefinitions}
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+                  >
+                    🧹 Geçersiz Tanımları Temizle
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-4">🔍 Tanım Kalite Testi</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Test Edilecek Tanım:
+                    </label>
+                    <textarea
+                      value={testDefinition}
+                      onChange={(e) => setTestDefinition(e.target.value)}
+                      placeholder="Test edilecek tanımı buraya yazın..."
+                      className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                      rows={3}
+                    />
+                  </div>
+                  <button
+                    onClick={testDefinitionQuality}
+                    className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-semibold transition-colors text-sm"
+                  >
+                    🧪 Kalite Testi Yap
+                  </button>
+                  
+                  {testResult && (
+                    <div className={`p-4 rounded-lg border ${
+                      testResult.isValid 
+                        ? 'bg-green-900 border-green-600 text-green-300' 
+                        : 'bg-red-900 border-red-600 text-red-300'
+                    }`}>
+                      <div className="font-semibold mb-2">
+                        {testResult.isValid ? '✅ Geçerli Tanım' : '❌ Geçersiz Tanım'}
+                      </div>
+                      {testResult.reasons.length > 0 && (
+                        <div>
+                          <div className="font-medium mb-1">Sorunlar:</div>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            {testResult.reasons.map((reason, index) => (
+                              <li key={index}>{reason}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -69,7 +69,7 @@ interface GameMode {
 interface HomePageProps {
   filteredWords: any[];
   currentUnit: string;
-  currentLevel: string;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
 }
 
 const gameModeDescriptions: Record<string, string> = {
@@ -107,22 +107,43 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
 
+  // KUEPE modu için kullanıcı kontrolü
+  const isKuepeAuthorized = useMemo(() => {
+    if (!isAuthenticated) return false;
+    
+    const currentUser = authService.getStoredUser();
+    if (!currentUser || !currentUser.email) return false;
+    
+    const email = currentUser.email.toLowerCase();
+    
+    // Sadece defne ve mbirlik24@ku.edu.tr kullanıcılarına göster
+    return email === 'oz.defne2004@gmail.com' || email === 'mbirlik24@ku.edu.tr';
+  }, [isAuthenticated]);
+
   // Memoized game modes
-  const gameModes = useMemo(() => [
-    { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'all-words', title: 'Tüm Kelimeler', icon: <HiBookOpen />, link: `/all-words`, color: '', shadow: '' },
-    { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'word-forms', title: 'Kelime Formları', icon: <HiCollection />, link: `/word-forms?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <HiBookOpen />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'paraphrase', title: 'Paraphrase', icon: <HiSpeakerphone />, link: `/paraphrase`, color: '', shadow: '' },
-    { id: 'essay-writing', title: 'Essay Yazma', icon: <HiDocumentText />, link: '/essay-writing', color: '', shadow: '' },
-    { id: 'preposition-mastery', title: 'Preposition', icon: <HiPuzzle />, link: '/preposition-mastery', color: '', shadow: '' },
-    { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
-  ], [unit, level]);
+  const gameModes = useMemo(() => {
+    const baseModes = [
+      { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'word-forms', title: 'Kelime Formları', icon: <HiCollection />, link: `/word-forms?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <HiBookOpen />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'paraphrase', title: 'Paraphrase', icon: <HiSpeakerphone />, link: `/paraphrase`, color: '', shadow: '' },
+      { id: 'essay-writing', title: 'Essay Yazma', icon: <HiDocumentText />, link: '/essay-writing', color: '', shadow: '' },
+      { id: 'preposition-mastery', title: 'Preposition', icon: <HiPuzzle />, link: '/preposition-mastery', color: '', shadow: '' },
+      { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
+      { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
+    ];
+
+    // KUEPE modunu sadece yetkili kullanıcılara göster
+    if (isKuepeAuthorized && level === 'kuepe') {
+      baseModes.push({ id: 'kuepe-mode', title: 'KUEPE Modu', icon: <HiAcademicCap />, link: `/kuepe-mode?unit=${unit}&level=${level}`, color: '', shadow: '' });
+    }
+
+    return baseModes;
+  }, [unit, level, isKuepeAuthorized]);
 
   // Debounced auth check
   const debouncedAuthCheck = useCallback(

@@ -38,8 +38,8 @@ interface NavbarProps {
   onShowAuth: () => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
-  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => void;
 }
 
 // Mobile Menu Component
@@ -47,7 +47,7 @@ const MobileMenu: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   currentLevel: string;
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => void;
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
   userScore: number | null;
@@ -65,6 +65,7 @@ const MobileMenu: React.FC<{
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
     { id: 'intermediate', name: 'Intermediate' },
     { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+    { id: 'kuepe', name: 'KUEPE' },
   ];
 
   const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
@@ -73,6 +74,20 @@ const MobileMenu: React.FC<{
     const selectedLevel = levels.find(l => l.name === levelName);
     if (selectedLevel) {
       setCurrentLevel(selectedLevel.id as any);
+      
+      // KUEPE seçildiğinde direkt KUEPE moduna yönlendir
+      if (selectedLevel.id === 'kuepe') {
+        const currentUser = authService.getStoredUser();
+        const isKuepeAuthorized = currentUser && currentUser.email && 
+          (currentUser.email.toLowerCase() === 'oz.defne2004@gmail.com' || 
+           currentUser.email.toLowerCase() === 'mbirlik24@ku.edu.tr');
+        
+        if (isKuepeAuthorized) {
+          navigate('/kuepe-mode?unit=1&level=kuepe');
+          onClose();
+          return;
+        }
+      }
     }
     setOpenDropdown(null); // Dropdown'ı kapat
   };
@@ -182,31 +197,33 @@ const MobileMenu: React.FC<{
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Ünite</label>
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenDropdown(openDropdown === 'unit' ? null : 'unit')}
-                      className="w-full flex items-center justify-between p-3 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-colors"
-                    >
-                      <span>Ünite {currentUnit}</span>
-                      <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === 'unit' ? 'rotate-180' : ''}`} />
-                    </button>
-                    {openDropdown === 'unit' && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 rounded-lg border border-gray-700 shadow-xl z-10 max-h-48 overflow-y-auto">
-                        {units.map((unit) => (
-                          <button
-                            key={unit}
-                            onClick={() => handleUnitSelect(unit)}
-                            className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                          >
-                            {unit}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                {currentLevel !== 'kuepe' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">Ünite</label>
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenDropdown(openDropdown === 'unit' ? null : 'unit')}
+                        className="w-full flex items-center justify-between p-3 bg-gray-800 rounded-lg text-white hover:bg-gray-700 transition-colors"
+                      >
+                        <span>Ünite {currentUnit}</span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${openDropdown === 'unit' ? 'rotate-180' : ''}`} />
+                      </button>
+                      {openDropdown === 'unit' && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 rounded-lg border border-gray-700 shadow-xl z-10 max-h-48 overflow-y-auto">
+                          {units.map((unit) => (
+                            <button
+                              key={unit}
+                              onClick={() => handleUnitSelect(unit)}
+                              className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                            >
+                              {unit}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
                              {/* Navigation Links */}
@@ -227,10 +244,12 @@ const MobileMenu: React.FC<{
                    <span>Liderlik Tablosu</span>
                  </button>
 
+
+
                  {isAdmin && (
                    <button
                      onClick={() => { navigate('/admin'); onClose(); }}
-                     className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                     className="w-full flex items-center gap-3 p-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-colors"
                    >
                      <Shield className="w-5 h-5" />
                      <span>Admin Panel</span>
@@ -466,7 +485,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="text-sm font-semibold text-white">
                   {currentLevel === 'foundation' ? 'Fou' : 
                    currentLevel === 'pre-intermediate' ? 'Pre' : 
-                   currentLevel === 'intermediate' ? 'Int' : 'Upp'}-{currentUnit}
+                   currentLevel === 'intermediate' ? 'Int' : 
+                   currentLevel === 'upper-intermediate' ? 'Upp' :
+                   currentLevel === 'kuepe' ? 'KUEPE' : 'Int'}-{currentUnit}
                 </div>
               </button>
 

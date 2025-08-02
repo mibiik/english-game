@@ -2,6 +2,7 @@ import { newDetailedWords_part1 as foundationWords } from './word1';
 import { newDetailedWords_part1 as preIntermediateWords } from './word2';
 import { detailedWords_part1 as upperIntermediateWords } from './word4';
 import { newDetailedWords_part1 as intermediateWords } from './words';
+import { kuepeWords } from './kuepe';
 
 export interface WordData {
   english: string;
@@ -22,7 +23,8 @@ const allDetailedWords = [
   ...foundationWords,
   ...preIntermediateWords,
   ...upperIntermediateWords,
-  ...intermediateWords
+  ...intermediateWords,
+  ...kuepeWords
 ];
 
 export const allWordsWithTranslations: WordData[] = allDetailedWords.flatMap(extractWordData);

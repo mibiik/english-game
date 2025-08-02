@@ -15,6 +15,51 @@ class DefinitionCacheService {
   private readonly collectionName = 'definitions';
 
   /**
+   * Definition kalitesini kontrol et
+   */
+  public isValidDefinition(definition: string): boolean {
+    if (!definition || typeof definition !== 'string') {
+      return false;
+    }
+    
+    const trimmed = definition.trim();
+    
+    // Boş string kontrolü
+    if (trimmed.length === 0) {
+      return false;
+    }
+    
+    // Çok kısa tanımlar (muhtemelen hatalı)
+    if (trimmed.length < 3) {
+      return false;
+    }
+    
+    // Sadece noktalama işaretleri veya sayılar
+    if (/^[^a-zA-Z]*$/.test(trimmed)) {
+      return false;
+    }
+    
+    // Hata mesajları kontrolü
+    const errorPatterns = [
+      /could not be loaded/i,
+      /failed to generate/i,
+      /error/i,
+      /sorry/i,
+      /i cannot/i,
+      /i'm unable/i,
+      /i don't know/i
+    ];
+    
+    for (const pattern of errorPatterns) {
+      if (pattern.test(trimmed)) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
    * Ana fonksiyon: Definition getirir, yoksa AI'dan üretir ve cache'ler
    */
   async getDefinition(word: string, language: 'en' | 'tr' = 'en'): Promise<string> {
@@ -23,22 +68,34 @@ class DefinitionCacheService {
     try {
       // 1. Firebase'den kontrol et
       const cached = await this.getFromFirebase(word, language);
-      if (cached && cached.definition) {
+      if (cached && cached.definition && this.isValidDefinition(cached.definition)) {
         console.log('✅ Definition Firebase\'den geldi:', cached.definition);
         return cached.definition;
       }
 
-      // 2. Firebase'de yok veya tanım boş, AI'dan üret
+      // 2. Firebase'de yok veya tanım geçersiz, AI'dan üret
       console.log('🤖 AI\'dan definition üretiliyor...');
       const aiDefinition = await aiService.generateDefinition(word, language);
       
-      // 3. AI'dan gelen definition'ı Firebase'e kaydet (sadece doluysa)
-      if (aiDefinition) {
-      await this.saveToFirebase(word, aiDefinition, language, 'ai');
-        console.log('💾 Definition Firebase\'e kaydedildi');
+      // 3. AI'dan gelen definition'ı kontrol et ve sadece geçerliyse Firebase'e kaydet
+      if (aiDefinition && this.isValidDefinition(aiDefinition)) {
+        try {
+          await this.saveToFirebase(word, aiDefinition, language, 'ai');
+          console.log('💾 Geçerli definition Firebase\'e kaydedildi');
+        } catch (saveError) {
+          console.error('❌ Firebase kaydetme hatası (definition kullanılabilir):', saveError);
+          // Kaydetme hatası olsa bile definition'ı döndür
+        }
+      } else {
+        console.warn('⚠️ AI\'dan gelen definition geçersiz:', aiDefinition);
       }
       
-      return aiDefinition;
+      // 4. Geçerli definition varsa döndür, yoksa fallback
+      if (aiDefinition && this.isValidDefinition(aiDefinition)) {
+        return aiDefinition;
+      } else {
+        return `Definition for "${word}" could not be loaded.`;
+      }
 
     } catch (error) {
       console.error('❌ Definition cache hatası:', error);
@@ -68,12 +125,12 @@ class DefinitionCacheService {
     const firebaseResults = await Promise.all(firebasePromises);
     
     firebaseResults.forEach(({ word, cached }) => {
-      if (cached && cached.definition) {
+      if (cached && cached.definition && this.isValidDefinition(cached.definition)) {
         result[word] = cached.definition;
         console.log(`✅ ${word}: Firebase'den geldi`);
       } else {
         missingWords.push(word);
-        console.log(`❓ ${word}: Firebase'de yok`);
+        console.log(`❓ ${word}: Firebase'de yok veya geçersiz`);
       }
     });
 
@@ -85,21 +142,32 @@ class DefinitionCacheService {
         // Eksik tüm kelimeleri tek seferde AI'a gönder
         const aiDefinitions = await aiService.generateBatchDefinitions(missingWords, language);
         
-        // 3. AI sonuçlarını Firebase'e toplu kaydet (sadece geçerli olanları)
+        // 3. AI sonuçlarını filtrele ve sadece geçerli olanları Firebase'e kaydet
         const validAiDefinitions = Object.entries(aiDefinitions).reduce((acc, [word, definition]) => {
-            if (definition && definition.trim() !== '') {
+            if (definition && this.isValidDefinition(definition)) {
                 acc[word] = definition;
             }
             return acc;
         }, {} as Record<string, string>);
 
         if (Object.keys(validAiDefinitions).length > 0) {
-            await this.saveBatchToFirebase(validAiDefinitions, language, 'ai');
-            console.log('💾 Toplu definition Firebase\'e kaydedildi');
+            try {
+                await this.saveBatchToFirebase(validAiDefinitions, language, 'ai');
+                console.log('💾 Geçerli toplu definitions Firebase\'e kaydedildi');
+            } catch (saveError) {
+                console.error('❌ Firebase toplu kaydetme hatası (definitions kullanılabilir):', saveError);
+                // Kaydetme hatası olsa bile geçerli definitions'ları kullan
+            }
         }
         
-        // 4. Sonuçları birleştir
-        Object.assign(result, aiDefinitions);
+        // 4. Sonuçları birleştir (geçerli olanları)
+        Object.entries(aiDefinitions).forEach(([word, definition]) => {
+          if (this.isValidDefinition(definition)) {
+            result[word] = definition;
+          } else {
+            result[word] = `Definition for "${word}" could not be loaded.`;
+          }
+        });
         
       } catch (error) {
         console.error('❌ AI toplu definition hatası:', error);
@@ -262,10 +330,83 @@ class DefinitionCacheService {
   /**
    * Cache istatistikleri
    */
-  async getCacheStats(): Promise<{ ai: number; manual: number; total: number }> {
-    // Bu fonksiyon admin paneli için kullanılabilir
-    // Şimdilik basit return, ileride implement edilebilir
-    return { ai: 0, manual: 0, total: 0 };
+  async getCacheStats(): Promise<{ ai: number; manual: number; total: number; invalid: number }> {
+    try {
+      // Bu fonksiyon admin paneli için kullanılabilir
+      // Şimdilik basit return, ileride implement edilebilir
+      return { ai: 0, manual: 0, total: 0, invalid: 0 };
+    } catch (error) {
+      console.error('Cache stats hatası:', error);
+      return { ai: 0, manual: 0, total: 0, invalid: 0 };
+    }
+  }
+
+  /**
+   * Geçersiz tanımları temizle (admin fonksiyonu)
+   */
+  async cleanupInvalidDefinitions(): Promise<{ cleaned: number; errors: number }> {
+    console.log('🧹 Geçersiz tanımlar temizleniyor...');
+    
+    let cleaned = 0;
+    let errors = 0;
+    
+    try {
+      // Bu fonksiyon admin paneli için kullanılabilir
+      // Şimdilik basit return, ileride implement edilebilir
+      console.log('✅ Geçersiz tanımlar temizlendi');
+      return { cleaned, errors };
+    } catch (error) {
+      console.error('❌ Geçersiz tanımlar temizleme hatası:', error);
+      return { cleaned, errors };
+    }
+  }
+
+  /**
+   * Tanım kalitesini test et (debug için)
+   */
+  testDefinitionQuality(definition: string): { isValid: boolean; reasons: string[] } {
+    const reasons: string[] = [];
+    
+    if (!definition || typeof definition !== 'string') {
+      reasons.push('Tanım boş veya string değil');
+      return { isValid: false, reasons };
+    }
+    
+    const trimmed = definition.trim();
+    
+    if (trimmed.length === 0) {
+      reasons.push('Tanım boş string');
+    }
+    
+    if (trimmed.length < 3) {
+      reasons.push('Tanım çok kısa (< 3 karakter)');
+    }
+    
+    if (/^[^a-zA-Z]*$/.test(trimmed)) {
+      reasons.push('Tanım sadece noktalama işaretleri veya sayılar içeriyor');
+    }
+    
+    const errorPatterns = [
+      /could not be loaded/i,
+      /failed to generate/i,
+      /error/i,
+      /sorry/i,
+      /i cannot/i,
+      /i'm unable/i,
+      /i don't know/i
+    ];
+    
+    for (const pattern of errorPatterns) {
+      if (pattern.test(trimmed)) {
+        reasons.push('Tanım hata mesajı içeriyor');
+        break;
+      }
+    }
+    
+    return { 
+      isValid: reasons.length === 0, 
+      reasons 
+    };
   }
 }
 

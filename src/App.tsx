@@ -9,6 +9,7 @@ import { newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from './data/word4';
 import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
 import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
+import { kuepeWords } from './data/kuepe';
 import { auth, db } from './config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { X, Sparkles } from 'lucide-react';
@@ -21,6 +22,7 @@ const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
 const preIntermediateWords: WordDetail[] = preIntermediateWordsRaw;
 const foundationWords: WordDetail[] = foundationWordsRaw;
+const kuepeWordsList: WordDetail[] = kuepeWords;
 
 function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,12 +37,12 @@ function AppContent() {
   // Firebase Authentication durumu
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'>(() => {
-    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+  const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'>(() => {
+    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
     if (urlLevel) {
       return urlLevel;
     }
-    const savedLevel = localStorage.getItem('currentLevel') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+    const savedLevel = localStorage.getItem('currentLevel') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
     return savedLevel || 'foundation';
   });
 
@@ -277,7 +279,7 @@ function AppContent() {
   // URL parametreleri değiştiğinde state'i ve localStorage'ı güncelle
   useEffect(() => {
     const urlUnit = searchParams.get('unit');
-    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
+    const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
     if (urlUnit) {
       localStorage.setItem('currentUnit', urlUnit);
     }
@@ -301,10 +303,16 @@ function AppContent() {
       sourceData = preIntermediateWords;
     } else if (currentLevel === 'foundation') {
       sourceData = foundationWords;
+    } else if (currentLevel === 'kuepe') {
+      sourceData = kuepeWordsList;
     } else {
       sourceData = intermediateWords;
     }
-    if (currentUnit === 'all') {
+    
+    // KUEPE için ünite filtrelemesi yok, tüm kelimeler gösterilir
+    if (currentLevel === 'kuepe') {
+      setFilteredWords(sourceData);
+    } else if (currentUnit === 'all') {
       setFilteredWords(sourceData);
     } else {
       const unitFilter = (word: WordDetail) => word.unit === currentUnit;
@@ -324,7 +332,7 @@ function AppContent() {
     localStorage.setItem('currentUnit', unit);
     updateURLParams(unit, currentLevel);
   };
-  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => {
+  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => {
     setCurrentLevel(level);
     localStorage.setItem('currentLevel', level);
     updateURLParams(currentUnit, level);

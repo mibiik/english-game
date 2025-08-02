@@ -8,6 +8,7 @@ import { newDetailedWords_part1 } from './data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
 import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
 import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
+import { kuepeWords } from './data/kuepe';
 
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -98,7 +99,7 @@ const HomeRedirect: React.FC<{
   currentUnit: string; 
   currentLevel: string;
   setCurrentUnit: (unit: string) => void;
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => void;
   isAuthenticated: boolean | null;
 }> = ({ 
   filteredWords, 
@@ -124,7 +125,7 @@ const HomeRedirect: React.FC<{
     return (
       <>
         <div className="min-h-screen bg-gradient-to-b from-[#111] to-black">
-          <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation'} />
+          <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'} />
         </div>
       </>
     );
@@ -136,8 +137,8 @@ const HomeRedirect: React.FC<{
 interface AppRoutesProps {
   currentUnit: string;
   setCurrentUnit: (unit: string) => void;
-  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation';
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation') => void;
+  currentLevel: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
+  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => void;
   filteredWords: WordDetail[];
   isAuthenticated: boolean | null;
 }
@@ -393,6 +394,22 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             </>
           </ProtectedRoute>
         } />
+        <Route path="/kuepe-mode" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameWrapperWithParams component={LearningMode} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
         <Route path="/grammar-game" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <>
@@ -583,6 +600,9 @@ function getWordsByParams(unit: string, level: string): WordDetail[] {
     case 'foundation':
       sourceData = foundationWordsRaw;
       break;
+    case 'kuepe':
+      sourceData = kuepeWords;
+      break;
     case 'intermediate':
     default:
       sourceData = newDetailedWords_part1;
@@ -592,6 +612,12 @@ function getWordsByParams(unit: string, level: string): WordDetail[] {
   console.log('getWordsByParams called with:', { unit, level });
   console.log('Source data length:', sourceData.length);
   console.log('Available units in source data:', [...new Set(sourceData.map(w => w.unit))].sort());
+  
+  // KUEPE için ünite filtrelemesi yok, tüm kelimeler döndürülür
+  if (level === 'kuepe') {
+    console.log('KUEPE level - returning all words:', sourceData.length);
+    return sourceData;
+  }
   
   if (unit === 'all') {
     console.log('Returning all words:', sourceData.length);
