@@ -1,10 +1,10 @@
-const CACHE_NAME = 'wordplay-v2'; // Cache versiyonunu güncelle
+const CACHE_NAME = 'wordplay-pwa-v1'; // PWA için yeni cache
 const urlsToCache = [
   '/',
   '/index.html',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
+  '/a.png',
+  // Game mode images
   '/assets/aaaaaaaadwü/ogrenmemodu.jpg',
   '/assets/aaaaaaaadwü/coktansecmeli.jpg',
   '/assets/aaaaaaaadwü/eşeştirme.jpg',
@@ -17,6 +17,9 @@ const urlsToCache = [
   '/assets/aaaaaaaadwü/kelimekartlari.jpg',
   '/assets/aaaaaaaadwü/kelimeyarisi.jpg',
   '/assets/aaaaaaaadwü/konusma.jpg',
+  // Sound files
+  '/correct-choice-43861.mp3',
+  '/wrong-47985.mp3'
 ];
 
 // Firebase config (Service Worker için)

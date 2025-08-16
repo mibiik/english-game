@@ -16,6 +16,8 @@ import { X, Sparkles } from 'lucide-react';
 import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import { userAnalyticsService } from './services/userAnalyticsService';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
@@ -352,6 +354,8 @@ function AppContent() {
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
       />
+      <PWAInstallPrompt />
+      <PWAUpdatePrompt />
       <PerformanceMonitor />
     </div>
   );
