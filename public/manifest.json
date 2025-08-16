@@ -2,45 +2,35 @@
   "name": "WordPlay - Koç ELC Kelime Öğrenme",
   "short_name": "WordPlay",
   "description": "Koç Üniversitesi ELC kelime listeleriyle eğlenceli İngilizce öğrenme uygulaması",
-  "start_url": "/",
+  "start_url": "https://mibiik.github.io/english-game/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#3B82F6",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": "https://mibiik.github.io/english-game/",
   "lang": "tr",
   "categories": ["education", "games"],
   "icons": [
     {
-      "src": "/a.png",
+      "src": "https://mibiik.github.io/english-game/a.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://mibiik.github.io/english-game/a.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/a.png",
-      "sizes": "512x512", 
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/a.png",
+      "src": "https://mibiik.github.io/english-game/a.png",
       "sizes": "144x144",
       "type": "image/png"
     },
     {
-      "src": "/a.png",
+      "src": "https://mibiik.github.io/english-game/a.png",
       "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "/a.png",
-      "sizes": "72x72",
-      "type": "image/png"
-    },
-    {
-      "src": "/a.png",
-      "sizes": "48x48",
       "type": "image/png"
     }
   ],
@@ -49,7 +39,7 @@
       "name": "Hızlı Oyun",
       "short_name": "Oyun",
       "description": "Hızlı kelime oyunu başlat",
-      "url": "/home?game=speed",
+      "url": "https://mibiik.github.io/english-game/home?game=speed",
       "icons": [
         {
           "src": "/assets/aaaaaaaadwü/kelimeyarisi.jpg",
@@ -61,7 +51,7 @@
       "name": "Öğrenme Modu",
       "short_name": "Öğren",
       "description": "Kelime öğrenme modunu aç",
-      "url": "/home?game=learning",
+      "url": "https://mibiik.github.io/english-game/home?game=learning",
       "icons": [
         {
           "src": "/assets/aaaaaaaadwü/ogrenmemodu.jpg",
@@ -73,7 +63,7 @@
       "name": "Quiz Yarışması",
       "short_name": "Quiz",
       "description": "Canlı quiz yarışmasına katıl",
-      "url": "/live-quiz",
+      "url": "https://mibiik.github.io/english-game/live-quiz",
       "icons": [
         {
           "src": "/assets/aaaaaaaadwü/coktansecmeli.jpg",
