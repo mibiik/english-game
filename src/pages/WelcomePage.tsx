@@ -486,15 +486,15 @@ const WelcomePage: React.FC = () => {
 						Platform Özellikleri
 					</motion.h3>
 					
-					<div className="grid md:grid-cols-12 gap-8">
+					<div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
 						<div className="md:col-span-4">
 							<LayoutGroup>
-								<nav className="flex md:flex-col gap-3" role="tablist" aria-label="Ana kategoriler">
+								<nav className="flex flex-wrap md:flex-col gap-2 md:gap-3" role="tablist" aria-label="Ana kategoriler">
 									{originalCategories.map((cat, i) => (
 										<motion.button
 											key={cat.label}
 											onClick={() => setActiveTab(i)}
-											className={`${i === activeTab ? 'bg-white/15 text-white border-white/30' : 'text-neutral-300 hover:text-white hover:bg-white/8 border-white/10'} relative rounded-xl px-6 py-4 text-left border transition-all duration-300 focus-white group`}
+											className={`${i === activeTab ? 'bg-white/15 text-white border-white/30' : 'text-neutral-300 hover:text-white hover:bg-white/8 border-white/10'} relative rounded-xl px-4 md:px-6 py-3 md:py-4 text-left border transition-all duration-300 focus-white group text-sm md:text-base flex-1 md:flex-none hover:md:translate-x-1`}
 											whileHover={{ scale: 1.02, x: 5 }}
 											whileTap={{ scale: 0.98 }}
 											role="tab"
@@ -504,13 +504,21 @@ const WelcomePage: React.FC = () => {
 												initial={{ opacity: 0 }}
 												animate={{ opacity: 1 }}
 												transition={{ delay: i * 0.1 }}
+												className="text-center md:text-left"
 											>
 												{cat.label}
         </motion.div>
 											{i === activeTab && (
 												<motion.div 
 													layoutId="tab-highlight" 
-													className="absolute left-0 top-0 bottom-0 w-1 bg-white/80 rounded-r" 
+													className="absolute left-0 top-0 bottom-0 w-1 bg-white/80 rounded-r hidden md:block" 
+													transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+												/>
+											)}
+											{i === activeTab && (
+												<motion.div 
+													layoutId="tab-highlight-mobile" 
+													className="absolute left-0 right-0 bottom-0 h-1 bg-white/80 rounded-t md:hidden" 
 													transition={{ type: 'spring', stiffness: 400, damping: 30 }}
 												/>
 											)}
@@ -521,16 +529,16 @@ const WelcomePage: React.FC = () => {
 						</div>
 						
 						<div className="md:col-span-8">
-        <motion.div
+                <motion.div
 								key={activeTab}
-								initial={{ opacity: 0, x: 20, rotateY: -5 }}
-								animate={{ opacity: 1, x: 0, rotateY: 0 }}
+								initial={{ opacity: 0, x: 0, y: 20 }}
+								animate={{ opacity: 1, x: 0, y: 0 }}
 								transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-								className="gradient-border"
+								className="gradient-border w-full"
 							>
-								<div className="gb-inner p-8 rounded-[15px]">
+								<div className="gb-inner p-4 md:p-8 rounded-[15px]">
 									<motion.h4 
-										className="text-2xl font-bold text-white mb-3 tracking-tight"
+										className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight"
 										initial={{ opacity: 0, y: 10 }}
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.1 }}
@@ -538,7 +546,7 @@ const WelcomePage: React.FC = () => {
 										{originalCategories[activeTab].title}
 									</motion.h4>
 									<motion.p 
-										className="text-neutral-300 mb-6 leading-relaxed"
+										className="text-neutral-300 mb-4 md:mb-6 leading-relaxed text-sm md:text-base"
 										initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.2 }}
@@ -546,7 +554,7 @@ const WelcomePage: React.FC = () => {
 										{originalCategories[activeTab].desc}
 									</motion.p>
 									<motion.div 
-										className="grid gap-4"
+										className="grid gap-3 md:gap-4"
 										initial={{ opacity: 0 }}
 										animate={{ opacity: 1 }}
 										transition={{ delay: 0.3 }}
@@ -558,28 +566,28 @@ const WelcomePage: React.FC = () => {
 												animate={{ opacity: 1, x: 0 }}
 												transition={{ delay: 0.4 + idx * 0.1 }}
 												whileHover={{ x: 5, scale: 1.01 }}
-												className="flex items-start gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group"
+												className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group hover:md:translate-x-1"
 											>
 												<motion.div
-													className="w-2 h-2 bg-white/40 rounded-full mt-2 group-hover:bg-white/70"
+													className="w-2 h-2 bg-white/40 rounded-full mt-2 flex-shrink-0 group-hover:bg-white/70"
 													whileHover={{ scale: 1.5 }}
 												/>
-												<div>
+												<div className="min-w-0 flex-1">
 													<motion.h5 
-														className="text-white font-medium mb-1 group-hover:text-white"
+														className="text-white font-medium mb-1 group-hover:text-white text-sm md:text-base"
 														whileHover={{ letterSpacing: '0.02em' }}
 													>
 														{item.name}
 													</motion.h5>
-													<p className="text-sm text-neutral-400 group-hover:text-neutral-300">
+													<p className="text-xs md:text-sm text-neutral-400 group-hover:text-neutral-300 leading-relaxed">
 														{item.desc}
 													</p>
           </div>
 											</motion.div>
 										))}
 									</motion.div>
-          </div>
-        </motion.div>
+								</div>
+							</motion.div>
       </div>
 					</div>
 				</div>
