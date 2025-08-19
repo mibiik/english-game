@@ -665,7 +665,7 @@ const WelcomePage: React.FC = () => {
 								</div>
 								<div>
 									<h4 className="text-white font-semibold">Mehmet B.</h4>
-									<p className="text-blue-300 text-sm">Endüstri Mühendisliği</p>
+									<p className="text-blue-300 text-sm">İşletme</p>
 								</div>
 							</div>
 							<blockquote className="text-neutral-300 leading-relaxed mb-4">
@@ -692,11 +692,11 @@ const WelcomePage: React.FC = () => {
 								</div>
 								<div>
 									<h4 className="text-white font-semibold">Zeynep Ö.</h4>
-									<p className="text-emerald-300 text-sm">İngilizce Öğrencisi</p>
+									<p className="text-emerald-300 text-sm">Psikoloji</p>
 								</div>
 							</div>
 							<blockquote className="text-neutral-300 leading-relaxed mb-4">
-								"Cidden işe yarıyor! Pre-Intermediate seviyesindeyken Upper-Intermediate'a geçtim. Cidden harika!"
+								"İşe yarıyor! Pre-Intermediate seviyesindeyken Upper-Intermediate'a geçtim. Cidden harika!"
 							</blockquote>
 							<div className="flex items-center gap-1">
 								{[...Array(5)].map((_, i) => (
@@ -719,7 +719,7 @@ const WelcomePage: React.FC = () => {
 								</div>
 								<div>
 									<h4 className="text-white font-semibold">Mert K.</h4>
-									<p className="text-purple-300 text-sm">Hazırlık Öğrencisi</p>
+									<p className="text-purple-300 text-sm">Endüstri Mühendisliği</p>
 								</div>
 							</div>
 							<blockquote className="text-neutral-300 leading-relaxed mb-4">
@@ -741,7 +741,7 @@ const WelcomePage: React.FC = () => {
 						className="text-center mt-12"
 					>
 						<p className="text-neutral-400 text-sm">
-							💡 <span className="text-white font-medium">10,000+</span> öğrenci WordPlay ile başarıya ulaştı
+							💡 <span className="text-white font-medium">1,000+</span> öğrenci WordPlay ile başarıya ulaştı
 						</p>
 					</motion.div>
 				</div>
@@ -751,32 +751,44 @@ const WelcomePage: React.FC = () => {
 			<section className="relative bg-neutral-900">
 				<div className="max-w-5xl mx-auto px-6 py-16 text-center relative z-10">
 					<motion.h3 
-						className="text-2xl md:text-3xl font-semibold text-white mb-4 tracking-tight"
+						className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight"
 						initial={{ opacity: 0, scale: 0.9 }}
 						whileInView={{ opacity: 1, scale: 1 }}
 						whileHover={{ scale: 1.02 }}
 					>
-						Hemen Başlayın
+						🚀 İngilizce Öğrenmenin EN EĞLENCELİ Yolu! 🎯
 					</motion.h3>
 					<motion.p 
-						className="text-neutral-400 mb-8 max-w-2xl mx-auto"
+						className="text-neutral-300 mb-6 max-w-3xl mx-auto text-lg"
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.1 }}
 					>
-						Binlerce öğrenci WordPlay ile seviyesini geliştirdi. Siz de şimdi katılın.
+						💪 <strong>Hazırlığı geçmenin EN EĞLENCELİ yolu!</strong> 
+						<br />
+						🎮 Oyunlarla öğren, 🎯 hedeflerine ulaş, 🏆 başarıyı yakala!
 					</motion.p>
-					<motion.button 
-						onClick={() => { setAuthMode('register'); setShowAuth(true); }} 
-						className="btn-shine inline-flex items-center gap-2 rounded-md px-6 py-3 bg-white text-neutral-950 font-medium hover:bg-neutral-200 transition-colors"
-						whileHover={{ y: -2, scale: 1.01 }} 
-						whileTap={{ scale: 0.99 }}
+					<motion.p 
+						className="text-neutral-400 mb-8 max-w-2xl mx-auto"
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}
 					>
-						Ücretsiz Hesap Oluştur
-						<ArrowRight className="w-4 h-4" />
+						🔥 <span className="text-yellow-400 font-medium">1,000+ öğrenci</span> WordPlay ile seviyesini geliştirdi. 
+						<br />
+						🎉 <span className="text-green-400 font-medium">Sıra sizde!</span>
+					</motion.p>
+					<motion.button 
+						onClick={() => { setAuthMode('register'); setShowAuth(true); }} 
+						className="btn-shine inline-flex items-center gap-3 rounded-lg px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+						whileHover={{ y: -3, scale: 1.05 }} 
+						whileTap={{ scale: 0.98 }}
+						initial={{ opacity: 0, y: 20 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.2 }}
+					>
+						🎮 HEMEN BAŞLA - ÜCRETSİZ! 🚀
+						<ArrowRight className="w-5 h-5" />
 					</motion.button>
 				</div>
 			</section>
