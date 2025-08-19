@@ -5,7 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/english-game/', // GitHub Pages için gerekli
+  base: '/', // Vercel deployment için root path
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

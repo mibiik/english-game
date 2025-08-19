@@ -7,8 +7,8 @@ import { measureWebVitals, measurePageLoad, measureMemory, measureNetwork, preve
 // CLS önleme başlat
 preventLayoutShift();
 
-// Service Worker registration - İyileştirilmiş versiyon
-if ('serviceWorker' in navigator) {
+// Service Worker registration - Sadece production'da
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', async () => {
     try {
       // Önce mevcut service worker'ları kontrol et
@@ -63,6 +63,17 @@ if ('serviceWorker' in navigator) {
     } catch (registrationError) {
       console.error('❌ Service Worker kayıt hatası:', registrationError);
     }
+  });
+}
+
+// Development modda service worker'ları temizle
+if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    registrations.forEach(registration => {
+      console.log('🧹 Development modda service worker temizleniyor...');
+      registration.unregister();
+    });
   });
 }
 
