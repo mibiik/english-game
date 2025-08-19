@@ -239,7 +239,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     <>
       <div className="text-center">
         <div className="mb-2">
-          <span className="text-white text-9xl font-bebas tracking-wider uppercase drop-shadow font-extrabold">ELC </span>
+
           <motion.span
             className="inline-block align-middle"
             initial={{ opacity: 0, x: -40, scale: 0.8 }}

@@ -465,7 +465,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <img 
                   src="/a.png" 
                   alt="ELC Wordplay Logo" 
-                  className="h-8 md:h-12 w-auto mr-2 md:mr-3 select-none" 
+                  className="h-12 md:h-16 w-auto mr-2 md:mr-3 select-none" 
                   draggable="false" 
                 />
               </Link>
