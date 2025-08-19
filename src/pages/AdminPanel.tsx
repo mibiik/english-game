@@ -3,6 +3,7 @@ import { userAnalyticsService } from '../services/userAnalyticsService';
 import { userService } from '../services/userService';
 import { gameScoreService } from '../services/gameScoreService';
 import { definitionCacheService } from '../services/definitionCacheService';
+import { feedbackService, Feedback } from '../services/feedbackService';
 import { useDeviceStats } from '../hooks/useDeviceStats';
 import { db } from '../config/firebase';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -40,13 +41,7 @@ interface User {
   lastSeen?: string;
 }
 
-interface Feedback {
-  id: string;
-  name: string;
-  feedback: string;
-  date: string;
-  isRead?: boolean;
-}
+
 
 
 
@@ -84,6 +79,18 @@ const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support' | 'definitions' | 'devices'>('users');
   const [cacheStats, setCacheStats] = useState<{ ai: number; manual: number; total: number; invalid: number }>({ ai: 0, manual: 0, total: 0, invalid: 0 });
   const [testDefinition, setTestDefinition] = useState('');
+  const [feedbackStats, setFeedbackStats] = useState<{
+    total: number;
+    new: number;
+    inProgress: number;
+    resolved: number;
+    closed: number;
+    urgent: number;
+    high: number;
+  }>({ total: 0, new: 0, inProgress: 0, resolved: 0, closed: 0, urgent: 0, high: 0 });
+  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [adminNotes, setAdminNotes] = useState('');
   
   // Cihaz istatistikleri hook'u
   const { deviceStats, userDevices, loading: deviceStatsLoading, refreshStats } = useDeviceStats();
@@ -98,6 +105,18 @@ const AdminPanel: React.FC = () => {
     if (loading) return; // Eğer zaten yükleniyorsa çık
     
     setLoading(true);
+    
+    try {
+      // Feedback verilerini yükle
+      const feedbacksData = await feedbackService.getAllFeedbacks();
+      setFeedbacks(feedbacksData);
+      
+      // Feedback istatistiklerini yükle
+      const stats = await feedbackService.getFeedbackStats();
+      setFeedbackStats(stats);
+    } catch (error) {
+      console.error('Feedback verileri yüklenirken hata:', error);
+    }
     try {
       const [anomaliesData, notificationsData, usersData, feedbacksData, supportActionsData, statsData] = await Promise.all([
         userAnalyticsService.getAnomalies(50),
@@ -152,23 +171,7 @@ const AdminPanel: React.FC = () => {
 
   const loadFeedbacks = async (): Promise<Feedback[]> => {
     try {
-      const feedbacksRef = collection(db, 'feedbacks');
-      const q = query(feedbacksRef, orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
-      
-      const feedbacksData: Feedback[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        feedbacksData.push({
-          id: doc.id,
-          name: data.name || 'İsimsiz Kullanıcı',
-          feedback: data.feedback || '',
-          date: data.date?.toDate?.()?.toLocaleString('tr-TR') || '',
-          isRead: data.isRead || false
-        });
-      });
-      
-      return feedbacksData;
+      return await feedbackService.getAllFeedbacks();
     } catch (error) {
       console.error('Feedback\'ler yüklenirken hata:', error);
       return [];
@@ -362,13 +365,8 @@ const AdminPanel: React.FC = () => {
 
   const markFeedbackAsRead = async (feedbackId: string) => {
     try {
-      const feedbackRef = doc(db, 'feedbacks', feedbackId);
-      await updateDoc(feedbackRef, {
-        isRead: true,
-        updatedAt: new Date()
-      });
-      
-      alert('✅ Feedback okundu olarak işaretlendi');
+      await feedbackService.updateFeedbackStatus(feedbackId, 'in_progress');
+      alert('✅ Feedback işleme alındı olarak işaretlendi');
       loadData();
     } catch (error) {
       console.error('Feedback işaretlenirken hata:', error);
@@ -380,12 +378,39 @@ const AdminPanel: React.FC = () => {
     if (!confirm('Bu feedback\'i silmek istediğinizden emin misiniz?')) return;
     
     try {
-      await deleteDoc(doc(db, 'feedbacks', feedbackId));
+      await feedbackService.deleteFeedback(feedbackId);
       alert('✅ Feedback başarıyla silindi');
       loadData();
     } catch (error) {
       console.error('Feedback silinirken hata:', error);
       alert('❌ Feedback silinirken hata oluştu');
+    }
+  };
+
+  const openFeedbackModal = (feedback: Feedback) => {
+    setSelectedFeedback(feedback);
+    setAdminNotes(feedback.adminNotes || '');
+    setShowFeedbackModal(true);
+  };
+
+  const handleUpdateFeedbackStatus = async (feedbackId: string, status: Feedback['status']) => {
+    try {
+      await feedbackService.updateFeedbackStatus(feedbackId, status, adminNotes);
+      // State'i güncelle
+      setFeedbacks(prev => prev.map(f => 
+        f.id === feedbackId 
+          ? { ...f, status, adminNotes: adminNotes || f.adminNotes }
+          : f
+      ));
+      // İstatistikleri güncelle
+      const stats = await feedbackService.getFeedbackStats();
+      setFeedbackStats(stats);
+      // Modal'ı kapat
+      setShowFeedbackModal(false);
+      setSelectedFeedback(null);
+      setAdminNotes('');
+    } catch (error) {
+      console.error('Feedback durumu güncellenirken hata:', error);
     }
   };
 
@@ -438,7 +463,8 @@ const AdminPanel: React.FC = () => {
 
   const filteredFeedbacks = feedbacks.filter(feedback =>
     feedback.name.toLowerCase().includes(feedbackSearchTerm.toLowerCase()) ||
-    feedback.feedback.toLowerCase().includes(feedbackSearchTerm.toLowerCase())
+    feedback.message.toLowerCase().includes(feedbackSearchTerm.toLowerCase()) ||
+    feedback.subject.toLowerCase().includes(feedbackSearchTerm.toLowerCase())
   );
 
   return (
@@ -737,40 +763,89 @@ const AdminPanel: React.FC = () => {
           {/* Feedback Tab */}
           {activeTab === 'feedbacks' && (
             <div>
+              {/* Feedback İstatistikleri */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-400">{feedbackStats.total}</div>
+                  <div className="text-sm text-blue-300">Toplam</div>
+                </div>
+                <div className="bg-blue-600/20 border border-blue-500/30 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-400">{feedbackStats.new}</div>
+                  <div className="text-sm text-blue-300">Yeni</div>
+                </div>
+                <div className="bg-yellow-600/20 border border-yellow-500/30 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{feedbackStats.inProgress}</div>
+                  <div className="text-sm text-yellow-300">İşlemde</div>
+                </div>
+                <div className="bg-green-600/20 border border-green-500/30 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-400">{feedbackStats.resolved}</div>
+                  <div className="text-sm text-green-300">Çözüldü</div>
+                </div>
+              </div>
+
+              {/* Feedback Arama */}
+              <div className="mb-6">
+                <input
+                  type="text"
+                  placeholder="Feedback içeriği ile ara..."
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={feedbackSearchTerm}
+                  onChange={(e) => setFeedbackSearchTerm(e.target.value)}
+                />
+              </div>
+
               {loading ? (
                 <div className="text-center py-8">Yükleniyor...</div>
               ) : filteredFeedbacks.length > 0 ? (
                 <div className="space-y-4">
                   {filteredFeedbacks.map((feedback) => (
                     <div key={feedback.id} className={`bg-gray-700 rounded-lg p-3 sm:p-4 border-l-4 ${
-                      feedback.isRead ? 'border-gray-500' : 'border-blue-500'
+                      feedback.status === 'new' ? 'border-blue-500' : 
+                      feedback.status === 'in_progress' ? 'border-yellow-500' :
+                      feedback.status === 'resolved' ? 'border-green-500' : 'border-gray-500'
                     }`}>
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                         <div className="flex-1">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                             <h3 className="font-semibold text-base sm:text-lg text-blue-300">{feedback.name}</h3>
                             <span className={`px-2 py-1 rounded text-xs w-fit ${
-                              feedback.isRead ? 'bg-gray-600 text-gray-300' : 'bg-blue-600 text-white'
+                              feedback.status === 'new' ? 'bg-blue-600 text-white' :
+                              feedback.status === 'in_progress' ? 'bg-yellow-600 text-white' :
+                              feedback.status === 'resolved' ? 'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
                             }`}>
-                              {feedback.isRead ? 'Okundu' : 'Yeni'}
+                              {feedback.status === 'new' ? 'Yeni' :
+                               feedback.status === 'in_progress' ? 'İşlemde' :
+                               feedback.status === 'resolved' ? 'Çözüldü' : 'Kapatıldı'}
                             </span>
                           </div>
-                          <p className="text-gray-300 mt-2 whitespace-pre-wrap text-sm sm:text-base">{feedback.feedback}</p>
+                          <p className="text-gray-300 mt-2 text-sm font-medium">{feedback.subject}</p>
+                          <p className="text-gray-300 mt-2 whitespace-pre-wrap text-sm sm:text-base">{feedback.message}</p>
                           <p className="text-gray-400 text-xs sm:text-sm mt-3">
-                            📅 {feedback.date}
+                            📅 {feedback.createdAt.toLocaleString('tr-TR')}
                           </p>
+                          {feedback.adminNotes && (
+                            <p className="text-gray-400 text-xs sm:text-sm mt-2 bg-gray-800 p-2 rounded">
+                              <strong>Admin Notu:</strong> {feedback.adminNotes}
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2 w-full sm:w-auto">
-                          {!feedback.isRead && (
+                          <button
+                            onClick={() => openFeedbackModal(feedback)}
+                            className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs transition-colors flex-1 sm:flex-none"
+                          >
+                            Düzenle
+                          </button>
+                          {feedback.status === 'new' && (
                             <button
-                              onClick={() => markFeedbackAsRead(feedback.id)}
+                              onClick={() => markFeedbackAsRead(feedback.id!)}
                               className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs transition-colors flex-1 sm:flex-none"
                             >
-                              Okundu
+                              İşleme Al
                             </button>
                           )}
                           <button
-                            onClick={() => deleteFeedback(feedback.id)}
+                            onClick={() => deleteFeedback(feedback.id!)}
                             className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs transition-colors flex-1 sm:flex-none"
                           >
                             Sil
@@ -1297,6 +1372,81 @@ const AdminPanel: React.FC = () => {
                   className="bg-gray-600 hover:bg-gray-700 px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base flex-1"
                 >
                   İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Feedback Yönetim Modal */}
+        {showFeedbackModal && selectedFeedback && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-2xl">
+              <h3 className="text-lg sm:text-xl font-semibold mb-4">Feedback Yönetimi</h3>
+              
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Gönderen:</label>
+                  <p className="text-white font-medium">{selectedFeedback.name}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">E-posta:</label>
+                  <p className="text-white">{selectedFeedback.email}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Konu:</label>
+                  <p className="text-white font-medium">{selectedFeedback.subject}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Mesaj:</label>
+                  <p className="text-white bg-gray-700 p-3 rounded-lg whitespace-pre-wrap">{selectedFeedback.message}</p>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Durum:</label>
+                  <select
+                    value={selectedFeedback.status}
+                    onChange={(e) => setSelectedFeedback({...selectedFeedback, status: e.target.value as Feedback['status']})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                  >
+                    <option value="new">Yeni</option>
+                    <option value="in_progress">İşlemde</option>
+                    <option value="resolved">Çözüldü</option>
+                    <option value="closed">Kapatıldı</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2">Admin Notu:</label>
+                  <textarea
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="Admin notu ekleyin..."
+                    rows={3}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white resize-none"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleUpdateFeedbackStatus(selectedFeedback.id!, selectedFeedback.status)}
+                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg font-semibold transition-colors flex-1"
+                >
+                  Güncelle
+                </button>
+                <button
+                  onClick={() => {
+                    setShowFeedbackModal(false);
+                    setSelectedFeedback(null);
+                    setAdminNotes('');
+                  }}
+                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg font-semibold transition-colors flex-1"
+                >
+                  Kapat
                 </button>
               </div>
             </div>

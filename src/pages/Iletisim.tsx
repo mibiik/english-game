@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Mail, Phone, MapPin, Send, MessageCircle, Instagram, Twitter, Linkedin } from 'lucide-react';
+import { ArrowLeft, Send, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { feedbackService } from '../services/feedbackService';
 
 const Iletisim: React.FC = () => {
   const navigate = useNavigate();
@@ -10,11 +11,37 @@ const Iletisim: React.FC = () => {
     subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form data:', formData);
-    alert('Mesajınız gönderildi! En kısa sürede size dönüş yapacağız.');
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      await feedbackService.createFeedback({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        category: 'general'
+      });
+
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      
+      // 3 saniye sonra success mesajını kaldır
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+    } catch (error) {
+      console.error('Feedback gönderilirken hata:', error);
+      setSubmitStatus('error');
+      
+      // 5 saniye sonra error mesajını kaldır
+      setTimeout(() => setSubmitStatus('idle'), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -23,33 +50,6 @@ const Iletisim: React.FC = () => {
       [e.target.name]: e.target.value
     });
   };
-
-  const contactInfo = [
-    {
-      icon: <Mail className="w-5 h-5" />,
-      title: "E-posta",
-      value: "destek@wordplay.com",
-      link: "mailto:destek@wordplay.com"
-    },
-    {
-      icon: <Phone className="w-5 h-5" />,
-      title: "Telefon",
-      value: "+90 (212) 338 10 00",
-      link: "tel:+902123381000"
-    },
-    {
-      icon: <MapPin className="w-5 h-5" />,
-      title: "Adres",
-      value: "Koç Üniversitesi, İstanbul",
-      link: "#"
-    }
-  ];
-
-  const socialLinks = [
-    { icon: <Instagram className="w-4 h-4" />, href: "https://instagram.com/wordplay", label: "Instagram" },
-    { icon: <Twitter className="w-4 h-4" />, href: "https://twitter.com/wordplay", label: "Twitter" },
-    { icon: <Linkedin className="w-4 h-4" />, href: "https://linkedin.com/company/wordplay", label: "LinkedIn" }
-  ];
 
   return (
     <div className="min-h-screen bg-neutral-900">
@@ -91,6 +91,22 @@ const Iletisim: React.FC = () => {
           {/* Contact Form */}
           <div className="bg-neutral-800/50 rounded-2xl p-8 border border-white/10">
             <h3 className="text-2xl font-bold text-white mb-6">Mesaj Gönder</h3>
+            
+            {/* Status Messages */}
+            {submitStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-600/20 border border-green-500/30 rounded-xl flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <span className="text-green-300">Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağız.</span>
+              </div>
+            )}
+            
+            {submitStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-600/20 border border-red-500/30 rounded-xl flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                <span className="text-red-300">Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-neutral-300 mb-2 font-medium">İsim</label>
@@ -146,56 +162,45 @@ const Iletisim: React.FC = () => {
               
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                <Send className="w-4 h-4" />
-                Mesaj Gönder
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Gönderiliyor...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Mesaj Gönder
+                  </>
+                )}
               </button>
             </form>
           </div>
 
-          {/* Contact Info */}
+          {/* Info Section */}
           <div className="space-y-8">
-            {/* Contact Details */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-white mb-6">İletişim Bilgileri</h3>
-              {contactInfo.map((info, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 p-4 bg-neutral-800/30 rounded-xl border border-white/10"
-                >
-                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                    {info.icon}
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium">{info.title}</h4>
-                    <a 
-                      href={info.link} 
-                      className="text-neutral-300 hover:text-blue-400 transition-colors"
-                    >
-                      {info.value}
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Social Media */}
+            {/* General Info */}
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">Sosyal Medya</h3>
-              <div className="flex gap-4">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 bg-neutral-800 rounded-xl border border-white/20 flex items-center justify-center text-neutral-300 hover:text-white hover:border-white/40 transition-colors"
-                    title={social.label}
-                  >
-                    {social.icon}
-                  </a>
-                ))}
+              <h3 className="text-2xl font-bold text-white mb-6">Bilgi</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-neutral-800/30 rounded-xl border border-white/10">
+                  <h4 className="text-white font-medium mb-2">Yanıt Süresi</h4>
+                  <p className="text-neutral-300 text-sm">
+                    Mesajlarınıza 24 saat içinde yanıt veriyoruz. 
+                    Acil durumlar için destek sayfamızı ziyaret edin.
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-neutral-800/30 rounded-xl border border-white/10">
+                  <h4 className="text-white font-medium mb-2">Destek Kategorileri</h4>
+                  <p className="text-neutral-300 text-sm">
+                    Teknik destek, öneriler, hata bildirimi ve genel sorularınız için 
+                    bu formu kullanabilirsiniz.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -212,6 +217,20 @@ const Iletisim: React.FC = () => {
                 SSS'yi Görüntüle
               </button>
             </div>
+
+            {/* Support Link */}
+            <div className="bg-neutral-800/50 rounded-2xl p-6 border border-white/10">
+              <h4 className="text-lg font-semibold text-white mb-3">Teknik Destek</h4>
+              <p className="text-neutral-300 mb-4 text-sm">
+                Teknik sorunlar için detaylı destek sayfamızı ziyaret edin.
+              </p>
+              <button
+                onClick={() => navigate('/destek')}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Destek Al
+              </button>
+            </div>
           </div>
         </div>
 
@@ -220,10 +239,11 @@ const Iletisim: React.FC = () => {
           <div className="bg-neutral-800/50 rounded-2xl p-8 border border-white/10">
             <h3 className="text-lg font-semibold text-white mb-2">Hızlı Yanıt Garantisi</h3>
             <p className="text-neutral-300 mb-6">
-              Mesajlarınıza 24 saat içinde yanıt veriyoruz. Acil durumlar için telefon ile arayabilirsiniz.
+              Mesajlarınıza 24 saat içinde yanıt veriyoruz. 
+              Acil durumlar için destek sayfamızı ziyaret edin.
             </p>
             <button
-              onClick={() => navigate('/iletisim')}
+              onClick={() => navigate('/destek')}
               className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors"
             >
               <MessageCircle className="w-4 h-4" />

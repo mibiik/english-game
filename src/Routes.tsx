@@ -18,7 +18,7 @@ const AboutFounder = lazy(() => import('./pages/AboutFounder'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
-const Hakkimizda = lazy(() => import('./pages/Hakkimizda'));
+
 const Iletisim = lazy(() => import('./pages/Iletisim'));
 const Sss = lazy(() => import('./pages/Sss'));
 const Destek = lazy(() => import('./pages/Destek'));
