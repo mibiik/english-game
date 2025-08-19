@@ -269,7 +269,7 @@ const WelcomePage: React.FC = () => {
 							transition={{ delay: 0.06 }} 
 							className="text-base md:text-lg text-cyan-200 leading-relaxed max-w-2xl mx-auto mb-10 font-mono"
 						>
-							{'>'} Koç Üniversitesi ELC protokolleri ile uyumlu
+							{'>'} Koç Üniversitesi hazırlık protokolleri ile uyumlu
 							<br />
 							{'>'} Gelişmiş AI destekli öğrenme sistemleri
             <br />
@@ -418,7 +418,7 @@ const WelcomePage: React.FC = () => {
 						<span className="text-white/80"> Ustalaşın</span>
 					</motion.h2>
 					<motion.p variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.06 }} className="text-base md:text-lg text-neutral-400 leading-relaxed max-w-2xl mx-auto mb-10">
-						Koç Üniversitesi ELC listeleriyle uyumlu, oyunlarla öğrenin ve kelime haznenizi geliştirin. Hazırlığı geçmenin en eğlenceli yolu!
+						Koç Üniversitesi hazırlık listeleriyle uyumlu, oyunlarla öğrenin ve kelime haznenizi geliştirin. Hazırlığı geçmenin en eğlenceli yolu!
 					</motion.p>
 					<motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.12 }} className="flex flex-col sm:flex-row gap-3 justify-center">
 						<motion.button whileHover={{ y: -2, scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={() => { setAuthMode('register'); setShowAuth(true); }} className="btn-shine inline-flex items-center gap-2 rounded-md px-6 py-3 bg-white text-neutral-950 font-medium hover:bg-neutral-200 transition-colors focus-white">
@@ -815,7 +815,7 @@ const WelcomePage: React.FC = () => {
 								<span className="text-lg font-semibold text-white">WordPlay</span>
 							</div>
 							<p className="text-sm text-neutral-400 leading-relaxed">
-								Koç Üniversitesi ELC listeleriyle uyumlu, oyunlaştırılmış kelime öğrenme platformu. 
+								Koç Üniversitesi hazırlık listeleriyle uyumlu, oyunlaştırılmış kelime öğrenme platformu. 
 								Hazırlığı geçmenin en eğlenceli yolu.
 							</p>
 						</div>
