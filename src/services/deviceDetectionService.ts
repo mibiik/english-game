@@ -100,24 +100,45 @@ class DeviceDetectionService {
 
   // Dokunmatik cihaz kontrolü
   public isTouchDevice(): boolean {
-    return 'ontouchstart' in window || 
-           navigator.maxTouchPoints > 0 || 
-           (window as any).DocumentTouch && document instanceof (window as any).DocumentTouch;
+    try {
+      return 'ontouchstart' in window || 
+             navigator.maxTouchPoints > 0 || 
+             (window as any).DocumentTouch && document instanceof (window as any).DocumentTouch;
+    } catch (error) {
+      console.warn('Dokunmatik cihaz tespit edilirken hata:', error);
+      return false; // Hata durumunda false döndür
+    }
   }
 
   // Tam cihaz bilgisi topla
   public getDeviceInfo(): DeviceInfo {
-    return {
-      deviceType: this.detectDeviceType(),
-      platform: this.detectPlatform(),
-      browser: this.detectBrowser(),
-      screenWidth: window.screen.width,
-      screenHeight: window.screen.height,
-      userAgent: navigator.userAgent,
-      isTouchDevice: this.isTouchDevice(),
-      operatingSystem: this.detectOperatingSystem(),
-      lastDetected: new Date()
-    };
+    try {
+      return {
+        deviceType: this.detectDeviceType(),
+        platform: this.detectPlatform(),
+        browser: this.detectBrowser(),
+        screenWidth: window.screen.width || 0,
+        screenHeight: window.screen.height || 0,
+        userAgent: navigator.userAgent || '',
+        isTouchDevice: this.isTouchDevice(),
+        operatingSystem: this.detectOperatingSystem(),
+        lastDetected: new Date()
+      };
+    } catch (error) {
+      console.error('Cihaz bilgisi toplanırken hata:', error);
+      // Hata durumunda varsayılan değerler döndür
+      return {
+        deviceType: 'desktop',
+        platform: 'Unknown',
+        browser: 'Unknown',
+        screenWidth: 0,
+        screenHeight: 0,
+        userAgent: '',
+        isTouchDevice: false,
+        operatingSystem: 'Unknown',
+        lastDetected: new Date()
+      };
+    }
   }
 
   // Cihaz bilgisini Firebase'e kaydet

@@ -17,7 +17,8 @@ import {
   Edit2, // Eğer düzenleme özelliği eklerseniz kullanabilirsiniz
   BookOpen, // Yeni eklenen ikon
   Puzzle, // Yeni eklenen ikon
-  Megaphone // Yeni eklenen ikon
+  Megaphone, // Yeni eklenen ikon
+  Smartphone
 } from 'lucide-react';
 import { authService } from '../services/authService';
 import { gameScoreService, GameMode } from '../services/gameScoreService';
