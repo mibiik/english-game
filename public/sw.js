@@ -177,6 +177,12 @@ async function backupLastScore(db, userId, userName, score) {
 
 // Monitoring'i başlat
 async function startBackgroundMonitoring() {
+  // Eğer zaten çalışıyorsa tekrar başlatma
+  if (monitoringInterval) {
+    console.log('⚠️ Monitoring zaten aktif');
+    return;
+  }
+  
   console.log('🔄 Arka plan monitoring başlatılıyor...');
   
   const db = await initializeFirebase();
@@ -188,10 +194,10 @@ async function startBackgroundMonitoring() {
   // İlk kontrol
   await checkScoreChanges(db);
   
-  // Her 30 saniyede bir kontrol et
+  // Her 5 dakikada bir kontrol et (daha az sıklık)
   monitoringInterval = setInterval(async () => {
     await checkScoreChanges(db);
-  }, 30000); // 30 saniye
+  }, 300000); // 5 dakika
   
   console.log('✅ Arka plan monitoring aktif');
 }
@@ -216,8 +222,6 @@ self.addEventListener('install', (event) => {
       })
       .then(() => {
         console.log('✅ Tüm dosyalar cache\'lendi');
-        // Service Worker yüklendiğinde monitoring'i başlat
-        startBackgroundMonitoring();
         // Yeni service worker'ı hemen aktif et
         return self.skipWaiting();
       })
@@ -321,10 +325,13 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => {
       console.log('✅ Eski cache\'ler temizlendi');
-      // Service Worker aktif olduğunda monitoring'i başlat
-      startBackgroundMonitoring();
       // Tüm client'ları kontrol et
       return self.clients.claim();
+    }).then(() => {
+      // Monitoring'i sadece bir kez başlat
+      setTimeout(() => {
+        startBackgroundMonitoring();
+      }, 5000); // 5 saniye sonra başlat
     })
   );
 });
