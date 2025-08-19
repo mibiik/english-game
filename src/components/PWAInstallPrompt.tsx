@@ -20,8 +20,25 @@ export const PWAInstallPrompt: React.FC = () => {
   useEffect(() => {
     // PWA zaten yüklü mü kontrol et
     const checkIfInstalled = () => {
+      // Standalone modda çalışıyorsa kurulu demektir
       if (window.matchMedia('(display-mode: standalone)').matches) {
         setIsInstalled(true);
+        localStorage.setItem('pwa-installed', 'true');
+        return;
+      }
+      
+      // localStorage'dan kurulum durumunu kontrol et
+      const isInstalled = localStorage.getItem('pwa-installed');
+      if (isInstalled === 'true') {
+        setIsInstalled(true);
+        return;
+      }
+      
+      // iOS Safari için özel kontrol
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS && (window.navigator as any).standalone) {
+        setIsInstalled(true);
+        localStorage.setItem('pwa-installed', 'true');
       }
     };
 
@@ -36,13 +53,13 @@ export const PWAInstallPrompt: React.FC = () => {
       const dismissedTime = localStorage.getItem('pwa-install-dismissed-time');
       
       if (dismissed && dismissedTime) {
-        const oneDayInMs = 24 * 60 * 60 * 1000;
+        const oneWeekInMs = 7 * 24 * 60 * 60 * 1000; // 1 hafta
         const timeSinceDismissed = Date.now() - parseInt(dismissedTime);
         
-        if (timeSinceDismissed < oneDayInMs) {
-          return false; // Henüz 1 gün geçmemiş
+        if (timeSinceDismissed < oneWeekInMs) {
+          return false; // Henüz 1 hafta geçmemiş
         } else {
-          // 1 gün geçmiş, tekrar göster
+          // 1 hafta geçmiş, tekrar göster
           localStorage.removeItem('pwa-install-dismissed');
           localStorage.removeItem('pwa-install-dismissed-time');
         }
@@ -72,8 +89,14 @@ export const PWAInstallPrompt: React.FC = () => {
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
+      
+      // Kurulum tamamlandı, artık bildirimi gösterme
+      localStorage.setItem('pwa-installed', 'true');
+      localStorage.setItem('pwa-install-date', new Date().toISOString());
       localStorage.removeItem('pwa-install-dismissed');
       localStorage.removeItem('pwa-install-dismissed-time');
+      
+      console.log('🎉 PWA başarıyla kuruldu!');
       
       // Teşekkür mesajı göster
       setShowThankYou(true);
@@ -83,15 +106,15 @@ export const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Eğer beforeinstallprompt event'i tetiklenmezse (özellikle iOS için)
-    // Manuel olarak kurulum bildirimini göster
+    // Mobil cihazlarda manuel olarak kurulum bildirimini göster
     if (isMobile && !isInstalled && checkDismissStatus()) {
       const manualPromptTimer = setTimeout(() => {
         // beforeinstallprompt event'i henüz tetiklenmemişse manuel göster
-        if (!deferredPrompt) {
+        if (!deferredPrompt && !isInstalled) {
+          console.log('📱 Mobil cihazda PWA kurulum bildirimi gösteriliyor');
           setShowPrompt(true);
         }
-      }, 5000); // 5 saniye bekle
+      }, 3000); // 3 saniye bekle
       
       return () => {
         clearTimeout(manualPromptTimer);
@@ -174,16 +197,21 @@ export const PWAInstallPrompt: React.FC = () => {
                 ) : (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-700 font-medium">
-                      🚀 Hızlı erişim için ana ekranına ekle!
+                      🚀 Ana ekranına ekle ve daha hızlı erişim sağla!
                     </p>
-                    <div className="flex items-center gap-1 text-xs text-green-600">
-                      <span>✓</span>
-                      <span>Offline çalışır</span>
-                      <span>✓</span>
-                      <span>Hızlı açılır</span>
-                      <span>✓</span>
-                      <span>Uygulama gibi</span>
+                    <div className="bg-white/70 rounded-lg p-2 border border-blue-300">
+                      <div className="flex items-center gap-1 text-xs text-green-700 font-medium">
+                        <span>✓</span>
+                        <span>İnternetsiz çalışır</span>
+                        <span>✓</span>
+                        <span>Anında açılır</span>
+                        <span>✓</span>
+                        <span>Uygulama deneyimi</span>
+                      </div>
                     </div>
+                    <p className="text-xs text-blue-600 font-medium">
+                      📱 Haftada bir hatırlatırız!
+                    </p>
                   </div>
                 )}
               </div>

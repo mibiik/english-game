@@ -3,6 +3,7 @@ import { userAnalyticsService } from '../services/userAnalyticsService';
 import { userService } from '../services/userService';
 import { gameScoreService } from '../services/gameScoreService';
 import { definitionCacheService } from '../services/definitionCacheService';
+import { useDeviceStats } from '../hooks/useDeviceStats';
 import { db } from '../config/firebase';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
@@ -80,9 +81,12 @@ const AdminPanel: React.FC = () => {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [newBadge, setNewBadge] = useState('');
   const [feedbackSearchTerm, setFeedbackSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support' | 'definitions'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'feedbacks' | 'support' | 'definitions' | 'devices'>('users');
   const [cacheStats, setCacheStats] = useState<{ ai: number; manual: number; total: number; invalid: number }>({ ai: 0, manual: 0, total: 0, invalid: 0 });
   const [testDefinition, setTestDefinition] = useState('');
+  
+  // Cihaz istatistikleri hook'u
+  const { deviceStats, userDevices, loading: deviceStatsLoading, refreshStats } = useDeviceStats();
   const [testResult, setTestResult] = useState<{ isValid: boolean; reasons: string[] } | null>(null);
 
   useEffect(() => {
@@ -499,6 +503,16 @@ const AdminPanel: React.FC = () => {
               }`}
             >
               📚 Tanımlar ({cacheStats.total})
+            </button>
+            <button
+              onClick={() => setActiveTab('devices')}
+              className={`px-2 sm:px-4 py-2 font-semibold transition-colors text-xs sm:text-sm whitespace-nowrap ${
+                activeTab === 'devices' 
+                  ? 'text-blue-400 border-b-2 border-blue-400' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              📱 Cihazlar ({deviceStats?.totalUsers || 0})
             </button>
           </div>
 
@@ -960,6 +974,165 @@ const AdminPanel: React.FC = () => {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Cihaz İstatistikleri Tab */}
+          {activeTab === 'devices' && (
+            <div>
+              {deviceStatsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                  <p className="text-gray-400">Cihaz istatistikleri yükleniyor...</p>
+                </div>
+              ) : deviceStats ? (
+                <>
+                  {/* Genel İstatistikler */}
+                  <div className="bg-gray-700 rounded-lg p-4 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">📊 Cihaz İstatistikleri</h3>
+                      <button
+                        onClick={refreshStats}
+                        className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg font-semibold transition-colors text-sm"
+                      >
+                        🔄 Yenile
+                      </button>
+                    </div>
+                    
+                    {/* Cihaz Türü Dağılımı */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      <div className="bg-gray-600 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-blue-400">{deviceStats.totalUsers}</div>
+                        <div className="text-sm text-gray-300">Toplam Kullanıcı</div>
+                      </div>
+                      <div className="bg-gray-600 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-green-400">{deviceStats.mobileUsers}</div>
+                        <div className="text-sm text-gray-300">📱 Mobil ({deviceStats.deviceTypePercentages.mobile}%)</div>
+                      </div>
+                      <div className="bg-gray-600 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-yellow-400">{deviceStats.tabletUsers}</div>
+                        <div className="text-sm text-gray-300">📟 Tablet ({deviceStats.deviceTypePercentages.tablet}%)</div>
+                      </div>
+                      <div className="bg-gray-600 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-purple-400">{deviceStats.desktopUsers}</div>
+                        <div className="text-sm text-gray-300">💻 Masaüstü ({deviceStats.deviceTypePercentages.desktop}%)</div>
+                      </div>
+                    </div>
+
+                    {/* En Popüler Platformlar */}
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="bg-gray-600 rounded-lg p-4">
+                        <h4 className="font-semibold mb-3 text-center">🔝 En Popüler Platformlar</h4>
+                        <div className="space-y-2">
+                          {deviceStats.topPlatforms.map((platform, index) => (
+                            <div key={platform.platform} className="flex justify-between items-center">
+                              <span className="text-sm">{index + 1}. {platform.platform}</span>
+                              <span className="text-blue-400 font-semibold">{platform.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-600 rounded-lg p-4">
+                        <h4 className="font-semibold mb-3 text-center">🌐 En Popüler Tarayıcılar</h4>
+                        <div className="space-y-2">
+                          {deviceStats.topBrowsers.map((browser, index) => (
+                            <div key={browser.browser} className="flex justify-between items-center">
+                              <span className="text-sm">{index + 1}. {browser.browser}</span>
+                              <span className="text-green-400 font-semibold">{browser.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-600 rounded-lg p-4">
+                        <h4 className="font-semibold mb-3 text-center">💽 İşletim Sistemleri</h4>
+                        <div className="space-y-2">
+                          {deviceStats.topOperatingSystems.map((os, index) => (
+                            <div key={os.os} className="flex justify-between items-center">
+                              <span className="text-sm">{index + 1}. {os.os}</span>
+                              <span className="text-yellow-400 font-semibold">{os.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kullanıcı Cihaz Detayları */}
+                  <div className="bg-gray-700 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">👥 Kullanıcı Cihaz Detayları</h3>
+                    
+                    {userDevices.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-gray-600">
+                              <th className="text-left py-3 px-2">Kullanıcı</th>
+                              <th className="text-left py-3 px-2">Cihaz Türü</th>
+                              <th className="text-left py-3 px-2">Platform</th>
+                              <th className="text-left py-3 px-2">Tarayıcı</th>
+                              <th className="text-left py-3 px-2">Ekran Boyutu</th>
+                              <th className="text-left py-3 px-2">Dokunmatik</th>
+                              <th className="text-left py-3 px-2">Son Güncelleme</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {userDevices.slice(0, 20).map((user) => (
+                              <tr key={user.userId} className="border-b border-gray-700 hover:bg-gray-600">
+                                <td className="py-3 px-2">
+                                  <div>
+                                    <div className="font-medium">{user.displayName}</div>
+                                    <div className="text-xs text-gray-400">{user.email}</div>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-2">
+                                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                    user.deviceInfo.deviceType === 'mobile' ? 'bg-green-900 text-green-300' :
+                                    user.deviceInfo.deviceType === 'tablet' ? 'bg-yellow-900 text-yellow-300' :
+                                    'bg-purple-900 text-purple-300'
+                                  }`}>
+                                    {user.deviceInfo.deviceType === 'mobile' ? '📱 Mobil' :
+                                     user.deviceInfo.deviceType === 'tablet' ? '📟 Tablet' : '💻 Desktop'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-2 text-blue-300">{user.deviceInfo.platform}</td>
+                                <td className="py-3 px-2 text-green-300">{user.deviceInfo.browser}</td>
+                                <td className="py-3 px-2 text-gray-300">
+                                  {user.deviceInfo.screenWidth}x{user.deviceInfo.screenHeight}
+                                </td>
+                                <td className="py-3 px-2">
+                                  {user.deviceInfo.isTouchDevice ? 
+                                    <span className="text-green-400">✅</span> : 
+                                    <span className="text-red-400">❌</span>
+                                  }
+                                </td>
+                                <td className="py-3 px-2 text-gray-400 text-xs">
+                                  {user.lastDeviceUpdate.toLocaleDateString('tr-TR')}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 text-center py-8">Henüz cihaz bilgisi kaydedilmemiş</p>
+                    )}
+
+                    {userDevices.length > 20 && (
+                      <div className="mt-4 text-center">
+                        <p className="text-gray-400 text-sm">
+                          İlk 20 kullanıcı gösteriliyor. Toplam: {userDevices.length} kullanıcı
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">Cihaz istatistikleri yüklenemedi</p>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -174,6 +174,22 @@ function AppContent() {
         localStorage.setItem('lastAuthCheck', new Date().toISOString());
         localStorage.setItem('authUserId', user.uid);
         
+        // Cihaz bilgisini tespit et ve kaydet
+        deviceDetectionService.saveDeviceInfo(user.uid).then(() => {
+          console.log('📱 Cihaz bilgisi kaydedildi');
+        }).catch((error) => {
+          console.error('Cihaz bilgisi kaydedilirken hata:', error);
+        });
+        
+        // Cihaz değişikliği kontrolü
+        deviceDetectionService.detectDeviceChange(user.uid).then((hasChanged) => {
+          if (hasChanged) {
+            console.log('🔄 Cihaz değişikliği tespit edildi ve kaydedildi');
+          }
+        }).catch((error) => {
+          console.error('Cihaz değişikliği kontrolünde hata:', error);
+        });
+        
         // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
         if (location.pathname === '/') {
           navigate('/home', { replace: true });
