@@ -13,11 +13,12 @@ import {
   GraduationCap,
   Target,
   Clock,
-  Trophy
+  Trophy,
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 import logo from './ico.png';
 import { Auth } from '../components/Auth';
-// import SubscribeButton from '../components/SubscribeButton';
 
 export const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,189 +28,219 @@ export const WelcomePage: React.FC = () => {
 
   const features = [
     {
-      icon: <BookOpen className="w-12 h-12" />,
+      icon: <BookOpen className="w-8 h-8" />,
       title: "Koç ELC Kelime Listeleri",
-      description: "Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, seviyenize uygun kelimelerle çalışın."
+      description: "Güncel kelime listeleriyle tam uyumlu, seviyenize uygun kelimelerle çalışın.",
+      color: "from-blue-500 to-cyan-500"
     },
     {
-      icon: <Brain className="w-12 h-12" />,
-      title: "12 Farklı Oyun Modu",
-      description: "Çoktan seçmeli, eşleştirme, boşluk doldurma ve daha fazlası. Her öğrenme stiline uygun oyunlar."
+      icon: <Brain className="w-8 h-8" />,
+      title: "12 Farklı Oyun Modu", 
+      description: "Çoktan seçmeli, eşleştirme, boşluk doldurma ve daha fazlası.",
+      color: "from-purple-500 to-pink-500"
     },
     {
-      icon: <Users className="w-12 h-12" />,
+      icon: <Users className="w-8 h-8" />,
       title: "Canlı Quiz Yarışmaları",
-      description: "Arkadaşlarınızla canlı quiz yarışmalarına katılın, gerçek zamanlı skorları takip edin."
+      description: "Arkadaşlarınızla canlı quiz yarışmalarına katılın.",
+      color: "from-green-500 to-emerald-500"
     },
     {
-      icon: <Target className="w-12 h-12" />,
+      icon: <Target className="w-8 h-8" />,
       title: "Kişiselleştirilmiş Öğrenme",
-      description: "AI destekli sistem ile zorlandığınız kelimeleri tespit edin ve odaklanın."
+      description: "AI destekli sistem ile zorlandığınız kelimeleri tespit edin.",
+      color: "from-orange-500 to-red-500"
     },
     {
-      icon: <Trophy className="w-12 h-12" />,
+      icon: <Trophy className="w-8 h-8" />,
       title: "Liderlik Tablosu",
-      description: "Skorlarınızı kaydedin, arkadaşlarınızla yarışın ve başarılarınızı takip edin."
+      description: "Skorlarınızı kaydedin, arkadaşlarınızla yarışın.",
+      color: "from-yellow-500 to-orange-500"
     }
+  ];
+
+  const stats = [
+    { number: "12+", label: "Oyun Modu", icon: <Play className="w-5 h-5" /> },
+    { number: "1000+", label: "Kelime", icon: <BookOpen className="w-5 h-5" /> },
+    { number: "4", label: "Seviye", icon: <GraduationCap className="w-5 h-5" /> },
+    { number: "∞", label: "Pratik", icon: <Sparkles className="w-5 h-5" /> }
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % features.length);
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [features.length]);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#111] to-black text-white overflow-hidden" style={{ paddingTop: '64px', marginTop: '-128px' }}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-slate-800/20 to-transparent rounded-full"></div>
+      </div>
+
       {/* Main Content */}
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 pt-20">
+      <motion.div 
+        className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 max-w-4xl">
           {/* Logo */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="mb-6"
+            variants={itemVariants}
+            className="mb-8"
           >
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-4 mb-6">
               <motion.img
                 src={logo}
-                alt="Logo"
-                className="w-24 h-24 drop-shadow-2xl"
+                alt="WordPlay Logo"
+                className="w-16 h-16 drop-shadow-lg"
+                whileHover={{ scale: 1.05 }}
                 animate={{ 
-                  y: ["-4px", "4px"],
-                  rotate: [0, 2, -2, 0]
+                  y: [0, -8, 0],
                 }}
                 transition={{
                   y: {
                     repeat: Infinity,
-                    repeatType: "reverse",
                     duration: 3,
-                    ease: "easeInOut",
-                  },
-                  rotate: {
-                    repeat: Infinity,
-                    duration: 4,
                     ease: "easeInOut",
                   }
                 }}
               />
-              <motion.h2
-                className="text-4xl md:text-5xl font-black text-white drop-shadow-2xl"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
+              <motion.h1
+                className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent"
+                variants={itemVariants}
               >
                 WORDPLAY
-              </motion.h2>
+              </motion.h1>
             </div>
           </motion.div>
 
-          <motion.h1
-            className="text-5xl md:text-7xl font-black mb-6 tracking-tight"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
+          {/* Main Heading */}
+          <motion.h2
+            variants={itemVariants}
+            className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
           >
-            <span className="bg-gradient-to-r from-red-500 via-red-600 to-red-700 bg-clip-text text-transparent drop-shadow-lg">
-              Hoş Geldin
-            </span>
-          </motion.h1>
-          
+            Hoş Geldin
+          </motion.h2>
+
+          {/* Subtitle */}
           <motion.p
-            className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto font-bold leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            variants={itemVariants}
+            className="text-lg md:text-xl text-slate-300 mb-12 leading-relaxed max-w-2xl mx-auto"
           >
-            Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, 
-            <br />
-            <span className="text-red-300 font-black drop-shadow-lg bg-gradient-to-r from-red-400 to-red-500 bg-clip-text text-transparent">
-              interaktif oyunlarla İngilizce'nizi geliştirin!
-            </span>
+            Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu,{' '}
+            <span className="text-blue-400 font-medium">interaktif oyunlarla İngilizce'nizi geliştirin!</span>
           </motion.p>
 
+          {/* CTA Buttons */}
           <motion.div
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
           >
             <motion.button
               onClick={() => {
-                setShowAuth(true);
                 setAuthMode('register');
+                setShowAuth(true);
               }}
-              className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 hover:from-red-700 hover:via-red-800 hover:to-red-900 text-white px-8 py-4 rounded-xl font-black text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-2xl hover:shadow-red-500/25"
-              whileHover={{ scale: 1.05, y: -3 }}
-              whileTap={{ scale: 0.95 }}
+              className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <GraduationCap className="w-6 h-6" />
-              Hemen Kayıt Ol ve Başla
-              <ArrowRight className="w-5 h-5" />
+              <span className="flex items-center gap-2">
+                <Zap className="w-5 h-5" />
+                Hemen Kayıt Ol ve Başla
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
             </motion.button>
-            
+
             <motion.button
               onClick={() => {
-                setShowAuth(true);
                 setAuthMode('login');
+                setShowAuth(true);
               }}
-              className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 hover:from-green-700 hover:via-green-800 hover:to-green-900 text-white px-8 py-4 rounded-xl font-black text-lg transition-all duration-300 flex items-center justify-center gap-3 shadow-2xl hover:shadow-green-500/25"
-              whileHover={{ scale: 1.05, y: -3 }}
-              whileTap={{ scale: 0.95 }}
+              className="group px-8 py-4 border-2 border-slate-600 rounded-2xl font-semibold text-slate-300 hover:border-slate-500 hover:text-white hover:bg-slate-800/50 transition-all duration-300"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <Zap className="w-6 h-6" />
-              Giriş Yap
+              <span className="flex items-center gap-2">
+                <Play className="w-5 h-5" />
+                Giriş Yap
+              </span>
             </motion.button>
           </motion.div>
-        </motion.div>
+        </div>
 
-        {/* Features Carousel */}
+        {/* Feature Carousel */}
         <motion.div
-          className="w-full max-w-4xl mx-auto"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          variants={itemVariants}
+          className="w-full max-w-4xl mb-16"
         >
-          <div className="relative">
+          <div className="relative bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
             <motion.div
               key={currentSlide}
-              className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-8 border-2 border-gray-700 shadow-2xl"
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
+              exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.5 }}
+              className="text-center"
             >
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="text-red-500 drop-shadow-lg">
+              <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${features[currentSlide].color} mb-6`}>
+                <div className="text-white">
                   {features[currentSlide].icon}
                 </div>
-                <div className="text-center md:text-left">
-                  <h3 className="text-2xl font-black mb-3 text-white drop-shadow-lg">
-                    {features[currentSlide].title}
-                  </h3>
-                  <p className="text-gray-200 text-lg font-semibold leading-relaxed">
-                    {features[currentSlide].description}
-                  </p>
-                </div>
               </div>
+              
+              <h3 className="text-2xl font-bold mb-4 text-white">
+                {features[currentSlide].title}
+              </h3>
+              
+              <p className="text-slate-300 text-lg leading-relaxed max-w-2xl mx-auto">
+                {features[currentSlide].description}
+              </p>
             </motion.div>
 
-            {/* Dots */}
-            <div className="flex justify-center mt-6 gap-2">
+            {/* Slide Indicators */}
+            <div className="flex justify-center gap-2 mt-8">
               {features.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentSlide ? 'bg-red-500 w-8 shadow-lg shadow-red-500/50' : 'bg-gray-600 hover:bg-gray-500'
+                    index === currentSlide
+                      ? 'bg-blue-500 w-8'
+                      : 'bg-slate-600 hover:bg-slate-500'
                   }`}
                 />
               ))}
@@ -219,60 +250,55 @@ export const WelcomePage: React.FC = () => {
 
         {/* Stats */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 w-full max-w-4xl"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
+          variants={itemVariants}
+          className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl"
         >
-          <div className="text-center">
-            <div className="text-3xl font-black text-red-500 mb-2 drop-shadow-lg">12+</div>
-            <div className="text-gray-300 font-bold text-base">Oyun Modu</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-black text-red-500 mb-2 drop-shadow-lg">1000+</div>
-            <div className="text-gray-300 font-bold text-base">Kelime</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-black text-red-500 mb-2 drop-shadow-lg">4</div>
-            <div className="text-gray-300 font-bold text-base">Seviye</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-black text-red-500 mb-2 drop-shadow-lg">∞</div>
-            <div className="text-gray-300 font-bold text-base">Pratik</div>
-          </div>
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              className="text-center group"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <div className="flex justify-center mb-3">
+                <div className="p-3 bg-slate-800/50 rounded-xl group-hover:bg-slate-700/50 transition-colors">
+                  <div className="text-blue-400">
+                    {stat.icon}
+                  </div>
+                </div>
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                {stat.number}
+              </div>
+              <div className="text-slate-400 font-medium">
+                {stat.label}
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
-      </div>
+      </motion.div>
+
+      {/* Auth Modal */}
       {showAuth && (
-        <Auth
-          onClose={() => setShowAuth(false)}
-          isLogin={authMode === 'login'}
-        />
-      )}
-      {/* Floating Elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-red-500/20 rounded-full"
-            animate={{
-              x: [0, 100, 0],
-              y: [0, -100, 0],
-              opacity: [0.2, 0.8, 0.2],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
-      </div>
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-slate-900 rounded-3xl p-8 max-w-md w-full border border-slate-700 shadow-2xl"
+          >
+            <Auth 
+              mode={authMode} 
+              onClose={() => setShowAuth(false)}
+              onSuccess={() => {
+                setShowAuth(false);
+                navigate('/home');
+              }}
+            />
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default WelcomePage; 
+export default WelcomePage;
