@@ -19,6 +19,7 @@ import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import { userAnalyticsService } from './services/userAnalyticsService';
+import { deviceDetectionService } from './services/deviceDetectionService';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
