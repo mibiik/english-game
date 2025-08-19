@@ -203,7 +203,9 @@ function AppContent() {
         localStorage.removeItem('authUserId');
         
         // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
-        if (location.pathname !== '/') {
+        // Footer linkleri (hakkımızda, iletişim, sss, destek, gizlilik, kullanım şartları) korumalı değil
+        const publicPages = ['/', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
+        if (!publicPages.includes(location.pathname)) {
           navigate('/', { replace: true });
         }
       }
