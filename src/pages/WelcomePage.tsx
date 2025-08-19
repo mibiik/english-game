@@ -633,6 +633,120 @@ const WelcomePage: React.FC = () => {
 				</div>
 			</section>
 
+			{/* Kullanıcı Yorumları */}
+			<section className="relative bg-gradient-to-b from-neutral-900 to-neutral-800 py-20">
+				<div className="max-w-6xl mx-auto px-6 relative z-10">
+					<motion.div
+						initial={{ opacity: 0, y: 30 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						className="text-center mb-16"
+					>
+						<h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">
+							Öğrencilerimiz Ne Diyor?
+						</h2>
+						<p className="text-neutral-400 text-lg max-w-2xl mx-auto">
+							Binlerce öğrenci WordPlay ile seviyelerini geliştirdi. İşte onların başarı hikayeleri...
+						</p>
+					</motion.div>
+
+					<div className="grid md:grid-cols-3 gap-8">
+						{/* Mehmet B. - Endüstri Mühendisliği */}
+						<motion.div
+							initial={{ opacity: 0, y: 40 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ delay: 0.1 }}
+							className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-6 hover:border-blue-400/40 transition-all duration-300 group"
+						>
+							<div className="flex items-center gap-3 mb-4">
+								<div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+									<span className="text-white font-bold text-lg">M</span>
+								</div>
+								<div>
+									<h4 className="text-white font-semibold">Mehmet B.</h4>
+									<p className="text-blue-300 text-sm">Endüstri Mühendisliği</p>
+								</div>
+							</div>
+							<blockquote className="text-neutral-300 leading-relaxed mb-4">
+								"Kuepeyi verdim ve uygulama o kadar işe yaradı ki çok teşekkür ediyorum. Umarım çok daha iyi yerlere gelirsiniz, başarılarınızın devamını diliyorum!"
+							</blockquote>
+							<div className="flex items-center gap-1">
+								{[...Array(5)].map((_, i) => (
+									<Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+								))}
+							</div>
+						</motion.div>
+
+						{/* Zeynep Ö. */}
+						<motion.div
+							initial={{ opacity: 0, y: 40 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ delay: 0.2 }}
+							className="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 backdrop-blur-sm border border-emerald-500/20 rounded-2xl p-6 hover:border-emerald-400/40 transition-all duration-300 group"
+						>
+							<div className="flex items-center gap-3 mb-4">
+								<div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
+									<span className="text-white font-bold text-lg">Z</span>
+								</div>
+								<div>
+									<h4 className="text-white font-semibold">Zeynep Ö.</h4>
+									<p className="text-emerald-300 text-sm">İngilizce Öğrencisi</p>
+								</div>
+							</div>
+							<blockquote className="text-neutral-300 leading-relaxed mb-4">
+								"Cidden işe yarıyor! Pre-Intermediate seviyesindeyken Upper-Intermediate'a geçtim. Cidden harika!"
+							</blockquote>
+							<div className="flex items-center gap-1">
+								{[...Array(5)].map((_, i) => (
+									<Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+								))}
+							</div>
+						</motion.div>
+
+						{/* Mert K. */}
+						<motion.div
+							initial={{ opacity: 0, y: 40 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							viewport={{ once: true }}
+							transition={{ delay: 0.3 }}
+							className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 hover:border-purple-400/40 transition-all duration-300 group"
+						>
+							<div className="flex items-center gap-3 mb-4">
+								<div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+									<span className="text-white font-bold text-lg">M</span>
+								</div>
+								<div>
+									<h4 className="text-white font-semibold">Mert K.</h4>
+									<p className="text-purple-300 text-sm">Hazırlık Öğrencisi</p>
+								</div>
+							</div>
+							<blockquote className="text-neutral-300 leading-relaxed mb-4">
+								"Hazırlığı atlarken bana en çok faydası dokunan şey diyebilirim. Kelimeleri oyunlarla, eğlenceli bir şekilde öğreniyorsun, sıkılmadan tekrar yapabiliyorsun. WordPlay olmasa kesinlikle bu kadar kolay geçemezdim!"
+							</blockquote>
+							<div className="flex items-center gap-1">
+								{[...Array(5)].map((_, i) => (
+									<Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+								))}
+							</div>
+						</motion.div>
+					</div>
+
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						transition={{ delay: 0.4 }}
+						className="text-center mt-12"
+					>
+						<p className="text-neutral-400 text-sm">
+							💡 <span className="text-white font-medium">10,000+</span> öğrenci WordPlay ile başarıya ulaştı
+						</p>
+					</motion.div>
+				</div>
+			</section>
+
 			{/* CTA */}
 			<section className="relative bg-neutral-900">
 				<div className="max-w-5xl mx-auto px-6 py-16 text-center relative z-10">
