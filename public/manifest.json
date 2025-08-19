@@ -1,7 +1,7 @@
 {
-  "name": "WordPlay - Koç ELC Kelime Öğrenme",
+  "name": "WordPlay - İngilizce Kelime Öğrenme",
   "short_name": "WordPlay",
-  "description": "Koç Üniversitesi ELC kelime listeleriyle eğlenceli İngilizce öğrenme uygulaması",
+  "description": "Eğlenceli İngilizce kelime öğrenme uygulaması - Oyunlarla öğren, hızla ilerle!",
   "start_url": "https://mibiik.github.io/english-game/",
   "display": "standalone",
   "background_color": "#111111",
