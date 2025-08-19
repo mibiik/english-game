@@ -2,34 +2,34 @@
   "name": "WordPlay - İngilizce Kelime Öğrenme",
   "short_name": "WordPlay",
   "description": "Eğlenceli İngilizce kelime öğrenme uygulaması - Oyunlarla öğren, hızla ilerle!",
-  "start_url": "https://mibiik.github.io/english-game/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#3B82F6",
   "orientation": "portrait",
-  "scope": "https://mibiik.github.io/english-game/",
+  "scope": "/",
   "lang": "tr",
   "categories": ["education", "games"],
   "icons": [
     {
-      "src": "https://mibiik.github.io/english-game/a.png",
+      "src": "/a.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://mibiik.github.io/english-game/a.png",
+      "src": "/a.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://mibiik.github.io/english-game/a.png",
+      "src": "/a.png",
       "sizes": "144x144",
       "type": "image/png"
     },
     {
-      "src": "https://mibiik.github.io/english-game/a.png",
+      "src": "/a.png",
       "sizes": "96x96",
       "type": "image/png"
     }
@@ -39,7 +39,7 @@
       "name": "Hızlı Oyun",
       "short_name": "Oyun",
       "description": "Hızlı kelime oyunu başlat",
-      "url": "https://mibiik.github.io/english-game/home?game=speed",
+      "url": "/home?game=speed",
       "icons": [
         {
           "src": "/assets/aaaaaaaadwü/kelimeyarisi.jpg",
@@ -51,7 +51,7 @@
       "name": "Öğrenme Modu",
       "short_name": "Öğren",
       "description": "Kelime öğrenme modunu aç",
-      "url": "https://mibiik.github.io/english-game/home?game=learning",
+      "url": "/home?game=learning",
       "icons": [
         {
           "src": "/assets/aaaaaaaadwü/ogrenmemodu.jpg",
@@ -63,7 +63,7 @@
       "name": "Quiz Yarışması",
       "short_name": "Quiz",
       "description": "Canlı quiz yarışmasına katıl",
-      "url": "https://mibiik.github.io/english-game/live-quiz",
+      "url": "/live-quiz",
       "icons": [
         {
           "src": "/assets/aaaaaaaadwü/coktansecmeli.jpg",

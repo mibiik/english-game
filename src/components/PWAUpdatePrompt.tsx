@@ -7,6 +7,23 @@ export const PWAUpdatePrompt: React.FC = () => {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
+    // Kullanıcı daha önce güncellemeyi reddettiyse gösterme
+    const updateDismissed = localStorage.getItem('pwa-update-dismissed');
+    const dismissedTime = localStorage.getItem('pwa-update-dismissed-time');
+    
+    if (updateDismissed && dismissedTime) {
+      const oneHourInMs = 60 * 60 * 1000; // 1 saat
+      const timeSinceDismissed = Date.now() - parseInt(dismissedTime);
+      
+      if (timeSinceDismissed < oneHourInMs) {
+        return; // Henüz 1 saat geçmemiş, gösterme
+      } else {
+        // 1 saat geçmiş, tekrar gösterebilir
+        localStorage.removeItem('pwa-update-dismissed');
+        localStorage.removeItem('pwa-update-dismissed-time');
+      }
+    }
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then((registration) => {
         // Güncelleme var mı kontrol et
@@ -17,16 +34,22 @@ export const PWAUpdatePrompt: React.FC = () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // Yeni güncelleme mevcut
                 setWaitingWorker(newWorker);
-                setShowUpdatePrompt(true);
+                // 2 saniye bekle, sonra göster
+                setTimeout(() => {
+                  setShowUpdatePrompt(true);
+                }, 2000);
               }
             });
           }
         });
 
-        // Zaten bekleyen bir worker var mı kontrol et
-        if (registration.waiting) {
+        // Zaten bekleyen bir worker var mı kontrol et (sadece gerçek bir güncelleme varsa)
+        if (registration.waiting && registration.waiting !== navigator.serviceWorker.controller) {
           setWaitingWorker(registration.waiting);
-          setShowUpdatePrompt(true);
+          // 2 saniye bekle, sonra göster
+          setTimeout(() => {
+            setShowUpdatePrompt(true);
+          }, 2000);
         }
       });
 
@@ -48,6 +71,9 @@ export const PWAUpdatePrompt: React.FC = () => {
 
   const handleSkip = () => {
     setShowUpdatePrompt(false);
+    // Kullanıcı reddettiğini kaydet (1 saat boyunca gösterme)
+    localStorage.setItem('pwa-update-dismissed', 'true');
+    localStorage.setItem('pwa-update-dismissed-time', Date.now().toString());
   };
 
   return (

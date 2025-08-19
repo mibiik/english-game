@@ -342,6 +342,9 @@ self.addEventListener('message', (event) => {
     startBackgroundMonitoring();
   } else if (event.data && event.data.type === 'STOP_MONITORING') {
     stopBackgroundMonitoring();
+  } else if (event.data && event.data.type === 'SKIP_WAITING') {
+    // Yeni service worker'ı hemen aktif et
+    self.skipWaiting();
   }
 });
 

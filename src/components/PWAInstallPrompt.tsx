@@ -27,12 +27,11 @@ export const PWAInstallPrompt: React.FC = () => {
 
     checkIfInstalled();
 
-    // Install prompt event'ini dinle
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Kullanıcı daha önce dismiss etmişse gösterme (1 gün sonra tekrar göster)
+    // Mobil cihaz kontrolü
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    // Kullanıcı daha önce dismiss etmişse gösterme kontrolü
+    const checkDismissStatus = () => {
       const dismissed = localStorage.getItem('pwa-install-dismissed');
       const dismissedTime = localStorage.getItem('pwa-install-dismissed-time');
       
@@ -41,16 +40,24 @@ export const PWAInstallPrompt: React.FC = () => {
         const timeSinceDismissed = Date.now() - parseInt(dismissedTime);
         
         if (timeSinceDismissed < oneDayInMs) {
-          return; // Henüz 1 gün geçmemiş
+          return false; // Henüz 1 gün geçmemiş
         } else {
           // 1 gün geçmiş, tekrar göster
           localStorage.removeItem('pwa-install-dismissed');
           localStorage.removeItem('pwa-install-dismissed-time');
         }
       }
+      return true;
+    };
+
+    // Install prompt event'ini dinle
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      
+      if (!checkDismissStatus()) return;
       
       // Mobil cihazlarda 3 saniye sonra göster
-      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       if (isMobile) {
         setTimeout(() => {
           setShowPrompt(true);
@@ -76,11 +83,28 @@ export const PWAInstallPrompt: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Eğer beforeinstallprompt event'i tetiklenmezse (özellikle iOS için)
+    // Manuel olarak kurulum bildirimini göster
+    if (isMobile && !isInstalled && checkDismissStatus()) {
+      const manualPromptTimer = setTimeout(() => {
+        // beforeinstallprompt event'i henüz tetiklenmemişse manuel göster
+        if (!deferredPrompt) {
+          setShowPrompt(true);
+        }
+      }, 5000); // 5 saniye bekle
+      
+      return () => {
+        clearTimeout(manualPromptTimer);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.removeEventListener('appinstalled', handleAppInstalled);
+      };
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [deferredPrompt, isInstalled]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
