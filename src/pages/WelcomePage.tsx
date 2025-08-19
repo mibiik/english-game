@@ -4,23 +4,18 @@ import { motion } from 'framer-motion';
 import { 
   BookOpen, 
   Brain, 
-  Award, 
   Users, 
-  Zap, 
-  Star, 
-  ArrowRight, 
+  Target,
+  Trophy,
   Play,
   GraduationCap,
-  Target,
-  Clock,
-  Trophy,
-  Sparkles,
-  ChevronRight
+  ArrowRight,
+  CheckCircle
 } from 'lucide-react';
 import logo from './ico.png';
 import { Auth } from '../components/Auth';
 
-export const WelcomePage: React.FC = () => {
+const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showAuth, setShowAuth] = useState(false);
@@ -28,263 +23,229 @@ export const WelcomePage: React.FC = () => {
 
   const features = [
     {
-      icon: <BookOpen className="w-8 h-8" />,
+      icon: <BookOpen className="w-6 h-6" />,
       title: "Koç ELC Kelime Listeleri",
-      description: "Güncel kelime listeleriyle tam uyumlu, seviyenize uygun kelimelerle çalışın.",
-      color: "from-blue-500 to-cyan-500"
+      description: "Güncel kelime listeleriyle tam uyumlu, seviyenize uygun kelimelerle çalışın."
     },
     {
-      icon: <Brain className="w-8 h-8" />,
+      icon: <Brain className="w-6 h-6" />,
       title: "12 Farklı Oyun Modu", 
-      description: "Çoktan seçmeli, eşleştirme, boşluk doldurma ve daha fazlası.",
-      color: "from-purple-500 to-pink-500"
+      description: "Çoktan seçmeli, eşleştirme, boşluk doldurma ve daha fazlası."
     },
     {
-      icon: <Users className="w-8 h-8" />,
+      icon: <Users className="w-6 h-6" />,
       title: "Canlı Quiz Yarışmaları",
-      description: "Arkadaşlarınızla canlı quiz yarışmalarına katılın.",
-      color: "from-green-500 to-emerald-500"
+      description: "Arkadaşlarınızla canlı quiz yarışmalarına katılın."
     },
     {
-      icon: <Target className="w-8 h-8" />,
+      icon: <Target className="w-6 h-6" />,
       title: "Kişiselleştirilmiş Öğrenme",
-      description: "AI destekli sistem ile zorlandığınız kelimeleri tespit edin.",
-      color: "from-orange-500 to-red-500"
+      description: "AI destekli sistem ile zorlandığınız kelimeleri tespit edin."
     },
     {
-      icon: <Trophy className="w-8 h-8" />,
+      icon: <Trophy className="w-6 h-6" />,
       title: "Liderlik Tablosu",
-      description: "Skorlarınızı kaydedin, arkadaşlarınızla yarışın.",
-      color: "from-yellow-500 to-orange-500"
+      description: "Skorlarınızı kaydedin, arkadaşlarınızla yarışın."
     }
   ];
 
   const stats = [
-    { number: "12+", label: "Oyun Modu", icon: <Play className="w-5 h-5" /> },
-    { number: "1000+", label: "Kelime", icon: <BookOpen className="w-5 h-5" /> },
-    { number: "4", label: "Seviye", icon: <GraduationCap className="w-5 h-5" /> },
-    { number: "∞", label: "Pratik", icon: <Sparkles className="w-5 h-5" /> }
+    { number: "12+", label: "Oyun Modu" },
+    { number: "1000+", label: "Kelime" },
+    { number: "4", label: "Seviye" },
+    { number: "∞", label: "Pratik" }
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % features.length);
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [features.length]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-slate-800/20 to-transparent rounded-full"></div>
-      </div>
-
-      {/* Main Content */}
-      <motion.div 
-        className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Hero Section */}
-        <div className="text-center mb-16 max-w-4xl">
-          {/* Logo */}
-          <motion.div
-            variants={itemVariants}
-            className="mb-8"
-          >
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <motion.img
-                src={logo}
-                alt="WordPlay Logo"
-                className="w-16 h-16 drop-shadow-lg"
-                whileHover={{ scale: 1.05 }}
-                animate={{ 
-                  y: [0, -8, 0],
-                }}
-                transition={{
-                  y: {
-                    repeat: Infinity,
-                    duration: 3,
-                    ease: "easeInOut",
-                  }
-                }}
-              />
-              <motion.h1
-                className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent"
-                variants={itemVariants}
-              >
-                WORDPLAY
-              </motion.h1>
+    <div className="min-h-screen bg-white text-gray-900">
+      {/* Header */}
+      <header className="border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="WordPlay" className="w-10 h-10" />
+              <h1 className="text-xl font-semibold text-gray-900">WordPlay</h1>
             </div>
-          </motion.div>
-
-          {/* Main Heading */}
-          <motion.h2
-            variants={itemVariants}
-            className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
-          >
-            Hoş Geldin
-          </motion.h2>
-
-          {/* Subtitle */}
-          <motion.p
-            variants={itemVariants}
-            className="text-lg md:text-xl text-slate-300 mb-12 leading-relaxed max-w-2xl mx-auto"
-          >
-            Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu,{' '}
-            <span className="text-blue-400 font-medium">interaktif oyunlarla İngilizce'nizi geliştirin!</span>
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
-          >
-            <motion.button
-              onClick={() => {
-                setAuthMode('register');
-                setShowAuth(true);
-              }}
-              className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                Hemen Kayıt Ol ve Başla
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
-            </motion.button>
-
-            <motion.button
+            <button
               onClick={() => {
                 setAuthMode('login');
                 setShowAuth(true);
               }}
-              className="group px-8 py-4 border-2 border-slate-600 rounded-2xl font-semibold text-slate-300 hover:border-slate-500 hover:text-white hover:bg-slate-800/50 transition-all duration-300"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
             >
-              <span className="flex items-center gap-2">
-                <Play className="w-5 h-5" />
-                Giriş Yap
-              </span>
-            </motion.button>
+              Giriş Yap
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+          >
+            İngilizce Öğrenmenin
+            <br />
+            <span className="text-blue-600">En Etkili Yolu</span>
+          </motion.h2>
+          
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed"
+          >
+            Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, 
+            interaktif oyunlarla İngilizce'nizi geliştirin.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <button
+              onClick={() => {
+                setAuthMode('register');
+                setShowAuth(true);
+              }}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Ücretsiz Başla
+              <ArrowRight className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={() => {
+                setAuthMode('login');
+                setShowAuth(true);
+              }}
+              className="inline-flex items-center gap-2 px-8 py-4 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Play className="w-5 h-5" />
+              Demo İzle
+            </button>
           </motion.div>
         </div>
+      </section>
 
-        {/* Feature Carousel */}
-        <motion.div
-          variants={itemVariants}
-          className="w-full max-w-4xl mb-16"
-        >
-          <div className="relative bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
-            <motion.div
-              key={currentSlide}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.5 }}
-              className="text-center"
-            >
-              <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${features[currentSlide].color} mb-6`}>
-                <div className="text-white">
-                  {features[currentSlide].icon}
+      {/* Stats Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-2">
+                  {stat.number}
                 </div>
-              </div>
-              
-              <h3 className="text-2xl font-bold mb-4 text-white">
-                {features[currentSlide].title}
-              </h3>
-              
-              <p className="text-slate-300 text-lg leading-relaxed max-w-2xl mx-auto">
-                {features[currentSlide].description}
-              </p>
-            </motion.div>
+                <div className="text-gray-600 font-medium">
+                  {stat.label}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* Slide Indicators */}
-            <div className="flex justify-center gap-2 mt-8">
-              {features.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentSlide
-                      ? 'bg-blue-500 w-8'
-                      : 'bg-slate-600 hover:bg-slate-500'
-                  }`}
-                />
-              ))}
+      {/* Features Section */}
+      <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              Neden WordPlay?
+            </h3>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Modern öğrenme metodları ve teknoloji ile İngilizce öğrenme deneyiminizi optimize edin.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-6 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
+              >
+                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 mb-4">
+                  {feature.icon}
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  {feature.title}
+                </h4>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-blue-600 text-white">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h3 className="text-3xl md:text-4xl font-bold mb-6">
+            Hemen Başlayın
+          </h3>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Binlerce öğrenci WordPlay ile İngilizce seviyelerini geliştirdi. 
+            Siz de bu başarı hikayesinin parçası olun.
+          </p>
+          <button
+            onClick={() => {
+              setAuthMode('register');
+              setShowAuth(true);
+            }}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <CheckCircle className="w-5 h-5" />
+            Ücretsiz Hesap Oluştur
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <div className="flex items-center gap-3 mb-4 md:mb-0">
+              <img src={logo} alt="WordPlay" className="w-8 h-8" />
+              <span className="text-lg font-semibold">WordPlay</span>
+            </div>
+            <div className="text-gray-400 text-sm">
+              © 2024 WordPlay. Tüm hakları saklıdır.
             </div>
           </div>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl"
-        >
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              className="text-center group"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="flex justify-center mb-3">
-                <div className="p-3 bg-slate-800/50 rounded-xl group-hover:bg-slate-700/50 transition-colors">
-                  <div className="text-blue-400">
-                    {stat.icon}
-                  </div>
-                </div>
-              </div>
-              <div className="text-3xl md:text-4xl font-bold text-white mb-2">
-                {stat.number}
-              </div>
-              <div className="text-slate-400 font-medium">
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </motion.div>
+        </div>
+      </footer>
 
       {/* Auth Modal */}
       {showAuth && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-slate-900 rounded-3xl p-8 max-w-md w-full border border-slate-700 shadow-2xl"
+            className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl"
           >
             <Auth 
               mode={authMode} 
@@ -301,4 +262,5 @@ export const WelcomePage: React.FC = () => {
   );
 };
 
+export { WelcomePage };
 export default WelcomePage;
