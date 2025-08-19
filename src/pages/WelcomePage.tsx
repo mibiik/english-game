@@ -413,12 +413,12 @@ const WelcomePage: React.FC = () => {
 			<section className="relative px-6">
 				<div className="max-w-5xl mx-auto text-center py-20 relative z-10">
 					<motion.h2 variants={fadeUp} initial="hidden" animate="show" className="text-4xl md:text-5xl font-semibold tracking-tight text-white mb-5">
-						İngilizce Öğrenmenin
+						Seviyenizdeki Kelimelerde
 						<br className="hidden md:block" />
-						<span className="text-white/80"> Sade ve Etkili Yolu</span>
+						<span className="text-white/80"> Ustalaşın</span>
 					</motion.h2>
 					<motion.p variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.06 }} className="text-base md:text-lg text-neutral-400 leading-relaxed max-w-2xl mx-auto mb-10">
-						Koç Üniversitesi ELC listeleriyle uyumlu, oyunlaştırılmış ve veriye dayalı öğrenme deneyimi.
+						Koç Üniversitesi ELC listeleriyle uyumlu, oyunlarla öğrenin ve kelime haznenizi geliştirin. Hazırlığı geçmenin en eğlenceli yolu!
 					</motion.p>
 					<motion.div variants={fadeUp} initial="hidden" animate="show" transition={{ delay: 0.12 }} className="flex flex-col sm:flex-row gap-3 justify-center">
 						<motion.button whileHover={{ y: -2, scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={() => { setAuthMode('register'); setShowAuth(true); }} className="btn-shine inline-flex items-center gap-2 rounded-md px-6 py-3 bg-white text-neutral-950 font-medium hover:bg-neutral-200 transition-colors focus-white">
@@ -751,44 +751,32 @@ const WelcomePage: React.FC = () => {
 			<section className="relative bg-neutral-900">
 				<div className="max-w-5xl mx-auto px-6 py-16 text-center relative z-10">
 					<motion.h3 
-						className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight"
+						className="text-2xl md:text-3xl font-semibold text-white mb-4 tracking-tight"
 						initial={{ opacity: 0, scale: 0.9 }}
 						whileInView={{ opacity: 1, scale: 1 }}
 						whileHover={{ scale: 1.02 }}
 					>
-						🚀 İngilizce Öğrenmenin EN EĞLENCELİ Yolu! 🎯
+						Hemen Başlayın
 					</motion.h3>
-					<motion.p 
-						className="text-neutral-300 mb-6 max-w-3xl mx-auto text-lg"
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.1 }}
-					>
-						💪 <strong>Hazırlığı geçmenin EN EĞLENCELİ yolu!</strong> 
-						<br />
-						🎮 Oyunlarla öğren, 🎯 hedeflerine ulaş, 🏆 başarıyı yakala!
-					</motion.p>
 					<motion.p 
 						className="text-neutral-400 mb-8 max-w-2xl mx-auto"
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2 }}
+						transition={{ delay: 0.1 }}
 					>
-						🔥 <span className="text-yellow-400 font-medium">1,000+ öğrenci</span> WordPlay ile seviyesini geliştirdi. 
-						<br />
-						🎉 <span className="text-green-400 font-medium">Sıra sizde!</span>
+						Binlerce öğrenci WordPlay ile seviyesini geliştirdi. Siz de şimdi katılın.
 					</motion.p>
 					<motion.button 
 						onClick={() => { setAuthMode('register'); setShowAuth(true); }} 
-						className="btn-shine inline-flex items-center gap-3 rounded-lg px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
-						whileHover={{ y: -3, scale: 1.05 }} 
-						whileTap={{ scale: 0.98 }}
+						className="btn-shine inline-flex items-center gap-2 rounded-md px-6 py-3 bg-white text-neutral-950 font-medium hover:bg-neutral-200 transition-colors"
+						whileHover={{ y: -2, scale: 1.01 }} 
+						whileTap={{ scale: 0.99 }}
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.2 }}
 					>
-						🎮 HEMEN BAŞLA - ÜCRETSİZ! 🚀
-						<ArrowRight className="w-5 h-5" />
+						Ücretsiz Hesap Oluştur
+						<ArrowRight className="w-4 h-4" />
 					</motion.button>
 				</div>
 			</section>
