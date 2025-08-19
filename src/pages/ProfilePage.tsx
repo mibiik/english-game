@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserAnalytics } from '../components/UserAnalytics';
 import { userService } from '../services/userService'; // Yeni eklenen import
+import DeviceInfoDisplay from '../components/DeviceInfoDisplay';
 
 // Oyun modları için isim ve ikon haritaları
 const gameModeNames: Record<GameMode, string> = {
@@ -636,6 +637,17 @@ const ProfilePage: React.FC = () => {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Cihaz Bilgisi */}
+        <div className="mt-8">
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700/50 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Smartphone className="w-6 h-6 text-blue-400" />
+              <h3 className="text-xl font-semibold text-white">Cihaz Bilgisi</h3>
+            </div>
+            <DeviceInfoDisplay showDetails={true} />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Smartphone, Monitor } from 'lucide-react';
+import { useIsMobile } from '../hooks/useDeviceDetection';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -16,6 +17,10 @@ export const PWAInstallPrompt: React.FC = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
+  
+  // Cihaz tespit hook'u
+  const { isMobile } = useIsMobile();
 
   useEffect(() => {
     // PWA zaten yüklü mü kontrol et
@@ -43,9 +48,6 @@ export const PWAInstallPrompt: React.FC = () => {
     };
 
     checkIfInstalled();
-
-    // Mobil cihaz kontrolü
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     // Kullanıcı daha önce dismiss etmişse gösterme kontrolü
     const checkDismissStatus = () => {
@@ -103,6 +105,24 @@ export const PWAInstallPrompt: React.FC = () => {
       setTimeout(() => setShowThankYou(false), 4000);
     };
 
+    // Android'de PWA kurulum durumunu kontrol et
+    const checkAndroidInstallStatus = () => {
+      if (isMobile && /Android/i.test(navigator.userAgent)) {
+        // Android'de standalone modda çalışıyorsa kurulu demektir
+        const isStandalone = (window.navigator as any).standalone === true || 
+                           window.matchMedia('(display-mode: standalone)').matches;
+        
+        if (isStandalone) {
+          setIsInstalled(true);
+          localStorage.setItem('pwa-installed', 'true');
+          console.log('📱 Android PWA zaten kurulu');
+        }
+      }
+    };
+
+    // Android kurulum durumunu kontrol et
+    checkAndroidInstallStatus();
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
@@ -130,6 +150,17 @@ export const PWAInstallPrompt: React.FC = () => {
   }, [deferredPrompt, isInstalled]);
 
   const handleInstallClick = async () => {
+    // Android için özel kurulum mantığı
+    if (isMobile && !deferredPrompt) {
+      // Android'de manuel kurulum talimatları göster
+      console.log('📱 Android manuel kurulum talimatları gösteriliyor');
+      
+      // Kurulum talimatları modal'ı göster
+      setShowInstallInstructions(true);
+      return;
+    }
+
+    // Normal PWA kurulum süreci
     if (!deferredPrompt) return;
 
     try {
@@ -245,6 +276,75 @@ export const PWAInstallPrompt: React.FC = () => {
                 </motion.button>
               </div>
             )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Android Kurulum Talimatları */}
+      {showInstallInstructions && (
+        <motion.div
+          initial={{ y: 100, opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 100, opacity: 0, scale: 0.9 }}
+          className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm"
+        >
+          <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-xl shadow-2xl border-2 border-orange-200 p-4 backdrop-blur-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Smartphone className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-gray-900 mb-3">
+                  📱 Android Kurulum Talimatları
+                </h3>
+                
+                <div className="space-y-3 text-sm text-gray-700">
+                  <div className="bg-white/70 rounded-lg p-3 border border-orange-300">
+                    <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
+                      <span className="text-lg">1️⃣</span>
+                      <span>Chrome menüsünü aç</span>
+                    </div>
+                    <p className="text-xs text-gray-600">Sağ üstteki üç nokta (...) butonuna tıkla</p>
+                  </div>
+                  
+                  <div className="bg-white/70 rounded-lg p-3 border border-orange-300">
+                    <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
+                      <span className="text-lg">2️⃣</span>
+                      <span>"Ana ekrana ekle" seç</span>
+                    </div>
+                    <p className="text-xs text-gray-600">Menüden "Ana ekrana ekle" seçeneğini bul ve tıkla</p>
+                  </div>
+                  
+                  <div className="bg-white/70 rounded-lg p-3 border border-orange-300">
+                    <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
+                      <span className="text-lg">3️⃣</span>
+                      <span>Kurulumu onayla</span>
+                    </div>
+                    <p className="text-xs text-gray-600">"Ekle" butonuna tıklayarak kurulumu tamamla</p>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => setShowInstallInstructions(false)}
+                className="flex-shrink-0 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-white/50 transition-colors"
+              >
+                <X className="w-4 h-6" />
+              </button>
+            </div>
+            
+            <div className="flex gap-2 mt-4">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowInstallInstructions(false)}
+                className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 text-white text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:from-orange-600 hover:to-amber-700 transition-all shadow-lg"
+              >
+                Anladım
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       )}

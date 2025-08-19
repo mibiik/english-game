@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { UnitSelector } from './UnitSelector';
 import { authService } from '../services/authService';
+import { useIsMobile } from '../hooks/useDeviceDetection';
 import { soundService } from '../services/soundService';
 import { gameScoreService } from '../services/gameScoreService';
 import { userRankingService } from '../services/userRankingService';
@@ -319,6 +320,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   });
   const [userRank, setUserRank] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Cihaz tespit hook'u
+  const { isMobile } = useIsMobile();
   
   const lastScrollY = useRef(0);
   const navigate = useNavigate();
