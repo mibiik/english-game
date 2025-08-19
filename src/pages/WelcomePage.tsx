@@ -139,7 +139,7 @@ const WelcomePage: React.FC = () => {
 
 	const stats = [
 		{ number: '12+', label: 'Oyun Modu' },
-		{ number: '1000+', label: 'Kelime' },
+		{ number: '2000+', label: 'Kelime' },
 		{ number: '4', label: 'Seviye' },
 		{ number: '∞', label: 'Pratik' }
 	];

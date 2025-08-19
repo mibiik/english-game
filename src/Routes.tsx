@@ -563,7 +563,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/iletisim" element={<Iletisim />} />
         <Route path="/destek" element={<Destek />} />
-        <Route path="/hakkimizda" element={<Hakkimizda />} />
+        <Route path="/hakkimizda" element={<AboutFounder />} />
         <Route path="/sss" element={<Sss />} />
         <Route path="/gizlilik" element={<Gizlilik />} />
         <Route path="/kullanim-sartlari" element={<KullanimSartlari />} />

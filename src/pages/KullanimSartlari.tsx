@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ArrowLeft, FileText, CheckCircle, AlertTriangle, Users, Shield, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,27 +7,27 @@ const KullanimSartlari: React.FC = () => {
 
   const termsSections = [
     {
-      icon: <Users className="w-6 h-6" />,
+      icon: <Users className="w-5 h-5" />,
       title: "Hesap Kullanımı",
       content: "WordPlay hesabınızı kişisel kullanım için oluşturabilirsiniz. Hesap bilgilerinizi güvenli tutmak sizin sorumluluğunuzdadır. Başkalarıyla hesap bilgilerinizi paylaşmayın."
     },
     {
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <BookOpen className="w-5 h-5" />,
       title: "İçerik Kullanımı",
       content: "Platformdaki tüm eğitim içerikleri telif hakkı ile korunmaktadır. İçerikleri sadece kişisel öğrenme amacıyla kullanabilirsiniz. Ticari kullanım yasaktır."
     },
     {
-      icon: <Shield className="w-6 h-6" />,
+      icon: <Shield className="w-5 h-5" />,
       title: "Güvenlik Kuralları",
       content: "Platformu kötüye kullanmak, spam göndermek veya diğer kullanıcıları rahatsız etmek yasaktır. Güvenlik ihlali tespit edildiğinde hesabınız kapatılabilir."
     },
     {
-      icon: <CheckCircle className="w-6 h-6" />,
+      icon: <CheckCircle className="w-5 h-5" />,
       title: "Kullanıcı Sorumlulukları",
       content: "Platformu kullanırken yasalara uygun davranmak, diğer kullanıcılara saygı göstermek ve topluluk kurallarına uymak zorunludur."
     },
     {
-      icon: <AlertTriangle className="w-6 h-6" />,
+      icon: <AlertTriangle className="w-5 h-5" />,
       title: "Kısıtlamalar",
       content: "Platformu hack etmeye çalışmak, otomatik botlar kullanmak veya sistem güvenliğini tehdit eden eylemlerde bulunmak kesinlikle yasaktır."
     }
@@ -51,19 +50,17 @@ const KullanimSartlari: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900">
+    <div className="min-h-screen bg-neutral-900">
       {/* Header */}
-      <div className="relative bg-black/20 backdrop-blur-sm border-b border-white/10">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+      <div className="bg-black/20 border-b border-white/10">
+        <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="flex items-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => navigate(-1)}
-              className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+              className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-            </motion.button>
+            </button>
             <div>
               <h1 className="text-2xl font-bold text-white">Kullanım Şartları</h1>
               <p className="text-neutral-400 text-sm">Platform kullanım koşulları ve kuralları</p>
@@ -75,14 +72,9 @@ const KullanimSartlari: React.FC = () => {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Introduction */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6">
-            <FileText className="w-10 h-10 text-white" />
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-2xl mb-6">
+            <FileText className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">
             Kullanım Şartları ve Koşulları
@@ -91,21 +83,18 @@ const KullanimSartlari: React.FC = () => {
             WordPlay platformunu kullanarak aşağıdaki şartları ve koşulları kabul etmiş olursunuz. 
             Bu belge, platform kullanımınızı düzenleyen yasal bir anlaşmadır.
           </p>
-        </motion.div>
+        </div>
 
         {/* Terms Sections */}
-        <div className="space-y-8 mb-16">
+        <div className="space-y-6 mb-16">
           {termsSections.map((section, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-gradient-to-r from-neutral-800/50 to-neutral-700/50 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:border-white/20 transition-all duration-300"
+              className="bg-neutral-800/50 rounded-xl p-6 border border-white/10"
             >
-              <div className="flex items-start gap-6">
+              <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
                     {section.icon}
                   </div>
                 </div>
@@ -118,21 +107,16 @@ const KullanimSartlari: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* User Rights and Obligations */}
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           {/* User Rights */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 backdrop-blur-sm rounded-2xl p-8 border border-blue-500/20"
-          >
+          <div className="bg-neutral-800/50 rounded-2xl p-6 border border-white/10">
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-3">
-              <CheckCircle className="w-6 h-6 text-blue-400" />
+              <CheckCircle className="w-5 h-5 text-blue-400" />
               Kullanıcı Hakları
             </h3>
             <ul className="space-y-3">
@@ -143,17 +127,12 @@ const KullanimSartlari: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* User Obligations */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-            className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 backdrop-blur-sm rounded-2xl p-8 border border-orange-500/20"
-          >
+          <div className="bg-neutral-800/50 rounded-2xl p-6 border border-white/10">
             <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-3">
-              <AlertTriangle className="w-6 h-6 text-orange-400" />
+              <AlertTriangle className="w-5 h-5 text-orange-400" />
               Kullanıcı Sorumlulukları
             </h3>
             <ul className="space-y-3">
@@ -164,17 +143,12 @@ const KullanimSartlari: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
         </div>
 
         {/* Agreement Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center"
-        >
-          <div className="bg-gradient-to-r from-neutral-800/50 to-neutral-700/50 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+        <div className="text-center">
+          <div className="bg-neutral-800/50 rounded-2xl p-8 border border-white/10">
             <h3 className="text-xl font-semibold text-white mb-4">
               Şartları Kabul Ediyor musunuz?
             </h3>
@@ -183,38 +157,29 @@ const KullanimSartlari: React.FC = () => {
               Herhangi bir sorunuz varsa destek ekibimizle iletişime geçebilirsiniz.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={() => navigate('/destek')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 Destek Al
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => navigate('/gizlilik')}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors"
               >
                 <Shield className="w-4 h-4" />
                 Gizlilik Politikası
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Last Updated */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
-          className="mt-12 text-center text-neutral-500 text-sm"
-        >
+        <div className="mt-12 text-center text-neutral-500 text-sm">
           <p>Son güncelleme: 15 Ocak 2024</p>
           <p className="mt-1">Bu şartlar gerektiğinde güncellenebilir</p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
