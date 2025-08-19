@@ -33,12 +33,31 @@ const WelcomePage: React.FC = () => {
 	const [activeTab, setActiveTab] = useState(0);
 	const [time, setTime] = useState(new Date());
 	const [isSpaceMode, setIsSpaceMode] = useState(false);
+	const [isFirstTabChange, setIsFirstTabChange] = useState(true);
+	const [tabChangeDirection, setTabChangeDirection] = useState<'left' | 'right' | null>(null);
 
 	// Terminal-style time update
 	useEffect(() => {
 		const timer = setInterval(() => setTime(new Date()), 1000);
 		return () => clearInterval(timer);
 	}, []);
+
+	// Tab değişim animasyonu
+	const handleTabChange = (newTabIndex: number) => {
+		if (isFirstTabChange) {
+			// İlk tab değişiminde özel animasyon
+			setIsFirstTabChange(false);
+		} else {
+			// Yön belirleme
+			const direction = newTabIndex > activeTab ? 'right' : 'left';
+			setTabChangeDirection(direction);
+			
+			// 300ms sonra yön sıfırla
+			setTimeout(() => setTabChangeDirection(null), 300);
+		}
+		
+		setActiveTab(newTabIndex);
+	};
 
 	// Original theme data
 	const originalCategories = [
@@ -493,7 +512,7 @@ const WelcomePage: React.FC = () => {
 									{originalCategories.map((cat, i) => (
 										<motion.button
 											key={cat.label}
-											onClick={() => setActiveTab(i)}
+											onClick={() => handleTabChange(i)}
 											className={`${i === activeTab ? 'bg-white/15 text-white border-white/30' : 'text-neutral-300 hover:text-white hover:bg-white/8 border-white/10'} relative rounded-xl px-4 md:px-6 py-3 md:py-4 text-left border transition-all duration-300 focus-white group text-sm md:text-base flex-1 md:flex-none hover:md:translate-x-1`}
 											whileHover={{ scale: 1.02, x: 5 }}
 											whileTap={{ scale: 0.98 }}
@@ -531,25 +550,46 @@ const WelcomePage: React.FC = () => {
 						<div className="md:col-span-8">
                 <motion.div
 								key={activeTab}
-								initial={{ opacity: 0, x: 0, y: 20 }}
+								initial={{ 
+									opacity: 0, 
+									x: isFirstTabChange ? 0 : (tabChangeDirection === 'right' ? 50 : -50), 
+									y: 20 
+								}}
 								animate={{ opacity: 1, x: 0, y: 0 }}
-								transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+								transition={{ 
+									type: 'spring', 
+									stiffness: 300, 
+									damping: 25,
+									duration: isFirstTabChange ? 0.6 : 0.4
+								}}
 								className="gradient-border w-full"
 							>
 								<div className="gb-inner p-4 md:p-8 rounded-[15px]">
 									<motion.h4 
+										key={`title-${activeTab}`}
 										className="text-xl md:text-2xl font-bold text-white mb-3 tracking-tight"
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{ delay: 0.1 }}
+										initial={{ opacity: 0, y: 20, scale: 0.95 }}
+										animate={{ opacity: 1, y: 0, scale: 1 }}
+										transition={{ 
+											delay: 0.1, 
+											type: 'spring', 
+											stiffness: 200, 
+											damping: 20 
+										}}
 									>
 										{originalCategories[activeTab].title}
 									</motion.h4>
 									<motion.p 
+										key={`desc-${activeTab}`}
 										className="text-neutral-300 mb-4 md:mb-6 leading-relaxed text-sm md:text-base"
-										initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-										transition={{ delay: 0.2 }}
+										initial={{ opacity: 0, y: 15, scale: 0.98 }}
+										animate={{ opacity: 1, y: 0, scale: 1 }}
+										transition={{ 
+											delay: 0.2, 
+											type: 'spring', 
+											stiffness: 200, 
+											damping: 20 
+										}}
 									>
 										{originalCategories[activeTab].desc}
 									</motion.p>
