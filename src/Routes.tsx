@@ -22,6 +22,8 @@ const Hakkimizda = lazy(() => import('./pages/Hakkimizda'));
 const Iletisim = lazy(() => import('./pages/Iletisim'));
 const Sss = lazy(() => import('./pages/Sss'));
 const Destek = lazy(() => import('./pages/Destek'));
+const Gizlilik = lazy(() => import('./pages/Gizlilik'));
+const KullanimSartlari = lazy(() => import('./pages/KullanimSartlari'));
 const SubscriptionInfo = lazy(() => import('./pages/SubscriptionInfo'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const CreateLiveQuiz = lazy(() => import('./pages/CreateLiveQuiz'));
@@ -563,6 +565,8 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/destek" element={<Destek />} />
         <Route path="/hakkimizda" element={<Hakkimizda />} />
         <Route path="/sss" element={<Sss />} />
+        <Route path="/gizlilik" element={<Gizlilik />} />
+        <Route path="/kullanim-sartlari" element={<KullanimSartlari />} />
         <Route path="/about-founder" element={<AboutFounder />} />
         <Route path="/all-words" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
