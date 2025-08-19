@@ -806,41 +806,82 @@ const WelcomePage: React.FC = () => {
 			</section>
 
 			{/* Footer */}
-			<footer className="relative bg-black border-t border-white/10">
-				<div className="max-w-6xl mx-auto px-6 py-12 relative z-10">
+			<footer className="relative bg-neutral-950 border-t border-white/10">
+				<div className="max-w-6xl mx-auto px-6 py-16 relative z-10">
 					<div className="grid md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
 						<div>
-							<div className="flex items-center gap-2 mb-3">
-								<img src={logo} alt="WordPlay" className="w-6 h-6 logo-mono" />
-								<span className="text-sm text-neutral-300">WordPlay</span>
+							<div className="flex items-center gap-3 mb-4">
+								<img src={logo} alt="WordPlay" className="w-8 h-8 logo-mono" />
+								<span className="text-lg font-semibold text-white">WordPlay</span>
 							</div>
-							<p className="text-sm text-neutral-400">Koç ELC ile uyumlu, modern kelime öğrenme platformu.</p>
+							<p className="text-sm text-neutral-400 leading-relaxed">
+								Koç Üniversitesi ELC listeleriyle uyumlu, oyunlaştırılmış kelime öğrenme platformu. 
+								Hazırlığı geçmenin en eğlenceli yolu.
+							</p>
 						</div>
 						<div>
-							<h5 className="text-sm font-semibold text-white mb-2">Kurumsal</h5>
-							<ul className="space-y-1 text-sm text-neutral-400">
-								<li><a className="hover:text-neutral-200" href="#">Hakkında</a></li>
-								<li><a className="hover:text-neutral-200" href="#">İletişim</a></li>
+							<h5 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Kurumsal</h5>
+							<ul className="space-y-3 text-sm text-neutral-400">
+								<li>
+									<a className="hover:text-white transition-colors duration-200 flex items-center gap-2" href="/hakkimizda">
+										<span className="w-1 h-1 bg-neutral-600 rounded-full"></span>
+										Hakkımızda
+									</a>
+								</li>
+								<li>
+									<a className="hover:text-white transition-colors duration-200 flex items-center gap-2" href="/iletisim">
+										<span className="w-1 h-1 bg-neutral-600 rounded-full"></span>
+										İletişim
+									</a>
+								</li>
 							</ul>
 						</div>
 						<div>
-							<h5 className="text-sm font-semibold text-white mb-2">Yasal</h5>
-							<ul className="space-y-1 text-sm text-neutral-400">
-								<li><a className="hover:text-neutral-200" href="#">Gizlilik</a></li>
-								<li><a className="hover:text-neutral-200" href="#">Kullanım Şartları</a></li>
+							<h5 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Yasal</h5>
+							<ul className="space-y-3 text-sm text-neutral-400">
+								<li>
+									<a className="hover:text-white transition-colors duration-200 flex items-center gap-2" href="/gizlilik">
+										<span className="w-1 h-1 bg-neutral-600 rounded-full"></span>
+										Gizlilik Politikası
+									</a>
+								</li>
+								<li>
+									<a className="hover:text-white transition-colors duration-200 flex items-center gap-2" href="/kullanim-sartlari">
+										<span className="w-1 h-1 bg-neutral-600 rounded-full"></span>
+										Kullanım Şartları
+									</a>
+								</li>
 							</ul>
 						</div>
 						<div>
-							<h5 className="text-sm font-semibold text-white mb-2">Kaynaklar</h5>
-							<ul className="space-y-1 text-sm text-neutral-400">
-								<li><a className="hover:text-neutral-200" href="#">SSS</a></li>
-								<li><a className="hover:text-neutral-200" href="#">Destek</a></li>
+							<h5 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Destek</h5>
+							<ul className="space-y-3 text-sm text-neutral-400">
+								<li>
+									<a className="hover:text-white transition-colors duration-200 flex items-center gap-2" href="/sss">
+										<span className="w-1 h-1 bg-neutral-600 rounded-full"></span>
+										Sık Sorulan Sorular
+									</a>
+								</li>
+								<li>
+									<a className="hover:text-white transition-colors duration-200 flex items-center gap-2" href="/destek">
+										<span className="w-1 h-1 bg-neutral-600 rounded-full"></span>
+										Teknik Destek
+									</a>
+								</li>
 							</ul>
 						</div>
 					</div>
-					<div className="flex items-center justify-between pt-6 text-xs text-neutral-500">
-						<span>© 2024 WordPlay</span>
-						<span>v1.0.0</span>
+					<div className="flex flex-col md:flex-row items-center justify-between pt-8 text-xs text-neutral-500 border-t border-white/5">
+						<div className="flex items-center gap-4 mb-4 md:mb-0">
+							<span>© 2024 WordPlay. Tüm hakları saklıdır.</span>
+							<span className="hidden md:inline">•</span>
+							<span className="hidden md:inline">Koç Üniversitesi ile uyumlu</span>
+						</div>
+						<div className="flex items-center gap-4">
+							<span>v1.0.0</span>
+							<span className="hidden md:inline">•</span>
+							<span className="hidden md:inline">Beta Sürüm</span>
+						</div>
 					</div>
 				</div>
 			</footer>
