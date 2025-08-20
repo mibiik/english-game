@@ -337,7 +337,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             ))}
           </h1>
           <p className="mt-6 mb-8 text-base text-gray-300 font-inter leading-relaxed text-center md:text-left">
-            Koç Üniversitesi ELC'nin güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
+            Koç Üniversitesi Hazırlık programının güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
             <span className="block mt-2 text-sm text-gray-400 font-semibold opacity-60">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
           </p>
           <div className="flex justify-center md:justify-start mb-6">
