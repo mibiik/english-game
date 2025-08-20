@@ -17,7 +17,6 @@ import { userService } from './services/userService';
 import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
-import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import { userAnalyticsService } from './services/userAnalyticsService';
 import { deviceDetectionService } from './services/deviceDetectionService';
 
@@ -32,9 +31,20 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   
+  // Güvenli localStorage yardımcıları
+  const safeGetItem = (key: string): string | null => {
+    try { return localStorage.getItem(key); } catch { return null; }
+  };
+  const safeSetItem = (key: string, value: string) => {
+    try { localStorage.setItem(key, value); } catch { /* ignore */ }
+  };
+  const safeRemoveItem = (key: string) => {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  };
+  
   // Kullanıcı ismini localStorage'dan al
   const [userName, setUserName] = useState<string | null>(() => {
-    return localStorage.getItem('userName');
+    try { return localStorage.getItem('userName'); } catch { return null; }
   });
 
   // Firebase Authentication durumu
@@ -45,7 +55,8 @@ function AppContent() {
     if (urlLevel) {
       return urlLevel;
     }
-    const savedLevel = localStorage.getItem('currentLevel') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
+    let savedLevel: any = null;
+    try { savedLevel = localStorage.getItem('currentLevel') as any; } catch { savedLevel = null; }
     return savedLevel || 'foundation';
   });
 
@@ -54,16 +65,26 @@ function AppContent() {
     if (urlUnit) {
       return urlUnit;
     }
-    const savedUnit = localStorage.getItem('currentUnit');
+    let savedUnit: string | null = null;
+    try { savedUnit = localStorage.getItem('currentUnit'); } catch { savedUnit = null; }
     return savedUnit || "1";
   });
 
   const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
   const [showMehmetModal, setShowMehmetModal] = useState(false);
 
+  // iOS/Safari tespiti
+  const isIOS = /iP(hone|od|ad)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
   // Cache temizleme fonksiyonu
   const clearAllCaches = async () => {
     try {
+      // iOS Safari'de agresif cache temizleme oturumu düşürebilir; atla
+      if (isIOS && isSafari) {
+        console.warn('iOS Safari tespit edildi: cache temizleme atlanıyor.');
+        return;
+      }
       // Service Worker cache'lerini temizle
       if ('caches' in window) {
         const cacheNames = await caches.keys();
@@ -101,27 +122,25 @@ function AppContent() {
   useEffect(() => {
     // Build time kontrolü
     const buildTime = (window as any).__BUILD_TIME__;
-    const lastBuildTime = localStorage.getItem('lastBuildTime');
+    const lastBuildTime = safeGetItem('lastBuildTime');
     
     if (buildTime && lastBuildTime && buildTime !== lastBuildTime) {
       console.log('🔄 Yeni build tespit edildi, cache temizleniyor...');
-      localStorage.setItem('lastBuildTime', buildTime);
+      safeSetItem('lastBuildTime', buildTime);
       clearAllCaches();
       return;
     }
 
     // İlk yüklemede build time'ı kaydet
     if (buildTime && !lastBuildTime) {
-      localStorage.setItem('lastBuildTime', buildTime);
+      safeSetItem('lastBuildTime', buildTime);
     }
 
-    // Kullanıcılar için otomatik bir kez cache temizleme
-    const hasClearedCache = localStorage.getItem('hasClearedCache');
-    if (!hasClearedCache) {
+    // Kullanıcılar için otomatik bir kez cache temizleme (iOS Safari'de devre dışı)
+    const hasClearedCache = safeGetItem('hasClearedCache');
+    if (!hasClearedCache && !(isIOS && isSafari)) {
       console.log('🔄 İlk kez cache temizleme yapılıyor...');
-      localStorage.setItem('hasClearedCache', 'true');
-      
-      // 3 saniye sonra cache temizle (sayfa yüklendikten sonra)
+      safeSetItem('hasClearedCache', 'true');
       setTimeout(() => {
         clearAllCaches();
       }, 3000);
@@ -374,7 +393,6 @@ function AppContent() {
         onClose={() => setShowMehmetModal(false)} 
       />
       <PWAInstallPrompt />
-      <PWAUpdatePrompt />
       <PerformanceMonitor />
     </div>
   );

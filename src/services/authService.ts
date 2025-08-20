@@ -7,6 +7,8 @@ import {
   updateProfile as firebaseUpdateProfile,
   setPersistence,
   browserLocalPersistence,
+  browserSessionPersistence,
+  inMemoryPersistence,
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail
@@ -62,8 +64,16 @@ class AuthService {
   // Kullanıcı kaydı
   public async register(email: string, password: string, displayName: string): Promise<FirebaseUser> {
     try {
-      // Önce oturum kalıcılığını ayarla
-      await setPersistence(auth, browserLocalPersistence);
+      // Önce oturum kalıcılığını ayarla (fallback'lerle)
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+      } catch (eLocal) {
+        try {
+          await setPersistence(auth, browserSessionPersistence);
+        } catch (eSession) {
+          await setPersistence(auth, inMemoryPersistence);
+        }
+      }
       
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       // Kullanıcı adını güncelle
@@ -88,8 +98,16 @@ class AuthService {
     // Kullanıcı girişi
   public async login(email: string, password: string): Promise<FirebaseUser> {
     try {
-      // Önce oturum kalıcılığını ayarla
-      await setPersistence(auth, browserLocalPersistence);
+      // Önce oturum kalıcılığını ayarla (fallback'lerle)
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+      } catch (eLocal) {
+        try {
+          await setPersistence(auth, browserSessionPersistence);
+        } catch (eSession) {
+          await setPersistence(auth, inMemoryPersistence);
+        }
+      }
       
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       // Giriş olayını kaydet
@@ -128,8 +146,16 @@ class AuthService {
     try {
       console.log('🔐 Google girişi başlatılıyor...');
       
-      // Önce oturum kalıcılığını ayarla
-      await setPersistence(auth, browserLocalPersistence);
+      // Önce oturum kalıcılığını ayarla (fallback'lerle)
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+      } catch (eLocal) {
+        try {
+          await setPersistence(auth, browserSessionPersistence);
+        } catch (eSession) {
+          await setPersistence(auth, inMemoryPersistence);
+        }
+      }
       console.log('✅ Oturum kalıcılığı ayarlandı');
       
       const provider = new GoogleAuthProvider();

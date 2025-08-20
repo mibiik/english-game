@@ -30,23 +30,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       
       console.log('✅ Service Worker kaydedildi:', registration);
 
-      // Service worker güncellemelerini dinle
-      registration.addEventListener('updatefound', () => {
-        console.log('🔄 Service Worker güncellemesi bulundu');
-        const newWorker = registration.installing;
-        
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 Yeni service worker yüklendi, sayfa yenileniyor...');
-              // Kullanıcıya bildir ve sayfayı yenile
-              if (confirm('Yeni güncelleme mevcut. Sayfa yenilensin mi?')) {
-                window.location.reload();
-              }
-            }
-          });
-        }
-      });
+      // Service worker güncellemelerini dinlemeyi ve kullanıcıya sormayı kaldırdık.
 
       // Service worker mesajlarını dinle
       navigator.serviceWorker.addEventListener('message', (event) => {

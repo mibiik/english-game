@@ -1,6 +1,6 @@
 // Firebase yapılandırma dosyası
 import { initializeApp } from "firebase/app";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
@@ -29,13 +29,26 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 
-// Auth kalıcılığını ayarla - kullanıcı oturumu tarayıcıda kalıcı olsun
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log('Auth kalıcılığı ayarlandı - oturum tarayıcıda kalıcı olacak');
-  })
-  .catch((error) => {
-    console.error('Auth kalıcılığı ayarlanırken hata:', error);
-  });
+// Auth kalıcılığını ayarla - güvenli fallback'lerle
+(async () => {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    console.log('Auth kalıcılığı: local');
+  } catch (errLocal) {
+    console.warn('Local persistence başarısız, session deneniyor...', errLocal);
+    try {
+      await setPersistence(auth, browserSessionPersistence);
+      console.log('Auth kalıcılığı: session');
+    } catch (errSession) {
+      console.warn('Session persistence başarısız, inMemory deneniyor...', errSession);
+      try {
+        await setPersistence(auth, inMemoryPersistence);
+        console.log('Auth kalıcılığı: inMemory');
+      } catch (errMemory) {
+        console.error('Auth kalıcılığı ayarlanamadı:', errMemory);
+      }
+    }
+  }
+})();
 
 export default app;
