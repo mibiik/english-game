@@ -1,15 +1,15 @@
 {
-  "name": "WordPlay - İngilizce Kelime Öğrenme",
+  "name": "WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme",
   "short_name": "WordPlay",
-  "description": "Eğlenceli İngilizce kelime öğrenme uygulaması - Oyunlarla öğren, hızla ilerle!",
+  "description": "Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması. Foundation, Pre-Intermediate, Intermediate ve Upper-Intermediate seviyelerinde 5000+ kelime ile eğlenceli oyunlar ve alıştırmalar.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111111",
-  "theme_color": "#3B82F6",
+  "theme_color": "#22c55e",
   "orientation": "portrait",
   "scope": "/",
   "lang": "tr",
-  "categories": ["education", "games"],
+  "categories": ["education", "games", "language-learning"],
   "icons": [
     {
       "src": "/a.png",
@@ -36,9 +36,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Hızlı Oyun",
-      "short_name": "Oyun",
-      "description": "Hızlı kelime oyunu başlat",
+      "name": "Koç Üniversitesi Kelime Oyunu",
+      "short_name": "Kelime Oyunu",
+      "description": "Koç Üniversitesi Hazırlık kelime oyunu başlat",
       "url": "/home?game=speed",
       "icons": [
         {
@@ -48,9 +48,9 @@
       ]
     },
     {
-      "name": "Öğrenme Modu",
-      "short_name": "Öğren",
-      "description": "Kelime öğrenme modunu aç",
+      "name": "Koç Üniversitesi Öğrenme Modu",
+      "short_name": "Öğrenme",
+      "description": "Koç Üniversitesi Hazırlık kelime öğrenme modunu aç",
       "url": "/home?game=learning",
       "icons": [
         {
@@ -60,9 +60,9 @@
       ]
     },
     {
-      "name": "Quiz Yarışması",
+      "name": "Koç Üniversitesi Quiz Yarışması",
       "short_name": "Quiz",
-      "description": "Canlı quiz yarışmasına katıl",
+      "description": "Koç Üniversitesi Hazırlık canlı quiz yarışmasına katıl",
       "url": "/live-quiz",
       "icons": [
         {
@@ -87,6 +87,10 @@
     }
   ],
   "features": [
+    "Koç Üniversitesi Hazırlık Uyumlu",
+    "5000+ İngilizce Kelime",
+    "Foundation, Pre-Intermediate, Intermediate, Upper-Intermediate",
+    "KUEPE Hazırlık",
     "Cross Platform",
     "background-sync",
     "push-messaging",
