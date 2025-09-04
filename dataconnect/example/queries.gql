@@ -1,0 +1,25 @@
+mutation CreateNewUser @auth(level: USER) {
+  user_insert(data: {
+    username: "newuser",
+    email: "newuser@example.com",
+    passwordHash: "somehash"
+  })
+}
+
+query GetLesson @auth(level: PUBLIC) {
+  lesson(id: "550e8400-e29b-41d4-a716-446655440000") {
+    title
+    description
+  }
+}
+
+mutation UpdateLessonDescription @auth(level: USER) {
+  lesson_update(key: {id: "550e8400-e29b-41d4-a716-446655440000"}, data: {description: "Updated description"})
+}
+
+query ListLearningModules @auth(level: PUBLIC) {
+  learningModules {
+    id
+    name
+  }
+}

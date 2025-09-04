@@ -1,0 +1,61 @@
+type User @table {
+  username: String! @unique
+  email: String! @unique
+  passwordHash: String!
+  createdAt: Timestamp!
+  displayName: String
+  profilePictureUrl: String
+  lastLogin: Timestamp
+}
+
+type LearningModule @table {
+  name: String! @unique
+  description: String!
+  createdAt: Timestamp!
+}
+
+type Lesson @table {
+  learningModule: LearningModule!
+  title: String!
+  description: String!
+  difficultyLevel: Int!
+  moduleOrder: Int!
+  createdAt: Timestamp!
+  imageUrl: String
+}
+
+type Question @table {
+  lesson: Lesson!
+  questionText: String!
+  questionType: String!
+  correctAnswer: String!
+  points: Int!
+  questionOrder: Int!
+  createdAt: Timestamp!
+  options: [String]
+  hint: String
+  audioUrl: String
+}
+
+type UserProgress @table(key: ["user", "lesson"]) {
+  user: User!
+  lesson: Lesson!
+  status: String!
+  score: Int!
+  lastAttemptedAt: Timestamp!
+  createdAt: Timestamp!
+  updatedAt: Timestamp!
+}
+
+type Achievement @table {
+  name: String!
+  description: String!
+  criteria: String!
+  createdAt: Timestamp!
+}
+
+type UserAchievement @table(key: ["user", "achievement"]) {
+  user: User!
+  achievement: Achievement!
+  unlockedAt: Timestamp!
+}

@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import logo from './ico.png';
 import { Auth } from '../components/Auth';
+import DarkVeil from '../components/DarkVeil';
+import RotatingText from '../components/RotatingText';
 
 const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -153,7 +155,7 @@ const WelcomePage: React.FC = () => {
 
 	const fadeUp = {
 		hidden: { opacity: 0, y: 16 },
-		show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } }
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } }
 	};
 
 	const getStatusColor = (status: string) => {
@@ -174,12 +176,11 @@ const WelcomePage: React.FC = () => {
 		// Space Station Theme
   return (
 			<div className="min-h-screen bg-black text-cyan-100 relative font-mono">
-				{/* Space Station Background */}
-				<div className="space-gradient"></div>
-				<div className="space-stars"></div>
-				<div className="space-nebula"></div>
-				<div className="hud-grid"></div>
-				<div className="scan-lines"></div>
+				{/* DarkVeil Background */}
+				<div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+					<DarkVeil hueShift={0} noiseIntensity={0.02} scanlineIntensity={0.05} scanlineFrequency={6.0} warpAmount={0.03} resolutionScale={1} />
+				</div>
+				{/* Space Station Background removed in favor of DarkVeil */}
 
 				
 
@@ -347,13 +348,10 @@ const WelcomePage: React.FC = () => {
 	// Original Professional Theme
 	return (
 		<div className="min-h-screen bg-neutral-950 text-neutral-200 relative">
-			{/* Space theme background */}
-			<div className="space-gradient"></div>
-			<div className="space-stars"></div>
-			<div className="space-nebula"></div>
-			<div className="absolute inset-0 bg-dots-dark"></div>
-			<div className="animated-dark-gradient"></div>
-			<div className="absolute inset-0 vignette-overlay pointer-events-none"></div>
+			{/* DarkVeil Background */}
+			<div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+				<DarkVeil hueShift={0} noiseIntensity={0.02} scanlineIntensity={0.04} scanlineFrequency={5.0} warpAmount={0.02} resolutionScale={1} />
+			</div>
 
 			
 
@@ -374,13 +372,9 @@ const WelcomePage: React.FC = () => {
 								src={logo} 
 								alt="WordPlay" 
 								className="w-7 h-7 logo-mono" 
-								whileHover={{ rotate: 5, scale: 1.1 }}
-								transition={{ type: 'spring', stiffness: 400 }}
 							/>
 							<motion.h1 
 								className="text-base md:text-lg font-semibold text-white tracking-tight"
-								whileHover={{ letterSpacing: '0.1em' }}
-								transition={{ duration: 0.3 }}
 							>
 								WordPlay
 							</motion.h1>
@@ -413,7 +407,21 @@ const WelcomePage: React.FC = () => {
 			<section className="relative px-6">
 				<div className="max-w-5xl mx-auto text-center py-20 relative z-10">
 					<motion.h2 variants={fadeUp} initial="hidden" animate="show" className="text-4xl md:text-5xl font-semibold tracking-tight text-white mb-5">
-						Seviyenizdeki Kelimelerde
+						<span className="flex flex-col items-center gap-1 md:inline-flex md:flex-row md:items-baseline md:gap-2">
+							<span>Seviyenizdeki</span>
+							<RotatingText
+								texts={["Kelimelerde", "Cümlelerde", "Essay'lerde", "Kalıplarda"]}
+								mainClassName="inline-flex items-baseline px-1 text-white/90 overflow-hidden py-0"
+								staggerFrom={"last"}
+								initial={{ y: "100%" }}
+								animate={{ y: 0 }}
+								exit={{ y: "-120%" }}
+								staggerDuration={0.025}
+								splitLevelClassName="overflow-hidden pb-0"
+								transition={{ type: "spring", damping: 24, stiffness: 350 }}
+								rotationInterval={1800}
+							/>
+						</span>
 						<br className="hidden md:block" />
 						<span className="text-white/80"> Ustalaşın</span>
 					</motion.h2>
@@ -449,11 +457,6 @@ const WelcomePage: React.FC = () => {
 								key={s.label} 
 								initial={{ opacity: 0, scale: 0.5 }}
 								whileInView={{ opacity: 1, scale: 1 }}
-								whileHover={{ 
-									scale: 1.1, 
-									y: -5,
-									transition: { type: 'spring', stiffness: 400 }
-								}}
 								viewport={{ once: true, amount: 0.4 }}
 								transition={{ 
 									delay: index * 0.1,
@@ -461,7 +464,7 @@ const WelcomePage: React.FC = () => {
 									stiffness: 300,
 									damping: 20
 								}}
-								className="text-center cursor-pointer group"
+								className="text-center group"
 							>
 								<motion.div 
 									className="text-3xl md:text-4xl font-semibold text-white mb-1"
@@ -481,8 +484,7 @@ const WelcomePage: React.FC = () => {
 									{s.number}
 								</motion.div>
 								<motion.div 
-									className="text-sm text-neutral-400 tracking-wide group-hover:text-neutral-200"
-									whileHover={{ letterSpacing: '0.1em' }}
+									className="text-sm text-neutral-400 tracking-wide"
 								>
 									{s.label}
 								</motion.div>
@@ -500,7 +502,6 @@ const WelcomePage: React.FC = () => {
 						initial={{ opacity: 0, y: 30 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
-						whileHover={{ scale: 1.02, letterSpacing: '0.02em' }}
 					>
 						Platform Özellikleri
 					</motion.h3>
@@ -513,9 +514,7 @@ const WelcomePage: React.FC = () => {
 										<motion.button
 											key={cat.label}
 											onClick={() => handleTabChange(i)}
-											className={`${i === activeTab ? 'bg-white/15 text-white border-white/30' : 'text-neutral-300 hover:text-white hover:bg-white/8 border-white/10'} relative rounded-xl px-4 md:px-6 py-3 md:py-4 text-left border transition-all duration-300 focus-white group text-sm md:text-base flex-1 md:flex-none hover:md:translate-x-1`}
-											whileHover={{ scale: 1.02, x: 5 }}
-											whileTap={{ scale: 0.98 }}
+											className={`${i === activeTab ? 'bg-white/15 text-white border-white/30' : 'text-neutral-300 hover:text-white hover:bg-white/8 border-white/10'} relative rounded-xl px-4 md:px-6 py-3 md:py-4 text-left border transition-all duration-300 focus-white group text-sm md:text-base flex-1 md:flex-none`}
 											role="tab"
 											aria-selected={i === activeTab}
 										>
@@ -605,17 +604,14 @@ const WelcomePage: React.FC = () => {
 												initial={{ opacity: 0, x: -20 }}
 												animate={{ opacity: 1, x: 0 }}
 												transition={{ delay: 0.4 + idx * 0.1 }}
-												whileHover={{ x: 5, scale: 1.01 }}
-												className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group hover:md:translate-x-1"
+												className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg group"
 											>
 												<motion.div
-													className="w-2 h-2 bg-white/40 rounded-full mt-2 flex-shrink-0 group-hover:bg-white/70"
-													whileHover={{ scale: 1.5 }}
+													className="w-2 h-2 bg-white/40 rounded-full mt-2 flex-shrink-0"
 												/>
 												<div className="min-w-0 flex-1">
 													<motion.h5 
-														className="text-white font-medium mb-1 group-hover:text-white text-sm md:text-base"
-														whileHover={{ letterSpacing: '0.02em' }}
+														className="text-white font-medium mb-1 text-sm md:text-base"
 													>
 														{item.name}
 													</motion.h5>
