@@ -1,0 +1,100 @@
+{
+  "name": "WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme",
+  "short_name": "WordPlay",
+  "description": "Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması. Foundation, Pre-Intermediate, Intermediate ve Upper-Intermediate seviyelerinde 5000+ kelime ile eğlenceli oyunlar ve alıştırmalar.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "tr",
+  "categories": ["education", "games", "language-learning"],
+  "icons": [
+    {
+      "src": "/a.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/a.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/a.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/a.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Koç Üniversitesi Kelime Oyunu",
+      "short_name": "Kelime Oyunu",
+      "description": "Koç Üniversitesi Hazırlık kelime oyunu başlat",
+      "url": "/home?game=speed",
+      "icons": [
+        {
+          "src": "/assets/aaaaaaaadwü/kelimeyarisi.jpg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Koç Üniversitesi Öğrenme Modu",
+      "short_name": "Öğrenme",
+      "description": "Koç Üniversitesi Hazırlık kelime öğrenme modunu aç",
+      "url": "/home?game=learning",
+      "icons": [
+        {
+          "src": "/assets/aaaaaaaadwü/ogrenmemodu.jpg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Koç Üniversitesi Quiz Yarışması",
+      "short_name": "Quiz",
+      "description": "Koç Üniversitesi Hazırlık canlı quiz yarışmasına katıl",
+      "url": "/live-quiz",
+      "icons": [
+        {
+          "src": "/assets/aaaaaaaadwü/coktansecmeli.jpg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/aaaaaaaadwü/1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/assets/aaaaaaaadwü/2.png", 
+      "sizes": "720x540",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "features": [
+    "Koç Üniversitesi Hazırlık Uyumlu",
+    "5000+ İngilizce Kelime",
+    "Foundation, Pre-Intermediate, Intermediate, Upper-Intermediate",
+    "KUEPE Hazırlık",
+    "Cross Platform",
+    "background-sync",
+    "push-messaging",
+    "offline-support"
+  ],
+  "prefer_related_applications": false
+}

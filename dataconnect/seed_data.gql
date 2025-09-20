@@ -1,0 +1,34 @@
+mutation SeedDatabase @auth(level: USER) {
+  achievement_insertMany(data: [
+    {
+      name: "First Lesson",
+      description: "Complete your first lesson.",
+      criteria: "Complete any lesson."
+      createdAt_expr: "request.time"
+    },
+    {
+      name: "Five Lessons",
+      description: "Complete five lessons.",
+      criteria: "Complete 5 lessons."
+      createdAt_expr: "request.time"
+    },
+    {
+      name: "Ten Lessons",
+      description: "Complete ten lessons.",
+      criteria: "Complete 10 lessons."
+      createdAt_expr: "request.time"
+    }
+  ])
+  learningModule_insertMany(data: [
+    {
+      name: "Module 1",
+      description: "Introduction to Module 1",
+      createdAt_expr: "request.time"
+    },
+    {
+      name: "Module 2",
+      description: "Introduction to Module 2",
+      createdAt_expr: "request.time"
+    }
+  ])
+}

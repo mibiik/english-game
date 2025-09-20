@@ -1,0 +1,309 @@
+import React, { useState, useRef, useEffect, Fragment } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Book, Layers, X } from 'lucide-react';
+import { Dialog, Transition } from '@headlessui/react';
+import { authService } from '../services/authService';
+
+// Ekran boyutunu kontrol etmek için basit bir hook
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    window.addEventListener('resize', listener);
+    return () => window.removeEventListener('resize', listener);
+  }, [matches, query]);
+  return matches;
+};
+
+type Level = 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
+
+interface UnitSelectorProps {
+  currentUnit: string;
+  setCurrentUnit: (unit: string) => void;
+  currentLevel: Level;
+  setCurrentLevel: (level: Level) => void;
+}
+
+// KUEPE yetkisi kontrolü
+const isKuepeAuthorized = () => {
+  if (!authService.isAuthenticated()) return false;
+  
+  const currentUser = authService.getStoredUser();
+  if (!currentUser || !currentUser.email) return false;
+  
+  const email = currentUser.email.toLowerCase();
+  
+  // Sadece defne ve mbirlik24@ku.edu.tr kullanıcılarına göster
+  return email === 'oz.defne2004@gmail.com' || email === 'mbirlik24@ku.edu.tr';
+};
+
+// --- MASAÜSTÜ İÇİN DROPDOWN BİLEŞENİ ---
+const Dropdown: React.FC<{
+  label: string;
+  icon: React.ReactNode;
+  options: string[];
+  selectedOption: string;
+  onSelect: (option: string) => void;
+}> = ({ label, icon, options, selectedOption, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-2 bg-black/90 border border-gray-800 rounded-xl text-gray-300 hover:bg-black hover:border-gray-700 transition-all duration-150"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <div className="text-left">
+            <div className="text-sm font-medium text-white">{selectedOption}</div>
+          </div>
+        </div>
+        <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full mt-1 w-full p-1 bg-black/95 border border-gray-800 rounded-xl shadow-xl z-50"
+          >
+            {options.map((option) => (
+              <button
+                key={option}
+                onClick={() => {
+                  onSelect(option);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-2 py-1.5 rounded-lg text-sm transition-colors
+                  ${selectedOption === option
+                    ? 'bg-gray-800 text-white'
+                    : 'hover:bg-gray-900 text-gray-300'
+                  }`}
+              >
+                {option}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+
+// --- MASAÜSTÜ BİLEŞENİ ---
+const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurrentUnit, currentLevel, setCurrentLevel }) => {
+  const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
+  const levels: { id: Level; name: string }[] = [
+    { id: 'foundation', name: 'Foundation' },
+    { id: 'pre-intermediate', name: 'Pre-Intermediate' },
+    { id: 'intermediate', name: 'Intermediate' },
+    { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+    ...(isKuepeAuthorized() ? [{ id: 'kuepe' as Level, name: 'KUEPE' }] : []),
+  ];
+
+  // Eğer kullanıcı KUEPE seviyesindeyse ama yetkili değilse, intermediate'e geç
+  useEffect(() => {
+    if (currentLevel === 'kuepe' && !isKuepeAuthorized()) {
+      setCurrentLevel('intermediate');
+    }
+  }, [currentLevel, setCurrentLevel]);
+
+  return (
+    <div className="flex items-center gap-2 ml-auto">
+      <Dropdown 
+        label="Kur"
+        icon={<Layers className="w-4 h-4 text-fuchsia-400" />}
+        options={levels.map(l => l.name)}
+        selectedOption={levels.find(l => l.id === currentLevel)?.name || 'Intermediate'}
+        onSelect={(levelName) => {
+          const selectedLevel = levels.find(l => l.name === levelName);
+          if (selectedLevel) setCurrentLevel(selectedLevel.id);
+        }}
+      />
+      {/* KUEPE seçildiğinde ünite dropdown'ını gizle */}
+      {currentLevel !== 'kuepe' && (
+        <Dropdown 
+          label="Ünite"
+          icon={<Book className="w-4 h-4 text-cyan-400" />}
+          options={units}
+          selectedOption={`Ünite ${currentUnit}`}
+          onSelect={(unit) => setCurrentUnit(unit.replace('Ünite ', ''))}
+        />
+      )}
+    </div>
+  );
+};
+
+// --- MOBİL BİLEŞENİ (SADELEŞTİRİLMİŞ) ---
+const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClose: () => void }> = ({
+  currentUnit,
+  setCurrentUnit,
+  currentLevel,
+  setCurrentLevel,
+  isOpen,
+  onClose
+}) => {
+  const units = Array.from({ length: 8 }, (_, i) => `${i + 1}`);
+  const levels: { id: Level; name: string }[] = [
+    { id: 'foundation', name: 'Foundation' },
+    { id: 'pre-intermediate', name: 'Pre-Intermediate' },
+    { id: 'intermediate', name: 'Intermediate' },
+    { id: 'upper-intermediate', name: 'Upper-Intermediate' },
+    ...(isKuepeAuthorized() ? [{ id: 'kuepe' as Level, name: 'KUEPE' }] : []),
+  ];
+
+  // Eğer kullanıcı KUEPE seviyesindeyse ama yetkili değilse, intermediate'e geç
+  useEffect(() => {
+    if (currentLevel === 'kuepe' && !isKuepeAuthorized()) {
+      setCurrentLevel('intermediate');
+    }
+  }, [currentLevel, setCurrentLevel]);
+
+  const handleLevelSelect = (levelId: Level) => {
+    setCurrentLevel(levelId);
+    setCurrentUnit('1'); // Seviye değişince üniteyi 1'e sıfırla
+    onClose(); // Kur seçince paneli kapat
+  };
+
+  const handleUnitSelect = (unit: string) => {
+    setCurrentUnit(unit);
+    onClose(); // Ünite seçince paneli kapat
+  };
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        {/* Arka Plan */}
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-200"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-150"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" />
+        </Transition.Child>
+
+        {/* Panel */}
+        <div className="fixed inset-x-0 bottom-0">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="translate-y-full"
+            enterTo="translate-y-0"
+            leave="ease-in duration-200"
+            leaveFrom="translate-y-0"
+            leaveTo="translate-y-full"
+          >
+            <Dialog.Panel className="w-full transform overflow-hidden rounded-t-2xl bg-black border-t border-gray-800 p-4 text-left align-middle shadow-2xl transition-all">
+              
+              {/* Panel tutamacı */}
+              <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-700 mb-4" />
+
+              <div className="space-y-4">
+                {/* Kur Seçimi */}
+                <div>
+                  <h4 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-2 px-1">Kur</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {levels.map(level => (
+                      <button 
+                        key={level.id} 
+                        onClick={() => handleLevelSelect(level.id)} 
+                        className={`p-3 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentLevel === level.id 
+                          ? 'bg-white text-black border-white shadow-lg shadow-white/20' 
+                          : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:border-gray-500'}`
+                        }
+                      >
+                        {level.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Ünite Seçimi - KUEPE için gizle */}
+                {currentLevel !== 'kuepe' && (
+                  <div>
+                    <h4 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-2 px-1">Ünite</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {units.map(unit => (
+                        <button 
+                          key={unit} 
+                          onClick={() => handleUnitSelect(unit)} 
+                          className={`p-3 aspect-square text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentUnit === unit 
+                            ? 'bg-white text-black border-white shadow-lg shadow-white/20' 
+                            : 'bg-gray-800/50 text-gray-200 border-gray-700 hover:border-gray-500'}`
+                          }
+                        >
+                          {unit}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Dialog.Panel>
+          </Transition.Child>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
+// --- ANA BİLEŞEN ---
+export const UnitSelector: React.FC<UnitSelectorProps> = (props) => {
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Eğer kullanıcı KUEPE seviyesindeyse ama yetkili değilse, intermediate'e geç
+    useEffect(() => {
+        if (props.currentLevel === 'kuepe' && !isKuepeAuthorized()) {
+            props.setCurrentLevel('intermediate');
+        }
+    }, [props.currentLevel, props.setCurrentLevel]);
+
+    if (isMobile) {
+        return (
+            <>
+                <button 
+                    onClick={() => setIsMobileMenuOpen(true)} 
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors text-sm"
+                >
+                    <Layers className="w-4 h-4 text-fuchsia-400" />
+                    <span>
+                        {props.currentLevel === 'kuepe' && isKuepeAuthorized()
+                            ? 'KUEPE' 
+                            : `${props.currentLevel.replace('-', ' ')} / Unit ${props.currentUnit}`
+                        }
+                    </span>
+                    <ChevronDown className="w-4 h-4" />
+                </button>
+                <MobileUnitSelector {...props} isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+            </>
+        )
+    }
+
+    return <DesktopUnitSelector {...props} />;
+};

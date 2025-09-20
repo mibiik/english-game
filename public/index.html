@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/english-game-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <title>WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme | En İyi İngilizce Uygulaması</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması. Foundation, Pre-Intermediate, Intermediate ve Upper-Intermediate seviyelerinde 5000+ kelime. Ücretsiz İngilizce öğrenme oyunları ve alıştırmalar." />
+    <meta name="keywords" content="Koç Üniversitesi, Koç Üniversitesi Hazırlık, İngilizce öğrenme, İngilizce kelime, İngilizce uygulama, WordPlay, İngilizce oyun, İngilizce alıştırma, Foundation İngilizce, Pre-Intermediate İngilizce, Intermediate İngilizce, Upper-Intermediate İngilizce, KUEPE İngilizce, İngilizce kelime öğrenme, İngilizce kelime oyunu" />
+    <meta name="author" content="WordPlay - Koç Üniversitesi İngilizce Öğrenme Platformu" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme" />
+    <meta property="og:description" content="Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması. 5000+ kelime, oyunlar ve alıştırmalar." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wordplay.com" />
+    <meta property="og:image" content="/a.png" />
+    <meta property="og:site_name" content="WordPlay" />
+    <meta property="og:locale" content="tr_TR" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme" />
+    <meta name="twitter:description" content="Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması." />
+    <meta name="twitter:image" content="/a.png" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://wordplay.com" />
+    
+    <!-- Language Alternates -->
+    <link rel="alternate" hreflang="tr" href="https://wordplay.com" />
+    <link rel="alternate" hreflang="en" href="https://wordplay.com/en" />
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalApplication",
+      "name": "WordPlay - Koç Üniversitesi Hazırlık İngilizce Öğrenme",
+      "description": "Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması",
+      "url": "https://wordplay.com",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web Browser, iOS, Android",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "TRY"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "WordPlay",
+        "url": "https://wordplay.com"
+      },
+      "educationalLevel": ["Foundation", "Pre-Intermediate", "Intermediate", "Upper-Intermediate", "KUEPE"],
+      "teaches": "İngilizce",
+      "inLanguage": ["tr", "en"],
+      "keywords": ["Koç Üniversitesi", "Hazırlık", "İngilizce", "kelime öğrenme", "İngilizce uygulama"]
+    }
+    </script>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#22c55e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WordPlay - Koç Üniversitesi İngilizce">
+    <link rel="apple-touch-icon" href="/a.png">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#22c55e">
+    <meta name="msapplication-TileImage" content="/a.png">
+    
+    <!-- AdSense script kaldırıldı -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- Puter.js entegrasyonu -->
+    <script src="https://cdn.puter.com/puter.js"></script>
+    
+    <!-- Cache Busting Script -->
+    <script>
+      // Build time'ı global olarak tanımla
+      window.__BUILD_TIME__ = '<%- BUILD_TIME %>';
+      
+      // Cache temizleme fonksiyonu
+      window.clearCache = function() {
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) {
+              caches.delete(name);
+            }
+          });
+        }
+        
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+        
+        // localStorage'ı temizle (isteğe bağlı)
+        // localStorage.clear();
+        
+        // Sayfayı yenile
+        window.location.reload();
+      };
+      
+      // Sayfa yüklendiğinde cache kontrolü
+      window.addEventListener('load', function() {
+        // URL'de cache temizleme parametresi varsa
+        if (window.location.search.includes('clearCache=true')) {
+          window.clearCache();
+        }
+        
+        // Force refresh parametresi varsa
+        if (window.location.search.includes('forceRefresh=true')) {
+          window.location.reload();
+        }
+      });
+    </script>
+  </body>
+</html> 

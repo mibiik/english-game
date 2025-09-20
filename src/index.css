@@ -1,0 +1,1247 @@
+/* Preload kritik kaynaklar */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Bebas Neue font için */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Reset ve temel stiller */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+img, video, canvas, audio, iframe, embed, object {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Aspect ratio container */
+.aspect-ratio-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.aspect-ratio-container > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Font display optimization */
+.font-display-swap {
+  font-display: swap;
+}
+
+/* Font utility class */
+.font-bebas {
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize images */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Custom animations with better performance */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-bright {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+.pulse-bright {
+  animation: pulse-bright 2s infinite;
+}
+
+.bounce-slow {
+  animation: bounce-slow 3s infinite;
+}
+
+/* Responsive optimizations */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-bounce-slow,
+  .animate-pulse-bright {
+    animation: none;
+  }
+}
+
+/* Focus styles */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-optimized {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-optimized {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Fixed size utilities */
+.card-fixed-size {
+  width: 300px;
+  height: 200px;
+  flex-shrink: 0;
+}
+
+.button-fixed-size {
+  width: 120px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Container utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Grid stability */
+.grid-stable {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Flex stability */
+.flex-stable {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* Text optimization */
+.text-optimized {
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+}
+
+/* Mobile text sizes */
+@media (max-width: 640px) {
+  .xs\:text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+/* Backdrop blur fallback */
+@media (max-width: 640px) {
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Hover effects */
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+}
+
+.group:hover .group-hover\:brightness-110 {
+  filter: brightness(1.1);
+}
+
+/* Border utilities */
+.border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.group:hover .group-hover\:border-\[\#ff416c\]\/60 {
+  border-color: rgba(255, 65, 108, 0.6);
+}
+
+/* 3D transforms */
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* Navbar animations */
+.navbar-scroll-hidden {
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.navbar-scroll-visible {
+  transform: translateY(0);
+  transition: transform 0.3s ease-in-out;
+}
+
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+}
+
+/* ---- Professional dark UI helpers ---- */
+
+/* Subtle dotted grid background (dark) */
+.bg-dots-dark {
+	background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+	background-size: 24px 24px;
+	background-position: 0 0;
+}
+
+/* Top–bottom vignette gradient overlay for depth */
+.vignette-overlay {
+	background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Enhanced gradient border cards */
+.gradient-border {
+	position: relative;
+	border-radius: 16px;
+	padding: 1px;
+	background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05), rgba(255,255,255,0.15));
+	backdrop-filter: blur(10px);
+}
+.gradient-border .gb-inner {
+	border-radius: 15px;
+	background: rgba(15,15,15,0.85);
+	backdrop-filter: blur(20px);
+	border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Card hover glow effect */
+.gradient-border:hover {
+	background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.08), rgba(255,255,255,0.25));
+	box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Level cards specific styling */
+.level-card {
+	min-height: 100px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
+}
+
+.level-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.level-card:hover::before {
+	opacity: 1;
+}
+
+/* Game mode cards with varied designs */
+.game-card {
+	min-height: 120px;
+	position: relative;
+	overflow: hidden;
+}
+
+.game-card::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Hexagon card design */
+.hex-card {
+	position: relative;
+	border-radius: 20px;
+	background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(147,51,234,0.1));
+	border: 1px solid rgba(99,102,241,0.3);
+}
+
+.hex-card::before {
+	content: '';
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 30px;
+	height: 30px;
+	background: linear-gradient(45deg, rgba(99,102,241,0.3), rgba(147,51,234,0.3));
+	clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Diagonal cut card */
+.diagonal-card {
+	position: relative;
+	background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.1));
+	border: 1px solid rgba(59,130,246,0.3);
+	clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+/* Neon glow card */
+.neon-card {
+	position: relative;
+	background: rgba(15,15,15,0.9);
+	border: 1px solid rgba(236,72,153,0.4);
+	border-radius: 12px;
+	box-shadow: 
+		0 0 20px rgba(236,72,153,0.1),
+		inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.neon-card:hover {
+	border-color: rgba(236,72,153,0.6);
+	box-shadow: 
+		0 0 30px rgba(236,72,153,0.2),
+		0 0 60px rgba(236,72,153,0.1),
+		inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* Glassmorphism card */
+.glass-card {
+	background: rgba(255,255,255,0.05);
+	backdrop-filter: blur(20px);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 16px;
+	box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.glass-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+/* Circuit pattern card */
+.circuit-card {
+	position: relative;
+	background: rgba(15,15,15,0.9);
+	border: 1px solid rgba(34,197,94,0.3);
+	border-radius: 8px;
+}
+
+.circuit-card::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: 
+		linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px),
+		linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px);
+	background-size: 20px 20px;
+	opacity: 0.3;
+	pointer-events: none;
+}
+
+/* Advanced 3D cards */
+.card-3d {
+	perspective: 1000px;
+	transform-style: preserve-3d;
+}
+
+.card-3d-inner {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	transition: transform 0.6s;
+	transform-style: preserve-3d;
+}
+
+.card-3d:hover .card-3d-inner {
+	transform: rotateY(15deg) rotateX(5deg);
+}
+
+/* Morphing blob card */
+.blob-card {
+	position: relative;
+	background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(236,72,153,0.1));
+	border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+	border: 1px solid rgba(168,85,247,0.3);
+	animation: morphBlob 8s ease-in-out infinite;
+}
+
+@keyframes morphBlob {
+	0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+	25% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
+	50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
+	75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+}
+
+/* Holographic card */
+.holo-card {
+	position: relative;
+	background: linear-gradient(45deg, 
+		rgba(255,0,150,0.1) 0%,
+		rgba(0,255,255,0.1) 25%,
+		rgba(255,255,0,0.1) 50%,
+		rgba(255,0,150,0.1) 75%,
+		rgba(0,255,255,0.1) 100%);
+	background-size: 400% 400%;
+	border: 1px solid rgba(255,255,255,0.2);
+	border-radius: 16px;
+	animation: holoShift 3s ease-in-out infinite;
+}
+
+@keyframes holoShift {
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+}
+
+.holo-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+	animation: holoSweep 2s linear infinite;
+}
+
+@keyframes holoSweep {
+	0% { left: -100%; }
+	100% { left: 100%; }
+}
+
+/* Particle system card */
+.particle-card {
+	position: relative;
+	background: rgba(15,15,15,0.9);
+	border: 1px solid rgba(59,130,246,0.3);
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.particle-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: 
+		radial-gradient(2px 2px at 20% 30%, rgba(59,130,246,0.4), transparent),
+		radial-gradient(1px 1px at 40% 70%, rgba(59,130,246,0.3), transparent),
+		radial-gradient(1px 1px at 90% 40%, rgba(59,130,246,0.5), transparent),
+		radial-gradient(2px 2px at 70% 80%, rgba(59,130,246,0.2), transparent);
+	background-size: 100px 100px, 150px 150px, 200px 200px, 120px 120px;
+	animation: particleFloat 6s linear infinite;
+}
+
+@keyframes particleFloat {
+	0% { transform: translateY(0px) translateX(0px); }
+	25% { transform: translateY(-10px) translateX(5px); }
+	50% { transform: translateY(-5px) translateX(-3px); }
+	75% { transform: translateY(-15px) translateX(2px); }
+	100% { transform: translateY(0px) translateX(0px); }
+}
+
+/* Liquid card */
+.liquid-card {
+	position: relative;
+	background: linear-gradient(135deg, rgba(20,184,166,0.1), rgba(6,182,212,0.1));
+	border: 1px solid rgba(20,184,166,0.3);
+	border-radius: 20px;
+	overflow: hidden;
+}
+
+.liquid-card::after {
+	content: '';
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: radial-gradient(circle, rgba(20,184,166,0.2) 0%, transparent 70%);
+	animation: liquidWave 4s ease-in-out infinite;
+}
+
+@keyframes liquidWave {
+	0%, 100% { transform: rotate(0deg) scale(1); }
+	50% { transform: rotate(180deg) scale(1.1); }
+}
+
+/* Primary button shine effect */
+.btn-shine {
+	position: relative;
+	overflow: hidden;
+}
+.btn-shine::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -150%;
+	width: 120%;
+	height: 100%;
+	background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+	transform: skewX(-20deg);
+}
+.btn-shine:hover::before {
+	animation: shine-sweep 0.9s ease forwards;
+}
+@keyframes shine-sweep {
+	0% { left: -150%; }
+	100% { left: 130%; }
+}
+
+/* Dark header monochrome logo helper */
+.logo-mono {
+	filter: grayscale(1) brightness(1.15) contrast(1.05);
+	opacity: 0.9;
+}
+
+/* White focus ring for dark theme when needed */
+.focus-white:focus-visible {
+	outline: 2px solid #ffffff;
+	outline-offset: 2px;
+}
+
+/* Animated dark gradient overlay */
+.animated-dark-gradient {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.55;
+	background-image:
+		radial-gradient(1200px 800px at 20% 30%, rgba(255,255,255,0.06) 0%, transparent 60%),
+		radial-gradient(900px 700px at 80% 70%, rgba(255,255,255,0.04) 0%, transparent 60%),
+		linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.65));
+	background-size: 140% 140%, 140% 140%, 100% 100%;
+	background-position: 0% 0%, 100% 100%, 0 0;
+	animation: darkGradientMove 16s ease-in-out infinite alternate;
+}
+@keyframes darkGradientMove {
+	0% { background-position: 0% 0%, 100% 100%, 0 0; }
+	100% { background-position: 100% 0%, 0% 100%, 0 0; }
+}
+
+/* Space Station UI */
+.space-stars {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image: 
+		radial-gradient(2px 2px at 20px 30px, rgba(0,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1px 1px at 90px 40px, rgba(0,255,255,0.6), transparent),
+		radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.7), transparent),
+		radial-gradient(1px 1px at 160px 30px, rgba(0,255,255,0.5), transparent);
+	background-size: 300px 200px;
+	animation: sparkle 6s linear infinite;
+}
+
+/* Terminal/HUD Grid */
+.hud-grid {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image: 
+		linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px);
+	background-size: 50px 50px;
+	animation: gridPulse 4s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+	0%, 100% { opacity: 0.3; }
+	50% { opacity: 0.6; }
+}
+
+/* Hologram text effect */
+.hologram-text {
+	color: #00ffff;
+	text-shadow: 
+		0 0 5px #00ffff,
+		0 0 10px #00ffff,
+		0 0 15px #00ffff;
+	animation: hologramFlicker 2s infinite;
+}
+
+@keyframes hologramFlicker {
+	0%, 100% { opacity: 1; }
+	98% { opacity: 1; }
+	99% { opacity: 0.8; }
+}
+
+/* Terminal window */
+.terminal-window {
+	background: rgba(0,20,40,0.9);
+	border: 2px solid #00ffff;
+	border-radius: 8px;
+	box-shadow: 
+		0 0 20px rgba(0,255,255,0.3),
+		inset 0 1px 0 rgba(0,255,255,0.2);
+	position: relative;
+}
+
+.terminal-window::before {
+	content: '● ● ●';
+	position: absolute;
+	top: 8px;
+	left: 12px;
+	color: #00ffff;
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+/* Scan lines effect */
+.scan-lines {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		transparent 50%,
+		rgba(0,255,255,0.03) 50%
+	);
+	background-size: 100% 4px;
+	animation: scanMove 2s linear infinite;
+}
+
+@keyframes scanMove {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(4px); }
+}
+
+.space-nebula {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.3;
+	background-image:
+		radial-gradient(ellipse 800px 400px at 30% 20%, rgba(99,102,241,0.15) 0%, transparent 70%),
+		radial-gradient(ellipse 600px 300px at 70% 80%, rgba(147,51,234,0.12) 0%, transparent 70%),
+		radial-gradient(ellipse 400px 600px at 90% 10%, rgba(59,130,246,0.08) 0%, transparent 70%);
+	animation: nebulaMove 20s ease-in-out infinite alternate;
+}
+
+.space-gradient {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		180deg,
+		rgba(15,23,42,0.95) 0%,
+		rgba(30,41,59,0.9) 25%,
+		rgba(51,65,85,0.85) 50%,
+		rgba(15,23,42,0.95) 100%
+	);
+}
+
+@keyframes sparkle {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.3; }
+}
+
+@keyframes nebulaMove {
+	0% { 
+		transform: translateX(-10px) translateY(-5px) scale(1);
+		opacity: 0.2;
+	}
+	100% { 
+		transform: translateX(10px) translateY(5px) scale(1.05);
+		opacity: 0.4;
+	}
+}
+
+
+
+/* Subtle dotted grid background (dark) */
+.bg-dots-dark {
+	background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+	background-size: 24px 24px;
+	background-position: 0 0;
+}
+
+/* Top–bottom vignette gradient overlay for depth */
+.vignette-overlay {
+	background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Enhanced gradient border cards */
+.gradient-border {
+	position: relative;
+	border-radius: 16px;
+	padding: 1px;
+	background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05), rgba(255,255,255,0.15));
+	backdrop-filter: blur(10px);
+}
+.gradient-border .gb-inner {
+	border-radius: 15px;
+	background: rgba(15,15,15,0.85);
+	backdrop-filter: blur(20px);
+	border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Card hover glow effect */
+.gradient-border:hover {
+	background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.08), rgba(255,255,255,0.25));
+	box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Level cards specific styling */
+.level-card {
+	min-height: 100px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
+}
+
+.level-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.level-card:hover::before {
+	opacity: 1;
+}
+
+/* Game mode cards with varied designs */
+.game-card {
+	min-height: 120px;
+	position: relative;
+	overflow: hidden;
+}
+
+.game-card::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Hexagon card design */
+.hex-card {
+	position: relative;
+	border-radius: 20px;
+	background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(147,51,234,0.1));
+	border: 1px solid rgba(99,102,241,0.3);
+}
+
+.hex-card::before {
+	content: '';
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	width: 30px;
+	height: 30px;
+	background: linear-gradient(45deg, rgba(99,102,241,0.3), rgba(147,51,234,0.3));
+	clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Diagonal cut card */
+.diagonal-card {
+	position: relative;
+	background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(16,185,129,0.1));
+	border: 1px solid rgba(59,130,246,0.3);
+	clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+/* Neon glow card */
+.neon-card {
+	position: relative;
+	background: rgba(15,15,15,0.9);
+	border: 1px solid rgba(236,72,153,0.4);
+	border-radius: 12px;
+	box-shadow: 
+		0 0 20px rgba(236,72,153,0.1),
+		inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.neon-card:hover {
+	border-color: rgba(236,72,153,0.6);
+	box-shadow: 
+		0 0 30px rgba(236,72,153,0.2),
+		0 0 60px rgba(236,72,153,0.1),
+		inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* Glassmorphism card */
+.glass-card {
+	background: rgba(255,255,255,0.05);
+	backdrop-filter: blur(20px);
+	border: 1px solid rgba(255,255,255,0.1);
+	border-radius: 16px;
+	box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.glass-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+/* Circuit pattern card */
+.circuit-card {
+	position: relative;
+	background: rgba(15,15,15,0.9);
+	border: 1px solid rgba(34,197,94,0.3);
+	border-radius: 8px;
+}
+
+.circuit-card::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: 
+		linear-gradient(90deg, rgba(34,197,94,0.1) 1px, transparent 1px),
+		linear-gradient(rgba(34,197,94,0.1) 1px, transparent 1px);
+	background-size: 20px 20px;
+	opacity: 0.3;
+	pointer-events: none;
+}
+
+/* Advanced 3D cards */
+.card-3d {
+	perspective: 1000px;
+	transform-style: preserve-3d;
+}
+
+.card-3d-inner {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	transition: transform 0.6s;
+	transform-style: preserve-3d;
+}
+
+.card-3d:hover .card-3d-inner {
+	transform: rotateY(15deg) rotateX(5deg);
+}
+
+/* Morphing blob card */
+.blob-card {
+	position: relative;
+	background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(236,72,153,0.1));
+	border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+	border: 1px solid rgba(168,85,247,0.3);
+	animation: morphBlob 8s ease-in-out infinite;
+}
+
+@keyframes morphBlob {
+	0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+	25% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
+	50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
+	75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+}
+
+/* Holographic card */
+.holo-card {
+	position: relative;
+	background: linear-gradient(45deg, 
+		rgba(255,0,150,0.1) 0%,
+		rgba(0,255,255,0.1) 25%,
+		rgba(255,255,0,0.1) 50%,
+		rgba(255,0,150,0.1) 75%,
+		rgba(0,255,255,0.1) 100%);
+	background-size: 400% 400%;
+	border: 1px solid rgba(255,255,255,0.2);
+	border-radius: 16px;
+	animation: holoShift 3s ease-in-out infinite;
+}
+
+@keyframes holoShift {
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+}
+
+.holo-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+	animation: holoSweep 2s linear infinite;
+}
+
+@keyframes holoSweep {
+	0% { left: -100%; }
+	100% { left: 100%; }
+}
+
+/* Particle system card */
+.particle-card {
+	position: relative;
+	background: rgba(15,15,15,0.9);
+	border: 1px solid rgba(59,130,246,0.3);
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.particle-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: 
+		radial-gradient(2px 2px at 20% 30%, rgba(59,130,246,0.4), transparent),
+		radial-gradient(1px 1px at 40% 70%, rgba(59,130,246,0.3), transparent),
+		radial-gradient(1px 1px at 90% 40%, rgba(59,130,246,0.5), transparent),
+		radial-gradient(2px 2px at 70% 80%, rgba(59,130,246,0.2), transparent);
+	background-size: 100px 100px, 150px 150px, 200px 200px, 120px 120px;
+	animation: particleFloat 6s linear infinite;
+}
+
+@keyframes particleFloat {
+	0% { transform: translateY(0px) translateX(0px); }
+	25% { transform: translateY(-10px) translateX(5px); }
+	50% { transform: translateY(-5px) translateX(-3px); }
+	75% { transform: translateY(-15px) translateX(2px); }
+	100% { transform: translateY(0px) translateX(0px); }
+}
+
+/* Liquid card */
+.liquid-card {
+	position: relative;
+	background: linear-gradient(135deg, rgba(20,184,166,0.1), rgba(6,182,212,0.1));
+	border: 1px solid rgba(20,184,166,0.3);
+	border-radius: 20px;
+	overflow: hidden;
+}
+
+.liquid-card::after {
+	content: '';
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: radial-gradient(circle, rgba(20,184,166,0.2) 0%, transparent 70%);
+	animation: liquidWave 4s ease-in-out infinite;
+}
+
+@keyframes liquidWave {
+	0%, 100% { transform: rotate(0deg) scale(1); }
+	50% { transform: rotate(180deg) scale(1.1); }
+}
+
+/* Primary button shine effect */
+.btn-shine {
+	position: relative;
+	overflow: hidden;
+}
+.btn-shine::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -150%;
+	width: 120%;
+	height: 100%;
+	background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+	transform: skewX(-20deg);
+}
+.btn-shine:hover::before {
+	animation: shine-sweep 0.9s ease forwards;
+}
+@keyframes shine-sweep {
+	0% { left: -150%; }
+	100% { left: 130%; }
+}
+
+/* Dark header monochrome logo helper */
+.logo-mono {
+	filter: grayscale(1) brightness(1.15) contrast(1.05);
+	opacity: 0.9;
+}
+
+/* White focus ring for dark theme when needed */
+.focus-white:focus-visible {
+	outline: 2px solid #ffffff;
+	outline-offset: 2px;
+}
+
+/* Animated dark gradient overlay */
+.animated-dark-gradient {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.55;
+	background-image:
+		radial-gradient(1200px 800px at 20% 30%, rgba(255,255,255,0.06) 0%, transparent 60%),
+		radial-gradient(900px 700px at 80% 70%, rgba(255,255,255,0.04) 0%, transparent 60%),
+		linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.65));
+	background-size: 140% 140%, 140% 140%, 100% 100%;
+	background-position: 0% 0%, 100% 100%, 0 0;
+	animation: darkGradientMove 16s ease-in-out infinite alternate;
+}
+@keyframes darkGradientMove {
+	0% { background-position: 0% 0%, 100% 100%, 0 0; }
+	100% { background-position: 100% 0%, 0% 100%, 0 0; }
+}
+
+/* Space Station UI */
+.space-stars {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image: 
+		radial-gradient(2px 2px at 20px 30px, rgba(0,255,255,0.8), transparent),
+		radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.9), transparent),
+		radial-gradient(1px 1px at 90px 40px, rgba(0,255,255,0.6), transparent),
+		radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.7), transparent),
+		radial-gradient(1px 1px at 160px 30px, rgba(0,255,255,0.5), transparent);
+	background-size: 300px 200px;
+	animation: sparkle 6s linear infinite;
+}
+
+/* Terminal/HUD Grid */
+.hud-grid {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image: 
+		linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px);
+	background-size: 50px 50px;
+	animation: gridPulse 4s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+	0%, 100% { opacity: 0.3; }
+	50% { opacity: 0.6; }
+}
+
+/* Hologram text effect */
+.hologram-text {
+	color: #00ffff;
+	text-shadow: 
+		0 0 5px #00ffff,
+		0 0 10px #00ffff,
+		0 0 15px #00ffff;
+	animation: hologramFlicker 2s infinite;
+}
+
+@keyframes hologramFlicker {
+	0%, 100% { opacity: 1; }
+	98% { opacity: 1; }
+	99% { opacity: 0.8; }
+}
+
+/* Terminal window */
+.terminal-window {
+	background: rgba(0,20,40,0.9);
+	border: 2px solid #00ffff;
+	border-radius: 8px;
+	box-shadow: 
+		0 0 20px rgba(0,255,255,0.3),
+		inset 0 1px 0 rgba(0,255,255,0.2);
+	position: relative;
+}
+
+.terminal-window::before {
+	content: '● ● ●';
+	position: absolute;
+	top: 8px;
+	left: 12px;
+	color: #00ffff;
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+/* Scan lines effect */
+.scan-lines {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		transparent 50%,
+		rgba(0,255,255,0.03) 50%
+	);
+	background-size: 100% 4px;
+	animation: scanMove 2s linear infinite;
+}
+
+@keyframes scanMove {
+	0% { transform: translateY(0); }
+	100% { transform: translateY(4px); }
+}
+
+.space-nebula {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0.3;
+	background-image:
+		radial-gradient(ellipse 800px 400px at 30% 20%, rgba(99,102,241,0.15) 0%, transparent 70%),
+		radial-gradient(ellipse 600px 300px at 70% 80%, rgba(147,51,234,0.12) 0%, transparent 70%),
+		radial-gradient(ellipse 400px 600px at 90% 10%, rgba(59,130,246,0.08) 0%, transparent 70%);
+	animation: nebulaMove 20s ease-in-out infinite alternate;
+}
+
+.space-gradient {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: linear-gradient(
+		180deg,
+		rgba(15,23,42,0.95) 0%,
+		rgba(30,41,59,0.9) 25%,
+		rgba(51,65,85,0.85) 50%,
+		rgba(15,23,42,0.95) 100%
+	);
+}
+
+@keyframes sparkle {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.3; }
+}
+
+@keyframes nebulaMove {
+	0% { 
+		transform: translateX(-10px) translateY(-5px) scale(1);
+		opacity: 0.2;
+	}
+	100% { 
+		transform: translateX(10px) translateY(5px) scale(1.05);
+		opacity: 0.4;
+	}
+}
+

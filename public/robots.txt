@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://wordplay.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+# Allow important pages
+Allow: /home
+Allow: /about-founder
+Allow: /discover
+Allow: /leaderboard
+Allow: /profile
+Allow: /sss
+Allow: /iletisim
+Allow: /destek
+Allow: /gizlilik
+Allow: /kullanim-sartlari
