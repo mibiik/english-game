@@ -17,7 +17,6 @@ export const PWAInstallPrompt: React.FC = () => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
-  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   
   // Cihaz tespit hook'u
   const { isMobile } = useIsMobile();
@@ -150,33 +149,29 @@ export const PWAInstallPrompt: React.FC = () => {
   }, [deferredPrompt, isInstalled]);
 
   const handleInstallClick = async () => {
-    // Android için özel kurulum mantığı
-    if (isMobile && !deferredPrompt) {
-      // Android'de manuel kurulum talimatları göster
-      console.log('📱 Android manuel kurulum talimatları gösteriliyor');
-      
-      // Kurulum talimatları modal'ı göster
-      setShowInstallInstructions(true);
+    // Tarayıcının native kurulum bildirimini kullan
+    if (!deferredPrompt) {
+      console.log('Native install prompt mevcut değil');
       return;
     }
 
-    // Normal PWA kurulum süreci
-    if (!deferredPrompt) return;
-
     try {
+      // Tarayıcının native kurulum bildirimini göster
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
       if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
+        console.log('✅ Kullanıcı native kurulum bildirimini kabul etti');
+        setShowPrompt(false);
+        setDeferredPrompt(null);
       } else {
-        console.log('User dismissed the install prompt');
+        console.log('❌ Kullanıcı native kurulum bildirimini reddetti');
+        setShowPrompt(false);
+        setDeferredPrompt(null);
       }
-      
-      setDeferredPrompt(null);
-      setShowPrompt(false);
     } catch (error) {
-      console.error('Error during PWA install:', error);
+      console.error('Native PWA install hatası:', error);
+      setShowPrompt(false);
     }
   };
 
@@ -228,20 +223,20 @@ export const PWAInstallPrompt: React.FC = () => {
                 ) : (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-700 font-medium">
-                      🚀 Ana ekranına ekle ve daha hızlı erişim sağla!
+                      🚀 Tarayıcının kurulum bildirimini kullanarak ana ekranına ekle!
                     </p>
                     <div className="bg-white/70 rounded-lg p-2 border border-blue-300">
                       <div className="flex items-center gap-1 text-xs text-green-700 font-medium">
                         <span>✓</span>
-                        <span>İnternetsiz çalışır</span>
+                        <span>Native kurulum</span>
                         <span>✓</span>
-                        <span>Anında açılır</span>
+                        <span>İnternetsiz çalışır</span>
                         <span>✓</span>
                         <span>Uygulama deneyimi</span>
                       </div>
                     </div>
                     <p className="text-xs text-blue-600 font-medium">
-                      📱 Haftada bir hatırlatırız!
+                      📱 Tarayıcı kendi kurulum bildirimini gösterecek
                     </p>
                   </div>
                 )}
@@ -264,7 +259,7 @@ export const PWAInstallPrompt: React.FC = () => {
                   className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg"
                 >
                   <Download className="w-4 h-4" />
-                  Şimdi İndir
+                  Kurulum Bildirimini Göster
                 </motion.button>
                 
                 <motion.button
@@ -280,74 +275,6 @@ export const PWAInstallPrompt: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Android Kurulum Talimatları */}
-      {showInstallInstructions && (
-        <motion.div
-          initial={{ y: 100, opacity: 0, scale: 0.9 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 100, opacity: 0, scale: 0.9 }}
-          className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm"
-        >
-          <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-xl shadow-2xl border-2 border-orange-200 p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Smartphone className="w-6 h-6 text-white" />
-                </div>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-gray-900 mb-3">
-                  📱 Android Kurulum Talimatları
-                </h3>
-                
-                <div className="space-y-3 text-sm text-gray-700">
-                  <div className="bg-white/70 rounded-lg p-3 border border-orange-300">
-                    <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
-                      <span className="text-lg">1️⃣</span>
-                      <span>Chrome menüsünü aç</span>
-                    </div>
-                    <p className="text-xs text-gray-600">Sağ üstteki üç nokta (...) butonuna tıkla</p>
-                  </div>
-                  
-                  <div className="bg-white/70 rounded-lg p-3 border border-orange-300">
-                    <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
-                      <span className="text-lg">2️⃣</span>
-                      <span>"Ana ekrana ekle" seç</span>
-                    </div>
-                    <p className="text-xs text-gray-600">Menüden "Ana ekrana ekle" seçeneğini bul ve tıkla</p>
-                  </div>
-                  
-                  <div className="bg-white/70 rounded-lg p-3 border border-orange-300">
-                    <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
-                      <span className="text-lg">3️⃣</span>
-                      <span>Kurulumu onayla</span>
-                    </div>
-                    <p className="text-xs text-gray-600">"Ekle" butonuna tıklayarak kurulumu tamamla</p>
-                  </div>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => setShowInstallInstructions(false)}
-                className="flex-shrink-0 p-1 text-gray-500 hover:text-gray-700 rounded-full hover:bg-white/50 transition-colors"
-              >
-                <X className="w-4 h-6" />
-              </button>
-            </div>
-            
-            <div className="flex gap-2 mt-4">
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowInstallInstructions(false)}
-                className="flex-1 bg-gradient-to-r from-orange-500 to-amber-600 text-white text-sm font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:from-orange-600 hover:to-amber-700 transition-all shadow-lg"
-              >
-                Anladım
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* Teşekkür Mesajı */}
       {showThankYou && (
