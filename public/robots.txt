@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://wordplay.vercel.app/sitemap.xml
+Sitemap: https://kuwordplay.com/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1
