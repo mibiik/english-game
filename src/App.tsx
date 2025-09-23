@@ -211,7 +211,7 @@ function AppContent() {
           });
         });
       }
-    };
+    });
   }, []);
 
 
@@ -409,7 +409,6 @@ function AppContent() {
     localStorage.setItem('currentUnit', unit);
     updateURLParams(unit, currentLevel);
   };
-  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => {
     setCurrentLevel(level);
     localStorage.setItem('currentLevel', level);
     updateURLParams(currentUnit, level);
