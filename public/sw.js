@@ -357,21 +357,120 @@ self.addEventListener('sync', (event) => {
 
 // Push event - push notification'ları
 self.addEventListener('push', (event) => {
+  console.log('📱 Push notification alındı:', event);
+  
   if (event.data) {
     const data = event.data.json();
     const options = {
-      body: data.message,
+      body: data.body || data.message,
       icon: '/a.png',
       badge: '/a.png',
       vibrate: [100, 50, 100],
+      tag: data.tag || 'wordplay-notification',
+      requireInteraction: true,
       data: {
         dateOfArrival: Date.now(),
-        primaryKey: 1
-      }
+        primaryKey: 1,
+        url: data.url || '/',
+        type: data.type || 'general'
+      },
+      actions: [
+        {
+          action: 'open',
+          title: 'Aç',
+          icon: '/a.png'
+        },
+        {
+          action: 'close',
+          title: 'Kapat',
+          icon: '/a.png'
+        }
+      ]
     };
     
     event.waitUntil(
       self.registration.showNotification(data.title, options)
     );
+  } else {
+    // Varsayılan bildirim
+    const options = {
+      body: 'WordPlay\'den yeni bir bildirim!',
+      icon: '/a.png',
+      badge: '/a.png',
+      vibrate: [100, 50, 100],
+      tag: 'wordplay-default',
+      requireInteraction: true
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification('WordPlay', options)
+    );
   }
-}); 
+});
+
+// Notification click event
+self.addEventListener('notificationclick', (event) => {
+  console.log('🔔 Notification tıklandı:', event);
+  
+  event.notification.close();
+  
+  const action = event.action;
+  const data = event.notification.data;
+  
+  if (action === 'close') {
+    return;
+  }
+  
+  // Uygulamayı aç
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Zaten açık bir pencere varsa odaklan
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          if (data && data.url) {
+            client.navigate(data.url);
+          }
+          return client.focus();
+        }
+      }
+      
+      // Yeni pencere aç
+      if (clients.openWindow) {
+        const url = data && data.url ? data.url : '/';
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
+
+// Background sync event
+self.addEventListener('sync', (event) => {
+  console.log('🔄 Background sync:', event.tag);
+  
+  if (event.tag === 'background-monitoring') {
+    event.waitUntil(startBackgroundMonitoring());
+  } else if (event.tag === 'daily-reminder') {
+    event.waitUntil(sendDailyReminder());
+  }
+});
+
+// Günlük hatırlatma gönder
+async function sendDailyReminder() {
+  try {
+    const options = {
+      body: 'Bugün kaç kelime öğrendin? WordPlay ile İngilizce seviyeni yükselt!',
+      icon: '/a.png',
+      badge: '/a.png',
+      tag: 'daily-reminder',
+      requireInteraction: true,
+      data: {
+        type: 'daily_reminder',
+        url: '/home'
+      }
+    };
+    
+    await self.registration.showNotification('🎯 Günlük Kelime Hedefin!', options);
+  } catch (error) {
+    console.error('Günlük hatırlatma gönderilemedi:', error);
+  }
+} 

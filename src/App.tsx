@@ -15,9 +15,11 @@ import { X, Sparkles } from 'lucide-react';
 import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import NotificationPermission from './components/NotificationPermission';
 import { userAnalyticsService } from './services/userAnalyticsService';
 import { deviceDetectionService } from './services/deviceDetectionService';
 import { analyticsCollector } from './services/analyticsCollector';
+import { notificationService } from './services/notificationService';
 
 const intermediateWords: WordDetail[] = newDetailedWords_part1;
 const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
@@ -145,6 +147,36 @@ function AppContent() {
       }, 3000);
       return;
     }
+  }, []);
+
+  // Bildirim servisini başlat
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      try {
+        // Service Worker'ı kaydet
+        await notificationService.registerServiceWorker();
+        
+        // Bildirim izni varsa günlük hatırlatma ayarla
+        if (Notification.permission === 'granted') {
+          // Her gün saat 18:00'de hatırlatma gönder
+          const now = new Date();
+          const reminderTime = new Date();
+          reminderTime.setHours(18, 0, 0, 0);
+          
+          if (now.getTime() < reminderTime.getTime()) {
+            const timeUntilReminder = reminderTime.getTime() - now.getTime();
+            setTimeout(() => {
+              notificationService.sendDailyReminder();
+            }, timeUntilReminder);
+          }
+        }
+      } catch (error) {
+        console.error('Bildirim servisi başlatılamadı:', error);
+      }
+    };
+
+    initializeNotifications();
+  }, []);
 
     console.log('🚀 Uygulama başlatılıyor - Monitoring başlatılıyor...');
     
@@ -398,6 +430,7 @@ function AppContent() {
         onClose={() => setShowMehmetModal(false)} 
       />
       <PWAInstallPrompt />
+      <NotificationPermission />
       <PerformanceMonitor />
     </div>
   );
