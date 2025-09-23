@@ -59,20 +59,9 @@ const WelcomePage: React.FC = React.memo(() => {
 						>
 							<motion.img 
 								src={logo} 
-								alt="WordPlay" 
-								className="w-12 h-12 logo-mono" 
+								alt="Wordplay" 
+								className="w-14 h-14 logo-mono" 
 							/>
-							<motion.h1 
-								className="text-lg md:text-xl font-medium text-white tracking-wide"
-								style={{ 
-									fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-									letterSpacing: '0.02em',
-									fontWeight: '500',
-									fontStyle: 'normal'
-								}}
-							>
-								WordPlay
-							</motion.h1>
 						</motion.div>
 						<div className="flex items-center gap-2">
 							<motion.button
@@ -100,7 +89,7 @@ const WelcomePage: React.FC = React.memo(() => {
 
 			{/* Hero */}
 			<section className="relative px-6">
-				<div className="max-w-5xl mx-auto text-center py-20 relative z-10">
+				<div className="max-w-5xl mx-auto text-center py-12 relative z-10">
 					<motion.h2 variants={fadeUpAnimation} initial="hidden" animate="show" className="text-4xl md:text-5xl font-semibold tracking-tight text-white mb-5">
 						<span className="flex flex-col items-center gap-1 md:inline-flex md:flex-row md:items-baseline md:gap-2">
 							<span>Seviyenizdeki</span>
@@ -454,8 +443,8 @@ const WelcomePage: React.FC = React.memo(() => {
 					<div className="grid md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
 						<div>
 							<div className="flex items-center gap-3 mb-4">
-								<img src={logo} alt="WordPlay" className="w-8 h-8 logo-mono" />
-								<span className="text-lg font-semibold text-white">WordPlay</span>
+								<img src={logo} alt="Wordplay" className="w-8 h-8 logo-mono" />
+								<span className="text-lg font-semibold text-white">Wordplay</span>
 							</div>
 							<p className="text-sm text-neutral-400 leading-relaxed">
 								Koç Üniversitesi hazırlık listeleriyle uyumlu, oyunlaştırılmış kelime öğrenme platformu. 
