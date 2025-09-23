@@ -24,6 +24,20 @@ Allow: /destek
 Allow: /gizlilik
 Allow: /kullanim-sartlari
 
+# Allow Koç Üniversitesi specific pages
+Allow: /koc-universitesi-hazirlik-ingilizce-kelimeleri
+Allow: /koc-universitesi-foundation-ingilizce
+Allow: /koc-universitesi-pre-intermediate-ingilizce
+Allow: /koc-universitesi-intermediate-ingilizce
+Allow: /koc-universitesi-upper-intermediate-ingilizce
+Allow: /koc-universitesi-kuepe-ingilizce
+Allow: /koc-universitesi-ingilizce-kelime-oyunu
+Allow: /koc-universitesi-ingilizce-alistirma
+
 # Image crawling
 Allow: /a.png
 Allow: /assets/
+Allow: /favicon-*.png
+Allow: /apple-touch-icon-*.png
+Allow: /google-logo-*.png
+Allow: /google-logo-*.jpg
