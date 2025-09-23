@@ -45,10 +45,10 @@ export const originalCategories = [
 ];
 
 export const stats = [
+  { number: '200+', label: 'Kullanıcı' },
   { number: '12+', label: 'Oyun Modu' },
   { number: '2000+', label: 'Kelime' },
-  { number: '4', label: 'Seviye' },
-  { number: '∞', label: 'Pratik' }
+  { number: '4', label: 'Seviye' }
 ];
 
 export const rotatingTextProps = {
