@@ -105,9 +105,9 @@ export class NotificationService {
     const title = '📱 WordPlay\'i Ana Ekrana Ekle!';
     const body = 'Daha hızlı erişim için WordPlay\'i ana ekranınıza ekleyin. İnternetsiz çalışır!';
     
-    await this.sendLocalNotification(title, {
-      body,
-      tag: 'install-prompt'
+    await this.sendPushNotification(title, body, {
+      type: 'install_prompt',
+      url: '/home'
     });
   }
 

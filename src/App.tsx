@@ -156,20 +156,25 @@ function AppContent() {
         // Service Worker'ı kaydet
         await notificationService.registerServiceWorker();
         
-        // Bildirim izni varsa günlük hatırlatma ayarla
-        if (Notification.permission === 'granted') {
-          // Her gün saat 18:00'de hatırlatma gönder
-          const now = new Date();
-          const reminderTime = new Date();
-          reminderTime.setHours(18, 0, 0, 0);
-          
-          if (now.getTime() < reminderTime.getTime()) {
-            const timeUntilReminder = reminderTime.getTime() - now.getTime();
-            setTimeout(() => {
-              notificationService.sendDailyReminder();
-            }, timeUntilReminder);
-          }
-        }
+         // Bildirim izni varsa günlük hatırlatma ayarla
+         if (Notification.permission === 'granted') {
+           // Her gün saat 18:00'de hatırlatma gönder
+           const now = new Date();
+           const reminderTime = new Date();
+           reminderTime.setHours(18, 0, 0, 0);
+           
+           if (now.getTime() < reminderTime.getTime()) {
+             const timeUntilReminder = reminderTime.getTime() - now.getTime();
+             setTimeout(() => {
+               notificationService.sendDailyReminder();
+             }, timeUntilReminder);
+           }
+           
+           // Ana ekrana ekleme bildirimi gönder (5 saniye sonra)
+           setTimeout(() => {
+             notificationService.sendInstallNotification();
+           }, 5000);
+         }
       } catch (error) {
         console.error('Bildirim servisi başlatılamadı:', error);
       }
