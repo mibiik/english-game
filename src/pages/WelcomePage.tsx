@@ -60,10 +60,10 @@ const WelcomePage: React.FC = React.memo(() => {
 							<motion.img 
 								src={logo} 
 								alt="WordPlay" 
-								className="w-10 h-10 logo-mono" 
+								className="w-12 h-12 logo-mono" 
 							/>
 							<motion.h1 
-								className="text-xl md:text-2xl font-medium text-white tracking-wide"
+								className="text-lg md:text-xl font-medium text-white tracking-wide"
 								style={{ 
 									fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
 									letterSpacing: '0.02em',
@@ -284,12 +284,12 @@ const WelcomePage: React.FC = React.memo(() => {
 														{item.name}
 													</h5>
 													{'desc' in item && (
-														<p className="text-xs md:text-sm text-neutral-400 group-hover:text-neutral-300 leading-relaxed">
-															{item.desc}
-														</p>
+													<p className="text-xs md:text-sm text-neutral-400 group-hover:text-neutral-300 leading-relaxed">
+														{item.desc}
+													</p>
 													)}
           </div>
-											</div>
+          </div>
 										))}
 									</div>
 								</div>
