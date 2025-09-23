@@ -2,7 +2,22 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/english-game-logo.png" />
+    <!-- Favicon and Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+    <link rel="shortcut icon" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/a.png" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/a.png" />
+    <link rel="apple-touch-icon" href="/a.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -21,12 +36,25 @@
     <meta name="author" content="WordPlay - Koç Üniversitesi İngilizce Öğrenme Platformu" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     
+    <!-- Google Search Console Logo Meta Tags -->
+    <meta name="google-site-verification" content="your-verification-code-here" />
+    <meta name="google" content="notranslate" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    
+    <!-- Logo specific meta tags for Google -->
+    <meta name="logo" content="https://wordplay.com/a.png" />
+    <meta name="image" content="https://wordplay.com/a.png" />
+    
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme" />
     <meta property="og:description" content="Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması. 5000+ kelime, oyunlar ve alıştırmalar." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://wordplay.com" />
-    <meta property="og:image" content="/a.png" />
+    <meta property="og:image" content="https://wordplay.com/a.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="WordPlay - Koç Üniversitesi İngilizce Öğrenme Uygulaması Logosu" />
     <meta property="og:site_name" content="WordPlay" />
     <meta property="og:locale" content="tr_TR" />
     
@@ -34,7 +62,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="WordPlay - Koç Üniversitesi Hazırlık İngilizce Kelime Öğrenme" />
     <meta name="twitter:description" content="Koç Üniversitesi Hazırlık programı kelime listeleriyle tam uyumlu, interaktif İngilizce öğrenme uygulaması." />
-    <meta name="twitter:image" content="/a.png" />
+    <meta name="twitter:image" content="https://wordplay.com/a.png" />
+    <meta name="twitter:image:alt" content="WordPlay - Koç Üniversitesi İngilizce Öğrenme Uygulaması Logosu" />
+    <meta name="twitter:site" content="@wordplay" />
+    <meta name="twitter:creator" content="@wordplay" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://wordplay.com" />
@@ -53,6 +84,8 @@
       "url": "https://wordplay.com",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web Browser, iOS, Android",
+      "image": "https://wordplay.com/a.png",
+      "logo": "https://wordplay.com/a.png",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -61,12 +94,48 @@
       "provider": {
         "@type": "Organization",
         "name": "WordPlay",
-        "url": "https://wordplay.com"
+        "url": "https://wordplay.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://wordplay.com/a.png",
+          "width": 512,
+          "height": 512
+        }
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "WordPlay",
+        "url": "https://wordplay.com",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://wordplay.com/a.png",
+          "width": 512,
+          "height": 512
+        }
       },
       "educationalLevel": ["Foundation", "Pre-Intermediate", "Intermediate", "Upper-Intermediate", "KUEPE"],
       "teaches": "İngilizce",
       "inLanguage": ["tr", "en"],
       "keywords": ["Koç Üniversitesi", "Hazırlık", "İngilizce", "kelime öğrenme", "İngilizce uygulama"]
+    }
+    </script>
+    
+    <!-- Google Site Logo Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "WordPlay",
+      "url": "https://wordplay.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://wordplay.com/a.png",
+        "width": 512,
+        "height": 512
+      },
+      "sameAs": [
+        "https://wordplay.com"
+      ]
     }
     </script>
     

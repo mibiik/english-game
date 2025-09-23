@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://wordplay.com/sitemap.xml
+Sitemap: https://wordplay.vercel.app/sitemap.xml
 
 # Crawl-delay
 Crawl-delay: 1
@@ -23,3 +23,7 @@ Allow: /iletisim
 Allow: /destek
 Allow: /gizlilik
 Allow: /kullanim-sartlari
+
+# Image crawling
+Allow: /a.png
+Allow: /assets/
