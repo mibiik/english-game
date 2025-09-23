@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HTMLMotionProps } from 'framer-motion';
 
@@ -30,7 +30,7 @@ type RotatingTextProps = {
   elementLevelClassName?: string;
 } & HTMLMotionProps<'span'>;
 
-const RotatingText = forwardRef<any, RotatingTextProps>((props, ref) => {
+const RotatingText = memo(forwardRef<any, RotatingTextProps>((props, ref) => {
   const {
     texts,
     transition = { type: 'spring', damping: 25, stiffness: 300 },
@@ -159,8 +159,16 @@ const RotatingText = forwardRef<any, RotatingTextProps>((props, ref) => {
 
   useEffect(() => {
     if (!auto) return;
-    const intervalId = setInterval(next, rotationInterval);
-    return () => clearInterval(intervalId);
+    // Use requestAnimationFrame for better performance
+    let timeoutId: NodeJS.Timeout;
+    const scheduleNext = () => {
+      timeoutId = setTimeout(() => {
+        next();
+        scheduleNext();
+      }, rotationInterval);
+    };
+    scheduleNext();
+    return () => clearTimeout(timeoutId);
   }, [next, rotationInterval, auto]);
 
   return (
@@ -203,7 +211,7 @@ const RotatingText = forwardRef<any, RotatingTextProps>((props, ref) => {
       </AnimatePresence>
     </motion.span>
   );
-});
+}));
 
 RotatingText.displayName = 'RotatingText';
 export default RotatingText;
