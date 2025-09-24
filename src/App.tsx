@@ -204,6 +204,42 @@ function AppContent() {
 
   // Supabase Authentication durumunu dinle
   useEffect(() => {
+    // İlk yüklemede mevcut oturumu kontrol et
+    const checkCurrentSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Session check error:', error);
+          return;
+        }
+        
+        if (session?.user) {
+          console.log('Existing session found:', session.user.email);
+          setIsAuthenticated(true);
+          
+          // Oturum bilgilerini localStorage'a kaydet
+          localStorage.setItem('lastAuthCheck', new Date().toISOString());
+          localStorage.setItem('authUserId', session.user.id);
+          
+          // Cihaz bilgisini tespit et ve kaydet
+          deviceDetectionService.saveDeviceInfo(session.user.id).then(() => {
+            console.log('📱 Cihaz bilgisi kaydedildi');
+          }).catch((_error) => {
+            console.error('Cihaz bilgisi kaydedilirken hata:', _error);
+          });
+        } else {
+          console.log('No existing session found');
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Session check failed:', error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkCurrentSession();
+
+    // Auth state değişikliklerini dinle
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
       const user = session?.user || null;
@@ -237,11 +273,9 @@ function AppContent() {
         if (location.pathname === '/') {
           navigate('/home', { replace: true });
         }
-      } else {
-        // Kullanıcı çıkış yapmış
-        console.log('User is not authenticated');
-        
-        // localStorage'dan oturum bilgilerini temizle
+      } else if (event === 'SIGNED_OUT') {
+        // Sadece kullanıcı aktif olarak çıkış yaptığında localStorage'ı temizle
+        console.log('User signed out, clearing localStorage');
         localStorage.removeItem('lastAuthCheck');
         localStorage.removeItem('authUserId');
         
@@ -257,57 +291,6 @@ function AppContent() {
     return () => subscription.unsubscribe();
   }, [navigate, location.pathname]);
 
-  // Sayfa yüklendiğinde ve sekme değişikliklerinde oturum durumunu kontrol et
-  useEffect(() => {
-    const checkAuthState = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const storedUserId = localStorage.getItem('authUserId');
-      
-      // Supabase auth state ile localStorage senkronizasyonu
-      if (user && storedUserId && user.id === storedUserId) {
-        // Tutarlı durum - kullanıcı giriş yapmış
-        setIsAuthenticated(true);
-        console.log('Auth state synchronized - user is authenticated');
-      } else if (!user && !storedUserId) {
-        // Tutarlı durum - kullanıcı giriş yapmamış
-        setIsAuthenticated(false);
-        console.log('Auth state synchronized - user is not authenticated');
-      } else {
-        // Tutarsız durum - localStorage'ı temizle ve Supabase state'ini kullan
-        console.log('Auth state inconsistency detected, clearing localStorage');
-        localStorage.removeItem('lastAuthCheck');
-        localStorage.removeItem('authUserId');
-        setIsAuthenticated(!!user);
-      }
-    };
-
-    // İlk yükleme
-    checkAuthState();
-
-    // Sekme değişikliklerini dinle - daha az sıklıkta
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('Tab became visible, checking auth state');
-        // Sadece 5 saniyede bir kontrol et
-        setTimeout(checkAuthState, 5000);
-      }
-    };
-
-    // Focus event'ini dinle (sekme değişikliği) - daha az sıklıkta
-    const handleFocus = () => {
-      console.log('Window focused, checking auth state');
-      // Sadece 5 saniyede bir kontrol et
-      setTimeout(checkAuthState, 5000);
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
 
   // Mehmet Bahçeçi için modal kontrolü
   useEffect(() => {
