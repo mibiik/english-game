@@ -201,119 +201,151 @@ function AppContent() {
     };
   }, []);
 
-
-  // Supabase Authentication durumunu dinle
+  // Sayfa yüklendiğinde localStorage'dan authentication durumunu kontrol et
   useEffect(() => {
-    // İlk yüklemede mevcut oturumu kontrol et
-    const checkCurrentSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Session check error:', error);
-          return;
-        }
-        
-        if (session?.user) {
-          console.log('Existing session found:', session.user.email);
-          setIsAuthenticated(true);
+    const checkStoredAuth = async () => {
+      const storedUser = localStorage.getItem('supabase.auth.token');
+      const authUserId = localStorage.getItem('authUserId');
+      const lastAuthCheck = localStorage.getItem('lastAuthCheck');
+      
+      if (storedUser && authUserId && lastAuthCheck) {
+        try {
+          // Önce Supabase session'ını kontrol et
+          const isSessionValid = await supabaseAuthService.isSessionValid();
           
-          // Oturum bilgilerini localStorage'a kaydet
-          localStorage.setItem('lastAuthCheck', new Date().toISOString());
-          localStorage.setItem('authUserId', session.user.id);
-          
-          // Cihaz bilgisini tespit et ve kaydet
-          deviceDetectionService.saveDeviceInfo(session.user.id).then(() => {
-            console.log('📱 Cihaz bilgisi kaydedildi');
-          }).catch((_error) => {
-            console.error('Cihaz bilgisi kaydedilirken hata:', _error);
-          });
-        } else {
-          console.log('No existing session found');
+          if (isSessionValid) {
+            setIsAuthenticated(true);
+            console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
+            
+            // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
+            if (location.pathname === '/') {
+              navigate('/home', { replace: true });
+            }
+          } else {
+            // Session geçersiz, localStorage'ı temizle
+            localStorage.removeItem('supabase.auth.token');
+            localStorage.removeItem('authUserId');
+            localStorage.removeItem('lastAuthCheck');
+            setIsAuthenticated(false);
+          }
+        } catch (error) {
+          console.error('Session validation error:', error);
           setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error('Session check failed:', error);
+      } else {
         setIsAuthenticated(false);
       }
     };
 
-    checkCurrentSession();
+    checkStoredAuth();
+  }, [navigate, location.pathname]);
 
-    // Auth state değişikliklerini dinle
+  // Supabase Authentication durumunu dinle
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      try {
-        console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
-        const user = session?.user || null;
-        setIsAuthenticated(!!user);
+      console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
+      const user = session?.user || null;
+      setIsAuthenticated(!!user);
+      
+      if (user) {
+        // Kullanıcı giriş yapmış
+        console.log('User is authenticated:', user.email);
         
-        if (user) {
-          // Kullanıcı giriş yapmış
-          console.log('User is authenticated:', user.email);
-          
-          // Oturum bilgilerini localStorage'a kaydet
-          try {
-            localStorage.setItem('lastAuthCheck', new Date().toISOString());
-            localStorage.setItem('authUserId', user.id);
-          } catch (storageError) {
-            console.error('localStorage kaydetme hatası:', storageError);
+        // Oturum bilgilerini localStorage'a kaydet
+        localStorage.setItem('lastAuthCheck', new Date().toISOString());
+        localStorage.setItem('authUserId', user.id);
+        
+        // Cihaz bilgisini tespit et ve kaydet
+        deviceDetectionService.saveDeviceInfo(user.id).then(() => {
+          console.log('📱 Cihaz bilgisi kaydedildi');
+        }).catch((_error) => {
+          console.error('Cihaz bilgisi kaydedilirken hata:', _error);
+        });
+        
+        // Cihaz değişikliği kontrolü
+        deviceDetectionService.detectDeviceChange().then((hasChanged) => {
+          if (hasChanged) {
+            console.log('🔄 Cihaz değişikliği tespit edildi ve kaydedildi');
           }
-          
-          // Cihaz bilgisini tespit et ve kaydet (hata yönetimi ile)
-          deviceDetectionService.saveDeviceInfo(user.id).then(() => {
-            console.log('📱 Cihaz bilgisi kaydedildi');
-          }).catch((deviceError) => {
-            console.error('Cihaz bilgisi kaydedilirken hata:', deviceError);
-            // Hata olsa bile devam et
-          });
-          
-          // Cihaz değişikliği kontrolü (hata yönetimi ile)
-          deviceDetectionService.detectDeviceChange().then((hasChanged) => {
-            if (hasChanged) {
-              console.log('🔄 Cihaz değişikliği tespit edildi ve kaydedildi');
-            }
-          }).catch((changeError) => {
-            console.error('Cihaz değişikliği kontrolünde hata:', changeError);
-            // Hata olsa bile devam et
-          });
-          
-          // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
-          if (location.pathname === '/') {
-            try {
-              navigate('/home', { replace: true });
-            } catch (navError) {
-              console.error('Yönlendirme hatası:', navError);
-            }
-          }
-        } else if (event === 'SIGNED_OUT') {
-          // Sadece kullanıcı aktif olarak çıkış yaptığında localStorage'ı temizle
-          console.log('User signed out, clearing localStorage');
-          try {
-            localStorage.removeItem('lastAuthCheck');
-            localStorage.removeItem('authUserId');
-          } catch (storageError) {
-            console.error('localStorage temizleme hatası:', storageError);
-          }
-          
-          // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
-          const publicPages = ['/', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
-          if (!publicPages.includes(location.pathname)) {
-            try {
-              navigate('/', { replace: true });
-            } catch (navError) {
-              console.error('Yönlendirme hatası:', navError);
-            }
-          }
+        }).catch((error) => {
+          console.error('Cihaz değişikliği kontrolünde hata:', error);
+        });
+        
+        // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
+        if (location.pathname === '/') {
+          navigate('/home', { replace: true });
         }
-      } catch (authError) {
-        console.error('Auth state change hatası:', authError);
-        // Kritik hata durumunda kullanıcıyı bilgilendir
-        setIsAuthenticated(false);
+      } else {
+        // Kullanıcı çıkış yapmış
+        console.log('User is not authenticated');
+        
+        // localStorage'dan oturum bilgilerini temizle
+        localStorage.removeItem('lastAuthCheck');
+        localStorage.removeItem('authUserId');
+        
+        // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
+        // Footer linkleri (hakkımızda, iletişim, sss, destek, gizlilik, kullanım şartları) korumalı değil
+        const publicPages = ['/', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
+        if (!publicPages.includes(location.pathname)) {
+          navigate('/', { replace: true });
+        }
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate, location.pathname]);
 
+  // Sayfa yüklendiğinde ve sekme değişikliklerinde oturum durumunu kontrol et
+  useEffect(() => {
+    const checkAuthState = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const storedUserId = localStorage.getItem('authUserId');
+      
+      // Supabase auth state ile localStorage senkronizasyonu
+      if (user && storedUserId && user.id === storedUserId) {
+        // Tutarlı durum - kullanıcı giriş yapmış
+        setIsAuthenticated(true);
+        console.log('Auth state synchronized - user is authenticated');
+      } else if (!user && !storedUserId) {
+        // Tutarlı durum - kullanıcı giriş yapmamış
+        setIsAuthenticated(false);
+        console.log('Auth state synchronized - user is not authenticated');
+      } else {
+        // Tutarsız durum - localStorage'ı temizle ve Supabase state'ini kullan
+        console.log('Auth state inconsistency detected, clearing localStorage');
+        localStorage.removeItem('lastAuthCheck');
+        localStorage.removeItem('authUserId');
+        setIsAuthenticated(!!user);
+      }
+    };
+
+    // İlk yükleme
+    checkAuthState();
+
+    // Sekme değişikliklerini dinle - daha az sıklıkta
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Tab became visible, checking auth state');
+        // Sadece 5 saniyede bir kontrol et
+        setTimeout(checkAuthState, 5000);
+      }
+    };
+
+    // Focus event'ini dinle (sekme değişikliği) - daha az sıklıkta
+    const handleFocus = () => {
+      console.log('Window focused, checking auth state');
+      // Sadece 5 saniyede bir kontrol et
+      setTimeout(checkAuthState, 5000);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   // Mehmet Bahçeçi için modal kontrolü
   useEffect(() => {

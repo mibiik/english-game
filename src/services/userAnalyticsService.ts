@@ -278,43 +278,33 @@ class UserAnalyticsService {
     try {
       const currentSeason = await seasonService.getCurrentSeason();
       if (!currentSeason) {
-        console.warn('Aktif sezon bulunamadı, öğrenme ilerlemesi getirilemiyor');
         return [];
       }
 
-      // Önce learning_progress tablosunun var olup olmadığını kontrol et
       const { data, error } = await supabase
         .from('learning_progress')
         .select('*')
         .eq('user_id', userId)
         .eq('season_id', currentSeason.id)
-        .order('last_studied', { ascending: false })
-        .limit(10); // Limit ekle
+        .order('last_studied', { ascending: false });
 
       if (error) {
-        console.error('Öğrenme ilerlemesi sorgu hatası:', error);
-        // Tablo yoksa veya hata varsa boş array döndür
-        return [];
+        throw error;
       }
 
-      if (!data || data.length === 0) {
-        console.log('Kullanıcı için öğrenme ilerlemesi bulunamadı');
-        return [];
-      }
-
-      return data.map(progress => ({
+      return (data || []).map(progress => ({
         id: progress.id,
-        unit: progress.unit || '',
-        level: progress.level || '',
-        wordsLearned: progress.words_learned || 0,
-        totalWords: progress.total_words || 0,
-        progressPercentage: progress.progress_percentage || 0,
-        lastStudied: progress.last_studied || new Date().toISOString(),
-        masteryLevel: progress.mastery_level || 'beginner',
-        timeSpent: progress.time_spent || 0,
-        accuracy: progress.accuracy || 0,
-        gamesPlayed: progress.games_played || 0,
-        averageScore: progress.average_score || 0
+        unit: progress.unit,
+        level: progress.level,
+        wordsLearned: progress.words_learned,
+        totalWords: progress.total_words,
+        progressPercentage: progress.progress_percentage,
+        lastStudied: progress.last_studied,
+        masteryLevel: progress.mastery_level,
+        timeSpent: progress.time_spent,
+        accuracy: progress.accuracy,
+        gamesPlayed: progress.games_played,
+        averageScore: progress.average_score
       }));
     } catch (error) {
       console.error('Öğrenme ilerlemesi getirme hatası:', error);

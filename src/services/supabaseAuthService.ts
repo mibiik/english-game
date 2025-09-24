@@ -99,55 +99,21 @@ class SupabaseAuthService {
   // Kullanıcı çıkışı
   async logout(): Promise<void> {
     try {
-      // Önce mevcut session'ı kontrol et
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { error } = await auth.signOut();
       
-      if (sessionError) {
-        console.warn('Session kontrolü hatası:', sessionError);
-        // Session hatası olsa bile çıkış işlemini devam ettir
+      if (error) {
+        throw new Error(error.message);
       }
 
-      // Session varsa normal çıkış yap
-      if (session) {
-        const { error } = await auth.signOut();
-        
-        if (error) {
-          console.error('Supabase logout hatası:', error);
-          // Hata olsa bile localStorage'ı temizle
-        }
-      } else {
-        console.log('Session yok, sadece localStorage temizleniyor');
-      }
-
-      // localStorage'ı temizle (session durumundan bağımsız)
-      try {
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('authUserId');
-        localStorage.removeItem('lastAuthCheck');
-        localStorage.removeItem('leaderboard_cache');
-        // Diğer cache'leri de temizle
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('profilePhoto_') || key.startsWith('profilePhotoHistory_')) {
-            localStorage.removeItem(key);
-          }
-        });
-      } catch (storageError) {
-        console.error('localStorage temizleme hatası:', storageError);
-      }
+      // localStorage'ı temizle
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('authUserId');
+      localStorage.removeItem('lastAuthCheck');
 
       this.currentUser = null;
-      console.log('✅ Çıkış işlemi tamamlandı');
     } catch (error) {
       console.error('Kullanıcı çıkışı sırasında hata:', error);
-      // Kritik hata olsa bile localStorage'ı temizle
-      try {
-        localStorage.clear();
-        this.currentUser = null;
-      } catch (clearError) {
-        console.error('localStorage temizleme hatası:', clearError);
-      }
-      // Hata fırlatma, sadece logla
-      console.warn('Çıkış işlemi tamamlandı (hata ile)');
+      throw error;
     }
   }
 
@@ -253,8 +219,32 @@ class SupabaseAuthService {
     return stored ? JSON.parse(stored) : null;
   }
 
-  // Oturum geçerliliğini kontrol et
-  isSessionValid(): boolean {
+  // Session'ın hala geçerli olup olmadığını kontrol et
+  async isSessionValid(): Promise<boolean> {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Session check error:', error);
+        return false;
+      }
+      
+      if (session?.user) {
+        // Session geçerli, localStorage'ı güncelle
+        this.saveAuthStateToStorage(session.user);
+        return true;
+      } else {
+        // Session geçersiz, localStorage'ı temizle
+        this.saveAuthStateToStorage(null);
+        return false;
+      }
+    } catch (error) {
+      console.error('Session validation error:', error);
+      return false;
+    }
+  }
+
+  // Oturum geçerliliğini kontrol et (localStorage'dan)
+  isSessionValidLocal(): boolean {
     const stored = this.getStoredUser();
     if (!stored) return false;
     
