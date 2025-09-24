@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX, HiChevronDown, HiMinus, HiChevronUp } from 'react-icons/hi';
-import { FaCheckCircle } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { HiAcademicCap, HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiUserGroup, HiX } from 'react-icons/hi';
 import { newDetailedWords_part1 } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from '../data/word4';
 import { gameStateManager } from '../lib/utils';
@@ -12,7 +11,6 @@ import { Trophy } from 'lucide-react';
 import { supabase } from '../config/supabase';
 import { db } from '../config/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
-import SupportModal from '../components/SupportModal';
 import FeedbackButton from '../components/FeedbackButton';
 
 import { debounce } from '../lib/performance';
@@ -23,40 +21,7 @@ export interface Word {
   unit: string;
 }
 
-const getCustomWords = (): Word[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const allCustomWords: Word[] = [];
-    
-    for (let unit = 1; unit <= 12; unit++) {
-      const savedWords = localStorage.getItem(`customWords_unit_${unit}`);
-      if (savedWords) {
-        const parsedWords = JSON.parse(savedWords);
-        if (Array.isArray(parsedWords)) {
-          const validWords = parsedWords.filter(word =>
-            word &&
-            typeof word === 'object' &&
-            typeof word.english === 'string' &&
-            typeof word.turkish === 'string' &&
-            typeof word.unit === 'string'
-          );
-          allCustomWords.push(...validWords);
-        }
-      }
-    }
-    
-    return allCustomWords;
-  } catch (error) {
-    console.error('Özel kelimeler yüklenirken hata oluştu:', error);
-    return [];
-  }
-};
 
-const intermediateWords: WordDetail[] = newDetailedWords_part1;
-const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
-
-type AnyWord = Word | WordDetail;
-const isWordDetail = (word: AnyWord): word is WordDetail => 'headword' in word;
 
 interface GameMode {
   id: string;
@@ -110,6 +75,8 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   const [oldSeasonUsers, setOldSeasonUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
   const [currentSeason, setCurrentSeason] = useState<{id: string, name: string} | null>(null);
   const [oldSeason, setOldSeason] = useState<{id: string, name: string} | null>(null);
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
 
   // KUEPE modu için kullanıcı kontrolü
   const isKuepeAuthorized = useMemo(() => {
@@ -188,27 +155,74 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     return oldSeasonUsers.slice(0, 5);
   }, [oldSeasonUsers]);
 
-  useEffect(() => {
-    // Aktif sezon: Supabase, Eski sezon: Firebase
-    const fetchLeaderboardData = async () => {
-      try {
-        console.log('🔍 HomePage: Leaderboard verisi yükleniyor...');
-        
-        // 1. AKTİF SEZON - SUPABASE'DEN AL
-        console.log('📊 Aktif sezon Supabase\'den alınıyor...');
-        const { data: seasonsData, error: seasonsError } = await supabase
-          .from('seasons')
-          .select('id, name, isactive')
-          .eq('isactive', true)
-          .order('created_at', { ascending: false })
-          .limit(1);
+  // Cache sistemi için yardımcı fonksiyonlar
+  const getCachedLeaderboardData = () => {
+    try {
+      const cached = localStorage.getItem('leaderboard_cache');
+      if (cached) {
+        const data = JSON.parse(cached);
+        const cacheTime = data.timestamp;
+        const now = Date.now();
+        // 5 dakika cache süresi
+        if (now - cacheTime < 5 * 60 * 1000) {
+          return data;
+        }
+      }
+    } catch (error) {
+      console.error('Cache okuma hatası:', error);
+    }
+    return null;
+  };
 
-        if (!seasonsError && seasonsData && seasonsData.length > 0) {
+  const setCachedLeaderboardData = (data: any) => {
+    try {
+      const cacheData = {
+        ...data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('leaderboard_cache', JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Cache yazma hatası:', error);
+    }
+  };
+
+  // Lazy loading ile leaderboard verilerini yükle
+  const loadLeaderboardData = useCallback(async (forceRefresh = false) => {
+    // Cache kontrolü
+    if (!forceRefresh) {
+      const cached = getCachedLeaderboardData();
+      if (cached) {
+        console.log('📦 Cache\'den leaderboard verisi yüklendi');
+        setTopUsers(cached.topUsers || []);
+        setOldSeasonUsers(cached.oldSeasonUsers || []);
+        setCurrentSeason(cached.currentSeason || null);
+        setOldSeason(cached.oldSeason || null);
+        return;
+      }
+    }
+
+    setIsLeaderboardLoading(true);
+    setLeaderboardError(null);
+
+    try {
+      console.log('🔍 HomePage: Leaderboard verisi yükleniyor...');
+      
+      // Paralel olarak hem Supabase hem Firebase'den veri çek
+      const [supabaseResult, firebaseResult] = await Promise.allSettled([
+        // Supabase'den aktif sezon
+        (async () => {
+          const { data: seasonsData, error: seasonsError } = await supabase
+            .from('seasons')
+            .select('id, name, isactive')
+            .eq('isactive', true)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (seasonsError || !seasonsData || seasonsData.length === 0) {
+            return { season: null, users: [] };
+          }
+
           const activeSeason = seasonsData[0];
-          setCurrentSeason({ id: activeSeason.id, name: activeSeason.name });
-          console.log('✅ Aktif sezon Supabase\'den yüklendi:', activeSeason.name);
-
-          // Aktif sezon skorları Supabase'den
           const { data: activeData, error: activeError } = await supabase
             .from('season_scores')
             .select(`
@@ -222,44 +236,35 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             .order('total_score', { ascending: false })
             .limit(5);
 
-          if (!activeError && activeData) {
-            const activeUsers = activeData
-              .filter(item => item.users && typeof item.users === 'object' && (item.users as any).display_name && (item.users as any).display_name.trim() !== '')
-              .map(item => ({
-                displayName: (item.users as any).display_name || '',
-                photoURL: (item.users as any).avatar_url || undefined,
-                totalScore: item.total_score || 0,
-                userId: (item.users as any).id,
-              }));
-            setTopUsers(activeUsers);
-            console.log('✅ Aktif sezon skorları Supabase\'den yüklendi:', activeUsers);
+          if (activeError || !activeData) {
+            return { season: activeSeason, users: [] };
           }
-        } else {
-          console.log('⚠️ Aktif sezon Supabase\'de bulunamadı');
-        }
 
-        // 2. ESKİ SEZON - FIREBASE'DEN AL (Mevcut sistem)
-        console.log('🔥 Eski sezon Firebase\'den alınıyor...');
-        console.log('🔥 Firebase db objesi:', db);
+          const activeUsers = activeData
+            .filter(item => item.users && typeof item.users === 'object' && (item.users as any).display_name && (item.users as any).display_name.trim() !== '')
+            .map(item => ({
+              displayName: (item.users as any).display_name || '',
+              photoURL: (item.users as any).avatar_url || undefined,
+              totalScore: item.total_score || 0,
+              userId: (item.users as any).id,
+            }));
+
+          return { season: activeSeason, users: activeUsers };
+        })(),
         
-        try {
-          // Firebase'den mevcut kullanıcıları çek (eski sezon olarak göster)
-          const usersQuery = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
-          console.log('🔥 Firebase sorgusu oluşturuldu:', usersQuery);
-          
-          const usersSnapshot = await getDocs(usersQuery);
-          console.log('🔥 Firebase sorgu sonucu:', usersSnapshot.size, 'doküman bulundu');
-          
-          if (!usersSnapshot.empty) {
-            // Eski sezon bilgisi oluştur
-            setOldSeason({ id: 'firebase-old-season-2024-25', name: '2024-25 Sezonu' });
-            console.log('✅ Eski sezon Firebase\'den yüklendi: 2024-25 Sezonu');
+        // Firebase'den eski sezon
+        (async () => {
+          try {
+            const usersQuery = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
+            const usersSnapshot = await getDocs(usersQuery);
             
-            // Firebase kullanıcılarını eski sezon olarak göster (anonim kullanıcıları filtrele)
+            if (usersSnapshot.empty) {
+              return { season: null, users: [] };
+            }
+            
             const oldUsers = usersSnapshot.docs
               .map(doc => {
                 const data = doc.data();
-                console.log('🔥 Firebase doküman verisi:', doc.id, data);
                 return {
                   displayName: data.displayName || 'Anonim',
                   photoURL: data.photoURL || data.avatarUrl,
@@ -276,22 +281,55 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
                 user.displayName !== 'Deleted User'
               );
             
-            setOldSeasonUsers(oldUsers);
-            console.log('✅ Eski sezon skorları Firebase\'den yüklendi:', oldUsers);
-          } else {
-            console.log('⚠️ Firebase\'de kullanıcı verisi bulunamadı');
+            return { 
+              season: { id: 'firebase-old-season-2024-25', name: '2024-25 Sezonu' }, 
+              users: oldUsers 
+            };
+          } catch (error) {
+            console.error('Firebase hatası:', error);
+            return { season: null, users: [] };
           }
-        } catch (firebaseError) {
-          console.error('❌ Firebase veri çekme hatası:', firebaseError);
+        })()
+      ]);
+
+      // Supabase sonucu
+      if (supabaseResult.status === 'fulfilled') {
+        const { season, users } = supabaseResult.value;
+        if (season) {
+          setCurrentSeason({ id: season.id, name: season.name });
+          setTopUsers(users);
         }
-
-      } catch (error) {
-        console.error('❌ Leaderboard yüklenirken hata:', error);
       }
-    };
 
-    fetchLeaderboardData();
+      // Firebase sonucu
+      if (firebaseResult.status === 'fulfilled') {
+        const { season, users } = firebaseResult.value;
+        if (season) {
+          setOldSeason(season);
+          setOldSeasonUsers(users);
+        }
+      }
+
+      // Cache'e kaydet
+      setCachedLeaderboardData({
+        topUsers: supabaseResult.status === 'fulfilled' ? supabaseResult.value.users : [],
+        oldSeasonUsers: firebaseResult.status === 'fulfilled' ? firebaseResult.value.users : [],
+        currentSeason: supabaseResult.status === 'fulfilled' ? supabaseResult.value.season : null,
+        oldSeason: firebaseResult.status === 'fulfilled' ? firebaseResult.value.season : null
+      });
+
+    } catch (error) {
+      console.error('❌ Leaderboard yüklenirken hata:', error);
+      setLeaderboardError('Leaderboard yüklenirken hata oluştu');
+    } finally {
+      setIsLeaderboardLoading(false);
+    }
   }, []);
+
+  // İlk yükleme
+  useEffect(() => {
+    loadLeaderboardData();
+  }, [loadLeaderboardData]);
 
   const handleClearGameStates = () => {
     gameStateManager.clearAllGameStates();
@@ -444,7 +482,28 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             {/* Aktif Sezon Leaderboard İçeriği */}
             {showLeaderboard ? (
               <>
-                <div className="flex items-end justify-center gap-4 md:gap-3 mb-2 md:mb-1">
+                {isLeaderboardLoading ? (
+                  <div className="flex items-center justify-center w-full h-24">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
+                    <span className="ml-2 text-green-300">Yükleniyor...</span>
+                  </div>
+                ) : leaderboardError ? (
+                  <div className="flex flex-col items-center justify-center w-full h-24">
+                    <span className="text-red-400 text-sm mb-2">{leaderboardError}</span>
+                    <button 
+                      onClick={() => loadLeaderboardData(true)}
+                      className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                    >
+                      Tekrar Dene
+                    </button>
+                  </div>
+                ) : leaderboardData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center w-full h-24">
+                    <span className="text-gray-400 text-sm">Henüz skor yok</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-end justify-center gap-4 md:gap-3 mb-2 md:mb-1">
                   {/* 2. Kullanıcı */}
                   <div className="flex flex-col items-center flex-1">
                     <div className="w-10 h-10 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
@@ -508,13 +567,15 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
                     </ul>
                   </div>
                 )}
-                <button onClick={() => {
-                  // Mevcut sezon bilgisini localStorage'a kaydet
-                  if (currentSeason) {
-                    localStorage.setItem('selectedSeasonFromHome', currentSeason.id);
-                  }
-                  navigate('/leaderboard');
-                }} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+                    <button onClick={() => {
+                      // Mevcut sezon bilgisini localStorage'a kaydet
+                      if (currentSeason) {
+                        localStorage.setItem('selectedSeasonFromHome', currentSeason.id);
+                      }
+                      navigate('/leaderboard');
+                    }} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+                  </>
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center justify-center w-full h-24 cursor-pointer select-none" onClick={() => setShowLeaderboard(true)}>
@@ -536,7 +597,12 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
                 <span className="text-xs text-gray-400 mt-1 block">Kapatılmış Sezon</span>
               </div>
               
-              {oldSeasonData.length > 0 ? (
+              {isLeaderboardLoading ? (
+                <div className="flex items-center justify-center w-full h-16">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
+                  <span className="ml-2 text-gray-300 text-sm">Yükleniyor...</span>
+                </div>
+              ) : oldSeasonData.length > 0 ? (
                 <>
                 <div className="flex items-end justify-center gap-2 mb-2">
                 {/* 2. Kullanıcı */}
