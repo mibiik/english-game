@@ -241,50 +241,73 @@ function AppContent() {
 
     // Auth state değişikliklerini dinle
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
-      const user = session?.user || null;
-      setIsAuthenticated(!!user);
-      
-      if (user) {
-        // Kullanıcı giriş yapmış
-        console.log('User is authenticated:', user.email);
+      try {
+        console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
+        const user = session?.user || null;
+        setIsAuthenticated(!!user);
         
-        // Oturum bilgilerini localStorage'a kaydet
-        localStorage.setItem('lastAuthCheck', new Date().toISOString());
-        localStorage.setItem('authUserId', user.id);
-        
-        // Cihaz bilgisini tespit et ve kaydet
-        deviceDetectionService.saveDeviceInfo(user.id).then(() => {
-          console.log('📱 Cihaz bilgisi kaydedildi');
-        }).catch((_error) => {
-          console.error('Cihaz bilgisi kaydedilirken hata:', _error);
-        });
-        
-        // Cihaz değişikliği kontrolü
-        deviceDetectionService.detectDeviceChange().then((hasChanged) => {
-          if (hasChanged) {
-            console.log('🔄 Cihaz değişikliği tespit edildi ve kaydedildi');
+        if (user) {
+          // Kullanıcı giriş yapmış
+          console.log('User is authenticated:', user.email);
+          
+          // Oturum bilgilerini localStorage'a kaydet
+          try {
+            localStorage.setItem('lastAuthCheck', new Date().toISOString());
+            localStorage.setItem('authUserId', user.id);
+          } catch (storageError) {
+            console.error('localStorage kaydetme hatası:', storageError);
           }
-        }).catch((error) => {
-          console.error('Cihaz değişikliği kontrolünde hata:', error);
-        });
-        
-        // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
-        if (location.pathname === '/') {
-          navigate('/home', { replace: true });
+          
+          // Cihaz bilgisini tespit et ve kaydet (hata yönetimi ile)
+          deviceDetectionService.saveDeviceInfo(user.id).then(() => {
+            console.log('📱 Cihaz bilgisi kaydedildi');
+          }).catch((deviceError) => {
+            console.error('Cihaz bilgisi kaydedilirken hata:', deviceError);
+            // Hata olsa bile devam et
+          });
+          
+          // Cihaz değişikliği kontrolü (hata yönetimi ile)
+          deviceDetectionService.detectDeviceChange().then((hasChanged) => {
+            if (hasChanged) {
+              console.log('🔄 Cihaz değişikliği tespit edildi ve kaydedildi');
+            }
+          }).catch((changeError) => {
+            console.error('Cihaz değişikliği kontrolünde hata:', changeError);
+            // Hata olsa bile devam et
+          });
+          
+          // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
+          if (location.pathname === '/') {
+            try {
+              navigate('/home', { replace: true });
+            } catch (navError) {
+              console.error('Yönlendirme hatası:', navError);
+            }
+          }
+        } else if (event === 'SIGNED_OUT') {
+          // Sadece kullanıcı aktif olarak çıkış yaptığında localStorage'ı temizle
+          console.log('User signed out, clearing localStorage');
+          try {
+            localStorage.removeItem('lastAuthCheck');
+            localStorage.removeItem('authUserId');
+          } catch (storageError) {
+            console.error('localStorage temizleme hatası:', storageError);
+          }
+          
+          // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
+          const publicPages = ['/', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
+          if (!publicPages.includes(location.pathname)) {
+            try {
+              navigate('/', { replace: true });
+            } catch (navError) {
+              console.error('Yönlendirme hatası:', navError);
+            }
+          }
         }
-      } else if (event === 'SIGNED_OUT') {
-        // Sadece kullanıcı aktif olarak çıkış yaptığında localStorage'ı temizle
-        console.log('User signed out, clearing localStorage');
-        localStorage.removeItem('lastAuthCheck');
-        localStorage.removeItem('authUserId');
-        
-        // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
-        // Footer linkleri (hakkımızda, iletişim, sss, destek, gizlilik, kullanım şartları) korumalı değil
-        const publicPages = ['/', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
-        if (!publicPages.includes(location.pathname)) {
-          navigate('/', { replace: true });
-        }
+      } catch (authError) {
+        console.error('Auth state change hatası:', authError);
+        // Kritik hata durumunda kullanıcıyı bilgilendir
+        setIsAuthenticated(false);
       }
     });
 

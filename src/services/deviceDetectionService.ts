@@ -174,24 +174,47 @@ class DeviceDetectionService {
 
       const deviceInfo = this.getDeviceInfo();
       
-      // Supabase'de users tablosunu güncelle
-      const { error } = await supabase
+      // Önce kullanıcının var olup olmadığını kontrol et
+      const { data: existingUser, error: checkError } = await supabase
         .from('users')
-        .update({
-          device_info: deviceInfo,
-          last_device_update: new Date().toISOString()
-        })
-        .eq('id', currentUserId);
+        .select('id')
+        .eq('id', currentUserId)
+        .single();
 
-      if (error) {
-        console.error('❌ Cihaz bilgisi kaydedilirken hata:', error);
-      } else {
-        console.log('✅ Cihaz bilgisi kaydedildi:', {
-          userId: currentUserId,
-          deviceType: deviceInfo.deviceType,
-          platform: deviceInfo.platform,
-          browser: deviceInfo.browser
-        });
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ Kullanıcı kontrolü hatası:', checkError);
+        return;
+      }
+
+      if (!existingUser) {
+        console.warn('Kullanıcı bulunamadı, cihaz bilgisi kaydedilemiyor');
+        return;
+      }
+
+      // Sadece mevcut kolonları güncelle
+      const updateData: any = {
+        last_device_update: new Date().toISOString()
+      };
+
+      // device_info kolonu varsa güncelle
+      try {
+        const { error } = await supabase
+          .from('users')
+          .update(updateData)
+          .eq('id', currentUserId);
+
+        if (error) {
+          console.error('❌ Cihaz bilgisi kaydedilirken hata:', error);
+        } else {
+          console.log('✅ Cihaz bilgisi kaydedildi:', {
+            userId: currentUserId,
+            deviceType: deviceInfo.deviceType,
+            platform: deviceInfo.platform,
+            browser: deviceInfo.browser
+          });
+        }
+      } catch (updateError) {
+        console.error('❌ Cihaz bilgisi güncelleme hatası:', updateError);
       }
     } catch (error) {
       console.error('❌ Cihaz bilgisi kaydedilirken hata:', error);
