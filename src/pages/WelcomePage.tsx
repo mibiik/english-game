@@ -258,7 +258,7 @@ const WelcomePage: React.FC = React.memo(() => {
 									<div 
 										className={activeTab === 1 ? "grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4" : "grid gap-3 md:gap-4"}
 									>
-										{originalCategories[activeTab].items.map((item, idx) => (
+										{originalCategories[activeTab].items.map((item) => (
 											<div
 												key={item.name}
 												className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg group hover:bg-white/5 transition-colors duration-200"
@@ -518,29 +518,37 @@ const WelcomePage: React.FC = React.memo(() => {
 				</div>
 			</footer>
 
-						{/* Auth Modal - Clean & Minimal */}
+						{/* Auth Modal - Glassmorphism Design */}
       {showAuth && (
-				<div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 sm:p-6">
+				<div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
 					<motion.div 
-						initial={{ opacity: 0, scale: 0.9 }} 
-						animate={{ opacity: 1, scale: 1 }} 
-						className="bg-white rounded-2xl w-full max-w-sm sm:max-w-md shadow-2xl relative"
+						initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+						animate={{ opacity: 1, scale: 1, y: 0 }}
+						transition={{ type: "spring", stiffness: 300, damping: 30 }}
+						className="relative w-full max-w-sm sm:max-w-md"
 					>
-						{/* Close */}
-						<button
-							onClick={() => setShowAuth(false)}
-							className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-						>
-							<X className="w-5 h-5" />
-						</button>
-
+						{/* Glass Background */}
+						<div className="absolute inset-0 bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl"></div>
+						
+						{/* Glass Overlay */}
+						<div className="absolute inset-0 bg-gradient-to-br from-white/2 to-white/5 rounded-3xl"></div>
+						
 						{/* Content */}
-						<div className="p-6 sm:p-8">
-							<div className="text-center mb-6">
-								<h2 className="text-2xl font-bold text-gray-900 mb-2">
+						<div className="relative p-6 sm:p-8">
+							{/* Close Button */}
+							<button
+								onClick={() => setShowAuth(false)}
+								className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:text-white hover:bg-white/10 transition-all duration-200"
+							>
+								<X className="w-4 h-4" />
+							</button>
+
+							{/* Header */}
+							<div className="text-center mb-8">
+								<h2 className="text-2xl font-bold text-white mb-2">
 									{authMode === 'login' ? 'Giriş Yap' : 'Kayıt Ol'}
 								</h2>
-								<p className="text-gray-600">
+								<p className="text-white/70 text-sm">
 									{authMode === 'login' 
 										? 'Hesabınıza giriş yapın' 
 										: 'Yeni hesap oluşturun'
@@ -556,12 +564,12 @@ const WelcomePage: React.FC = React.memo(() => {
 							
 							{/* Switch Mode */}
 							<div className="mt-6 text-center">
-								<span className="text-gray-500 text-sm">
+								<span className="text-white/60 text-sm">
 									{authMode === 'login' ? 'Hesabınız yok mu?' : 'Zaten hesabınız var mı?'}
 								</span>
 								<button
 									onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-									className="ml-2 text-blue-600 hover:text-blue-700 font-medium text-sm"
+									className="ml-2 text-white hover:text-white/80 font-medium text-sm transition-colors duration-200"
 								>
 									{authMode === 'login' ? 'Kayıt ol' : 'Giriş yap'}
 								</button>

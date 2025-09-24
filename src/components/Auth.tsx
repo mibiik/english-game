@@ -39,20 +39,20 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
 
   return (
     <div className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Name Field - Only for Register */}
         {mode === 'register' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white/80 mb-3">
               Ad Soyad
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5 filter-none backdrop-blur-none z-10 isolation-auto" />
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900"
+                className="w-full pl-12 pr-4 py-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl focus:ring-2 focus:ring-white/20 focus:border-white/20 outline-none transition-all duration-200 text-white placeholder-white/60 focus:bg-white/8"
                 placeholder="Adınız Soyadınız"
                 required
               />
@@ -62,16 +62,16 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
 
         {/* Email Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-white/80 mb-3">
             E-posta
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5 filter-none backdrop-blur-none z-10 isolation-auto" />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900"
+              className="w-full pl-12 pr-4 py-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl focus:ring-2 focus:ring-white/20 focus:border-white/20 outline-none transition-all duration-200 text-white placeholder-white/60 focus:bg-white/8"
               placeholder="ornek@email.com"
               required
             />
@@ -80,25 +80,25 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
 
         {/* Password Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-white/80 mb-3">
             Şifre
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5 filter-none backdrop-blur-none z-10 isolation-auto" />
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900"
+              className="w-full pl-12 pr-14 py-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl focus:ring-2 focus:ring-white/20 focus:border-white/20 outline-none transition-all duration-200 text-white placeholder-white/60 focus:bg-white/8"
               placeholder="Şifreniz"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-white/80 transition-colors duration-200"
             >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPassword ? <EyeOff className="w-5 h-5 filter-none backdrop-blur-none" /> : <Eye className="w-5 h-5 filter-none backdrop-blur-none" />}
             </button>
           </div>
         </div>
@@ -108,7 +108,7 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+            className="p-4 bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-2xl text-red-200 text-sm"
           >
             {error}
           </motion.div>
@@ -118,8 +118,8 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
         <motion.button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-3 rounded-full font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          whileHover={{ scale: 1.02 }}
+          className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white py-4 rounded-2xl font-medium hover:bg-white/15 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
+          whileHover={{ scale: 1.02, y: -1 }}
           whileTap={{ scale: 0.98 }}
         >
           {isLoading ? 'Yükleniyor...' : (mode === 'login' ? 'Giriş Yap' : 'Kayıt Ol')}
