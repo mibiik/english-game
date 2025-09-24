@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { AppRoutes } from './Routes';
-import { Auth } from './components/Auth';
 import { Analytics } from '@vercel/analytics/react';
 import { supabaseAuthService } from './services/supabaseAuthService';
-import ProfilePage from './pages/ProfilePage';
-import { newDetailedWords_part1 } from './data/words';
-import { detailedWords_part1 as upperIntermediateWordsRaw, WordDetail } from './data/word4';
-import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
-import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
-import { kuepeWords } from './data/kuepe';
 import { supabase } from './config/supabase';
-import { X, Sparkles } from 'lucide-react';
 import MehmetModal from './components/MehmetModal';
 import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
@@ -21,11 +13,6 @@ import { deviceDetectionService } from './services/deviceDetectionService';
 import { analyticsCollector } from './services/analyticsCollector';
 import { notificationService } from './services/notificationService';
 
-const intermediateWords: WordDetail[] = newDetailedWords_part1;
-const upperIntermediateWords: WordDetail[] = upperIntermediateWordsRaw;
-const preIntermediateWords: WordDetail[] = preIntermediateWordsRaw;
-const foundationWords: WordDetail[] = foundationWordsRaw;
-const kuepeWordsList: WordDetail[] = kuepeWords;
 
 function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,14 +26,6 @@ function AppContent() {
   const safeSetItem = (key: string, value: string) => {
     try { localStorage.setItem(key, value); } catch { /* ignore */ }
   };
-  const safeRemoveItem = (key: string) => {
-    try { localStorage.removeItem(key); } catch { /* ignore */ }
-  };
-  
-  // Kullanıcı ismini localStorage'dan al
-  const [userName, setUserName] = useState<string | null>(() => {
-    try { return localStorage.getItem('userName'); } catch { return null; }
-  });
 
   // Firebase Authentication durumu
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -71,7 +50,6 @@ function AppContent() {
     return savedUnit || "1";
   });
 
-  const [filteredWords, setFilteredWords] = useState<WordDetail[]>([]);
   const [showMehmetModal, setShowMehmetModal] = useState(false);
 
   // iOS/Safari tespiti
@@ -178,10 +156,19 @@ function AppContent() {
     initializeNotifications();
   }, []);
 
+  // Ana uygulama monitoring'i
+  useEffect(() => {
     console.log('🚀 Uygulama başlatılıyor - Monitoring başlatılıyor...');
     
     // Ana uygulama monitoring'i
-    userAnalyticsService.startMonitoring();
+    if (isAuthenticated) {
+      const userId = localStorage.getItem('authUserId');
+      if (userId) {
+        userAnalyticsService.startMonitoring(userId, (data) => {
+          console.log('Analytics update:', data);
+        });
+      }
+    }
     
     // Analiz veri toplamayı başlat
     analyticsCollector.startCollection();
@@ -211,7 +198,7 @@ function AppContent() {
           });
         });
       }
-    });
+    };
   }, []);
 
 
@@ -233,8 +220,8 @@ function AppContent() {
         // Cihaz bilgisini tespit et ve kaydet
         deviceDetectionService.saveDeviceInfo(user.id).then(() => {
           console.log('📱 Cihaz bilgisi kaydedildi');
-        }).catch((error) => {
-          console.error('Cihaz bilgisi kaydedilirken hata:', error);
+        }).catch((_error) => {
+          console.error('Cihaz bilgisi kaydedilirken hata:', _error);
         });
         
         // Cihaz değişikliği kontrolü
@@ -329,7 +316,7 @@ function AppContent() {
         const userId = supabaseAuthService.getCurrentUserId();
         if (userId === 'hBXgKnZcj5g0SlyiwcRADWm3q6v1') {
           try {
-            const { data: userProfile, error } = await supabase
+            const { data: userProfile, error: _error } = await supabase
               .from('users')
               .select('mehmetModalShown')
               .eq('id', userId)
@@ -371,31 +358,6 @@ function AppContent() {
     }
   }, [searchParams, currentUnit, currentLevel]);
 
-  // Filtrelenmiş kelimeleri güncelle
-  useEffect(() => {
-    let sourceData: WordDetail[];
-    if (currentLevel === 'upper-intermediate') {
-      sourceData = upperIntermediateWords;
-    } else if (currentLevel === 'pre-intermediate') {
-      sourceData = preIntermediateWords;
-    } else if (currentLevel === 'foundation') {
-      sourceData = foundationWords;
-    } else if (currentLevel === 'kuepe') {
-      sourceData = kuepeWordsList;
-    } else {
-      sourceData = intermediateWords;
-    }
-    
-    // KUEPE için ünite filtrelemesi yok, tüm kelimeler gösterilir
-    if (currentLevel === 'kuepe') {
-      setFilteredWords(sourceData);
-    } else if (currentUnit === 'all') {
-      setFilteredWords(sourceData);
-    } else {
-      const unitFilter = (word: WordDetail) => word.unit === currentUnit;
-      setFilteredWords(sourceData.filter(unitFilter));
-    }
-  }, [currentLevel, currentUnit]);
 
   // currentUnit ve currentLevel güncelleyicileri
   const updateURLParams = (unit: string, level: string) => {
@@ -409,6 +371,8 @@ function AppContent() {
     localStorage.setItem('currentUnit', unit);
     updateURLParams(unit, currentLevel);
   };
+
+  const handleSetCurrentLevel = (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => {
     setCurrentLevel(level);
     localStorage.setItem('currentLevel', level);
     updateURLParams(currentUnit, level);
@@ -421,7 +385,7 @@ function AppContent() {
         setCurrentUnit={handleSetCurrentUnit}
         currentLevel={currentLevel}
         setCurrentLevel={handleSetCurrentLevel}
-        filteredWords={filteredWords}
+        filteredWords={[]}
         isAuthenticated={isAuthenticated}
       />
       <MehmetModal 
