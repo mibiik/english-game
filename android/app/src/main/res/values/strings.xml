@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">WordPlay</string>
-    <string name="title_activity_main">WordPlay</string>
-    <string name="package_name">com.kocuniversity.wordplay</string>
-    <string name="custom_url_scheme">com.kocuniversity.wordplay</string>
-</resources>
