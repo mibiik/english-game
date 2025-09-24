@@ -99,21 +99,55 @@ class SupabaseAuthService {
   // Kullanıcı çıkışı
   async logout(): Promise<void> {
     try {
-      const { error } = await auth.signOut();
+      // Önce mevcut session'ı kontrol et
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (error) {
-        throw new Error(error.message);
+      if (sessionError) {
+        console.warn('Session kontrolü hatası:', sessionError);
+        // Session hatası olsa bile çıkış işlemini devam ettir
       }
 
-      // localStorage'ı temizle
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('authUserId');
-      localStorage.removeItem('lastAuthCheck');
+      // Session varsa normal çıkış yap
+      if (session) {
+        const { error } = await auth.signOut();
+        
+        if (error) {
+          console.error('Supabase logout hatası:', error);
+          // Hata olsa bile localStorage'ı temizle
+        }
+      } else {
+        console.log('Session yok, sadece localStorage temizleniyor');
+      }
+
+      // localStorage'ı temizle (session durumundan bağımsız)
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('authUserId');
+        localStorage.removeItem('lastAuthCheck');
+        localStorage.removeItem('leaderboard_cache');
+        // Diğer cache'leri de temizle
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('profilePhoto_') || key.startsWith('profilePhotoHistory_')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (storageError) {
+        console.error('localStorage temizleme hatası:', storageError);
+      }
 
       this.currentUser = null;
+      console.log('✅ Çıkış işlemi tamamlandı');
     } catch (error) {
       console.error('Kullanıcı çıkışı sırasında hata:', error);
-      throw error;
+      // Kritik hata olsa bile localStorage'ı temizle
+      try {
+        localStorage.clear();
+        this.currentUser = null;
+      } catch (clearError) {
+        console.error('localStorage temizleme hatası:', clearError);
+      }
+      // Hata fırlatma, sadece logla
+      console.warn('Çıkış işlemi tamamlandı (hata ile)');
     }
   }
 

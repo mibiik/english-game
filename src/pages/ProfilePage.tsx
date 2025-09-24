@@ -161,11 +161,15 @@ const ProfilePage: React.FC = () => {
   // Çıkış yapma fonksiyonu
   const handleLogout = async () => {
     try {
+      console.log('🚪 Çıkış işlemi başlatılıyor...');
       await supabaseAuthService.logout();
+      console.log('✅ Çıkış işlemi tamamlandı, yönlendiriliyor...');
       navigate('/home');
     } catch (err) {
       console.error('Çıkış yapılırken hata oluştu:', err);
-      // Kullanıcıya bir hata mesajı gösterebilirsiniz.
+      // Hata olsa bile yönlendir
+      console.log('⚠️ Hata ile çıkış, yönlendiriliyor...');
+      navigate('/home');
     }
   };
 
