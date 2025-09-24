@@ -248,12 +248,8 @@ class SupabaseAuthService {
     const stored = this.getStoredUser();
     if (!stored) return false;
     
-    const lastLogin = new Date(stored.lastLogin);
-    const now = new Date();
-    const diffInHours = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60);
-    
-    // 30 gün geçerli (720 saat)
-    return diffInHours < 720;
+    // Session süresini kontrol etme, sadece localStorage'da veri var mı kontrol et
+    return true;
   }
 
   // Profil güncelleme
