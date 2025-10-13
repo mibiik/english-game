@@ -125,17 +125,21 @@ class AnalyticsCollector {
       // Günlük performansı hesapla
       const dailyStats = this.calculateDailyPerformance(todaySessions);
 
-      // Performans geçmişine kaydet
-      await supabase
-        .from('user_performance_history')
-        .upsert({
-          user_id: userId,
-          season_id: seasonId,
-          period_type: 'daily',
-          period_start: startOfDay.toISOString().split('T')[0],
-          period_end: startOfDay.toISOString().split('T')[0],
-          ...dailyStats
-        });
+      // Performans geçmişine kaydet (tablo mevcut değilse hata vermez)
+      try {
+        await supabase
+          .from('user_performance_history')
+          .upsert({
+            user_id: userId,
+            season_id: seasonId,
+            period_type: 'daily',
+            period_start: startOfDay.toISOString().split('T')[0],
+            period_end: startOfDay.toISOString().split('T')[0],
+            ...dailyStats
+          });
+      } catch (error) {
+        console.log('user_performance_history tablosu mevcut değil, atlanıyor:', error);
+      }
 
     } catch (error) {
       console.error('Performans geçmişi güncelleme hatası:', error);

@@ -6,9 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Tüm kelimeler için import
 import { allWordsWithTranslations } from '../../data/allWords';
 import { newDetailedWords_part1 as foundationWords } from '../../data/word1';
-import { newDetailedWords_part1 as preIntermediateWords } from '../../data/word2';
+import { kuepeWords as preIntermediateWords } from '../../data/word2';
 import { detailedWords_part1 as upperIntermediateWords } from '../../data/word4';
-import { newDetailedWords_part1 as intermediateWords } from '../../data/words';
+import { kuepeWords as intermediateWords } from '../../data/words';
 import { kuepeWords } from '../../data/kuepe';
 import { awardPoints } from '../../services/scoreService';
 import { userService } from '../../services/userService';
@@ -351,10 +351,14 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     };
   }, [definitionState.targetId, handleClosePopover]);
 
-  // Component mount olduğunda 10 puan ver ve zor kelimeleri çek
+  // Component mount olduğunda zor kelimeleri çek ve sadece bir kez puan ver
   useEffect(() => {
-    // LearningMode'a girenlere 10 puan ver
-    awardPoints('learning-mode', 10, '1');
+    // Sadece bir kez puan vermek için localStorage kontrolü
+    const hasAwardedPoints = localStorage.getItem('learningModePointsAwarded');
+    if (!hasAwardedPoints) {
+      awardPoints('learning-mode', 10, '1');
+      localStorage.setItem('learningModePointsAwarded', 'true');
+    }
     
     // Firestore'dan zor kelimeleri çek
     const userId = authService.getCurrentUserId();

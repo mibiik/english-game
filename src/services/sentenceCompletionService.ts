@@ -1,4 +1,4 @@
-import { puter } from './puterService';
+import { puterService } from './puterService';
 
 // Oyun sorusunun yapısını tanımlayan tip
 export type SentenceQuestion = {
@@ -61,11 +61,7 @@ class SentenceCompletionServiceClass {
 
     // Puter.ai API'sini güvenli bir şekilde çağır
     try {
-      if (!puter || !puter.ai || typeof puter.ai.chat !== 'function') {
-        throw new Error('Puter.js is not loaded or ai.chat API is unavailable. Check index.html and your Puter account.');
-      }
-
-      const completion = await puter.ai.chat(prompt, { 
+      const completion = await puterService.chat(prompt, { 
         model: 'gpt-4o-mini' 
       });
 

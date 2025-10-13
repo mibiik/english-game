@@ -21,12 +21,22 @@ import { userAnalyticsService } from './userAnalyticsService';
 class AuthService {
   private static instance: AuthService;
   private currentUser: FirebaseUser | null = null;
+  private authStateChangeListeners: ((user: FirebaseUser | null) => void)[] = [];
 
   private constructor() {
     // Kullanıcı oturum durumunu dinle
     onAuthStateChanged(auth, async (user) => {
       this.currentUser = user;
       this.saveAuthStateToStorage(user); // Oturum durumunu localStorage'a kaydet
+      
+      // Auth state change listener'ları çağır
+      this.authStateChangeListeners.forEach(listener => {
+        try {
+          listener(user);
+        } catch (error) {
+          console.error('Auth state change listener hatası:', error);
+        }
+      });
       
               // Kullanıcı oturum açtığında users koleksiyonuna kaydet
         if (user) {
@@ -283,6 +293,18 @@ class AuthService {
   // Kullanıcının oturum açıp açmadığını kontrol et
   public isAuthenticated(): boolean {
     return !!this.currentUser;
+  }
+
+  public onAuthStateChange(callback: (user: FirebaseUser | null) => void): () => void {
+    this.authStateChangeListeners.push(callback);
+    
+    // Unsubscribe function döndür
+    return () => {
+      const index = this.authStateChangeListeners.indexOf(callback);
+      if (index > -1) {
+        this.authStateChangeListeners.splice(index, 1);
+      }
+    };
   }
 
   // Kullanıcı ID'sini getir

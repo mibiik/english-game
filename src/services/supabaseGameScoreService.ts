@@ -74,21 +74,25 @@ class SupabaseGameScoreService {
           user_id: userId,
           game_mode: gameMode,
           score,
-          unit: 'all', // Anında puanlar için unit bilgisi yok
-          level: 'intermediate', // Varsayılan level
+          unit: 'all',
+          level: 'intermediate',
           season_id: currentSeason.id,
           timestamp: new Date().toISOString()
         });
 
       if (gameScoreError) {
-        console.error('Anında puan kaydedilemedi:', gameScoreError);
-        return;
+        console.error('Anında puan kaydedilemedi (game_scores):', gameScoreError);
+        // game_scores başarısız olsa da sezon skorunu güncellemeye devam et
+      } else {
+        console.log('✅ Game score kaydedildi');
       }
 
-      console.log('✅ Game score kaydedildi');
-
-      // Sezon skorunu güncelle
-      await this.updateSeasonScore(userId, currentSeason.id, score);
+      // Sezon skorunu güncelle (başarısız olsa bile oyunu durdurma)
+      try {
+        await this.updateSeasonScore(userId, currentSeason.id, score);
+      } catch (seasonError) {
+        console.error('Sezon skoru güncellenemedi:', seasonError);
+      }
 
       console.log(`✅ Anında puan eklendi: ${score} (${gameMode})`);
 
@@ -140,21 +144,34 @@ class SupabaseGameScoreService {
         });
 
       if (gameScoreError) {
-        console.error('Oyun skoru kaydedilemedi:', gameScoreError);
-        return;
+        console.error('Oyun skoru kaydedilemedi (game_scores):', gameScoreError);
+        // game_scores başarısız olsa da aşağıya devam et
       }
 
       // Sezon skorunu güncelle
-      await this.updateSeasonScore(userId, currentSeason.id, totalScore);
+      try {
+        await this.updateSeasonScore(userId, currentSeason.id, totalScore);
+      } catch (seasonError) {
+        console.error('Sezon skoru güncellenemedi:', seasonError);
+      }
 
       // Kullanıcı profilini güncelle
-      await this.updateUserProfile(userId, {
-        totalScore: userProfile.totalScore + totalScore,
-        gamesPlayed: userProfile.gamesPlayed + 1,
-        lastPlayed: new Date().toISOString()
-      });
+      try {
+        await this.updateUserProfile(userId, {
+          totalScore: userProfile.totalScore + totalScore,
+          gamesPlayed: userProfile.gamesPlayed + 1,
+          lastPlayed: new Date().toISOString()
+        });
+      } catch (profileError) {
+        console.error('Kullanıcı profili güncellenemedi:', profileError);
+      }
 
-      console.log(`✅ Oyun skoru başarıyla kaydedildi: ${totalScore}`);
+      console.log(`✅ Oyun skoru başarıyla işlendi: ${totalScore}`);
+
+      // Navbar'ı tetikle
+      window.dispatchEvent(new CustomEvent('scoreUpdated', { 
+        detail: { userId, gameMode, score: totalScore }
+      }));
     } catch (error) {
       console.error('Oyun skoru kaydetme hatası:', error);
     }
@@ -238,7 +255,31 @@ class SupabaseGameScoreService {
         return null;
       }
 
-      return data;
+      // snake_case'den camelCase'e çevir
+      if (data) {
+        return {
+          id: data.id,
+          displayName: data.display_name || '',
+          email: data.email || '',
+          photoURL: data.avatar_url,
+          totalScore: data.total_score || 0,
+          gamesPlayed: data.games_played || 0,
+          lastPlayed: data.last_played,
+          level: data.level || 'intermediate',
+          bio: data.bio,
+          location: data.location,
+          isOnline: data.is_online || false,
+          lastSeen: data.last_seen,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+          isPremium: data.is_premium,
+          premiumUntil: data.premium_until,
+          badges: data.badges,
+          isFirstSupporter: data.is_first_supporter
+        };
+      }
+
+      return null;
     } catch (error) {
       console.error('Kullanıcı profili getirme hatası:', error);
       return null;
@@ -248,19 +289,40 @@ class SupabaseGameScoreService {
   // Kullanıcı profilini güncelle
   private async updateUserProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
     try {
+      // camelCase'i snake_case'e çevir
+      const snakeCaseUpdates: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      if (updates.totalScore !== undefined) snakeCaseUpdates.total_score = updates.totalScore;
+      if (updates.gamesPlayed !== undefined) snakeCaseUpdates.games_played = updates.gamesPlayed;
+      if (updates.lastPlayed !== undefined) snakeCaseUpdates.last_played = updates.lastPlayed;
+      if (updates.displayName !== undefined) snakeCaseUpdates.display_name = updates.displayName;
+      if (updates.photoURL !== undefined) snakeCaseUpdates.avatar_url = updates.photoURL;
+      if (updates.level !== undefined) snakeCaseUpdates.level = updates.level;
+      if (updates.bio !== undefined) snakeCaseUpdates.bio = updates.bio;
+      if (updates.location !== undefined) snakeCaseUpdates.location = updates.location;
+      if (updates.isOnline !== undefined) snakeCaseUpdates.is_online = updates.isOnline;
+      if (updates.lastSeen !== undefined) snakeCaseUpdates.last_seen = updates.lastSeen;
+      if (updates.isPremium !== undefined) snakeCaseUpdates.is_premium = updates.isPremium;
+      if (updates.premiumUntil !== undefined) snakeCaseUpdates.premium_until = updates.premiumUntil;
+      if (updates.badges !== undefined) snakeCaseUpdates.badges = updates.badges;
+      if (updates.isFirstSupporter !== undefined) snakeCaseUpdates.is_first_supporter = updates.isFirstSupporter;
+
+      console.log('📝 Kullanıcı profili güncelleniyor:', userId, snakeCaseUpdates);
+
       const { error } = await supabase
         .from('users')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(snakeCaseUpdates)
         .eq('id', userId);
 
       if (error) {
-        console.error('Kullanıcı profili güncellenemedi:', error);
+        console.error('❌ Kullanıcı profili güncellenemedi:', error);
+      } else {
+        console.log('✅ Kullanıcı profili güncellendi:', snakeCaseUpdates);
       }
     } catch (error) {
-      console.error('Kullanıcı profili güncelleme hatası:', error);
+      console.error('❌ Kullanıcı profili güncelleme hatası:', error);
     }
   }
 

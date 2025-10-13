@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiLightBulb, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiMicrophone, HiX } from 'react-icons/hi';
-import { userService } from '../services/userService';
+import { HiX } from 'react-icons/hi';
 import { Trophy } from 'lucide-react';
 import { supabase } from '../config/supabase';
 import { db } from '../config/firebase';
@@ -30,13 +29,8 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     return <div className="text-white text-center py-20">Yükleniyor...</div>;
   }
 
-  const unit = currentUnit;
-  const level = currentLevel;
   const navigate = useNavigate();
-  const [showNameModal, setShowNameModal] = useState(false);
-
-  const [userName, setUserName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
   const [oldSeasonUsers, setOldSeasonUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
@@ -44,25 +38,6 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   const [oldSeason, setOldSeason] = useState<{id: string, name: string} | null>(null);
 
 
-  // Memoized game modes
-  const gameModes = useMemo(() => {
-    const baseModes = [
-      { id: 'learning-mode', title: 'Öğretici Mod', icon: <HiLightBulb />, link: `/learning-mode?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'multiple-choice', title: 'Çoktan Seçmeli', icon: <HiClipboardList />, link: `/multiple-choice?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'matching', title: 'Eşleştirme', icon: <HiSwitchHorizontal />, link: `/matching-game?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'sentence-completion', title: 'Boşluk Doldurma', icon: <HiDocumentText />, link: `/sentence-completion?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'word-forms', title: 'Kelime Formları', icon: <HiCollection />, link: `/word-forms?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'definition-to-word', title: 'Tanımdan Kelime', icon: <HiBookOpen />, link: `/definition-to-word?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'paraphrase', title: 'Paraphrase', icon: <HiSpeakerphone />, link: `/paraphrase`, color: '', shadow: '' },
-      { id: 'essay-writing', title: 'Essay Yazma', icon: <HiDocumentText />, link: '/essay-writing', color: '', shadow: '' },
-      { id: 'preposition-mastery', title: 'Preposition', icon: <HiPuzzle />, link: '/preposition-mastery', color: '', shadow: '' },
-      { id: 'flashcard', title: 'Kelime Kartları', icon: <HiCollection />, link: `/flashcard?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'word-race', title: 'Kelime Yarışı', icon: <HiLightningBolt />, link: `/word-race?unit=${unit}&level=${level}`, color: '', shadow: '' },
-      { id: 'speaking', title: 'Konuşma', icon: <HiMicrophone />, link: `/speaking?unit=${unit}&level=${level}`, color: '', shadow: '' },
-    ];
-
-    return baseModes;
-  }, [unit, level]);
 
 
 
@@ -179,25 +154,16 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     };
 
     fetchLeaderboardData();
+    
+    // Sayfa açıldığında sezon modal'ını göster
+    const timer = setTimeout(() => {
+      setShowSeasonModal(true);
+    }, 1000); // 1 saniye sonra göster
+    
+    return () => clearTimeout(timer);
   }, []);
 
 
-  const handleNameSubmit = async () => {
-    if (!userName.trim()) return;
-    
-    setIsLoading(true);
-    try {
-      await userService.saveUserName(userName.trim());
-      // İsimi localStorage'a kaydet
-      localStorage.setItem('userName', userName.trim());
-      setShowNameModal(false);
-      setUserName('');
-    } catch (error) {
-      console.error('İsim kayıt hatası:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
 
   const headingLines = [
@@ -235,9 +201,27 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative" style={{ paddingTop: '64px', marginTop: '-128px' }}>
+      {/* 26. Sezon Çok Yakında Şeridi - Navbar'ın hemen altında, sabit */}
+      <motion.div 
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
+        className="fixed top-20 left-0 right-0 z-30 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 text-white py-2 px-4 shadow-lg"
+      >
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+          <Trophy className="w-5 h-5 text-yellow-300 animate-pulse" />
+          <span className="font-semibold text-xs md:text-sm">
+            Yeni dönem kelime listesi çok yakında! 🚀 Beklemede Kalın
+          </span>
+          <div className="hidden sm:flex items-center gap-2 text-xs opacity-90">
+
+          </div>
+        </div>
+      </motion.div>
+      
       <FeedbackButton />
       {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
-      <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-0 md:pt-1">
+      <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-20 md:pt-20">
         {/* Başlık ve açıklama */}
         <div className="flex-1">
           <h1 className="text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center md:text-left leading-tight">
@@ -249,13 +233,79 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             Koç Üniversitesi Hazırlık programının güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
             <span className="block mt-2 text-sm text-gray-400 font-semibold opacity-60">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
           </p>
-          <div className="flex justify-center md:justify-start mb-6 gap-2">
+          <div className="flex justify-center md:justify-start mb-6 gap-3">
             <Link 
               to="/about-founder" 
               className="inline-flex items-center px-3 py-1.5 bg-white/5 backdrop-blur-sm hover:bg-white/10 text-white/70 hover:text-white/90 rounded-full text-xs font-medium transition-all duration-300 border border-white/10 hover:border-white/20"
             >
               About Founder
             </Link>
+            <Link
+              to="/game-modes"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full text-lg font-bold transition-all duration-300 shadow-2xl hover:shadow-red-500/25 transform hover:scale-105"
+            >
+              <div className="mr-2 relative">
+                <svg 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="animate-pulse"
+                  style={{
+                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                  }}
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                  <line x1="8" y1="21" x2="16" y2="21"/>
+                  <line x1="12" y1="17" x2="12" y2="21"/>
+                  <circle cx="8" cy="10" r="1">
+                    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="16" cy="10" r="1">
+                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="8" cy="14" r="1">
+                    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="16" cy="14" r="1">
+                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+                  </circle>
+                </svg>
+                {/* Glow efekti */}
+                <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75"></div>
+              </div>
+              Oyun Modları
+            </Link>
+          </div>
+          
+          {/* Masaüstü için destek kutusu - Sol tarafta (Çok Geniş) */}
+          <div className="hidden md:block mt-6">
+            <div className="bg-green-100 border border-green-400 rounded-xl shadow-md p-4 flex flex-col items-center text-center max-w-xl">
+              <div className="text-red-600 text-lg font-extrabold mb-1">ÜCRETSİZ <span className="text-green-900 font-black">AMA</span></div>
+              <div className="text-green-900 mb-2 text-sm">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/>{ProBadge} ile bize destek olabilirsin.</div>
+              <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition text-sm mt-1">
+                <span className="mr-1 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'1em', height:'1em', position:'relative'}}>
+                  <svg fill="#fff" stroke="#fff" width="0.8em" height="0.8em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg" style={{position:'relative', zIndex:1}}>
+                    <g><g>
+                      <circle cx="456" cy="312" r="28" fill="#FFD700" stroke="#FFD700" strokeWidth="4" />
+                      <path d="m456.32 424.81c-62.145 0-112.7-50.559-112.7-112.7s50.559-112.7 112.7-112.7 112.7 50.559 112.7 112.7-50.559 112.7-112.7 112.7zm0-201.38c-48.895 0-88.672 39.777-88.672 88.672s39.777 88.672 88.672 88.672 88.672-39.777 88.672-88.672-39.777-88.672-88.672-88.672z"></path>
+                      <path d="m602.1 468.29c-7.3555-16.652-27.055-24.285-47.887-18.566l-0.32812 0.074219c-0.60547 0.125-1.5352 0.35156-2.5938 0.70703-12.293 4.2305-30.102 10.73-47.281 17.004-9.168 3.3516-18.539 6.7773-27.055 9.8477-2.3672-12.543-11.285-22.695-24.105-26.047-19.723-5.1875-38.113-13.227-57.586-21.766-10.277-4.5078-20.906-9.1445-31.664-13.301-26.375-10.176-51.891-9.2695-75.824 2.6953-10.957 5.4648-21.867 10.984-32.797 16.473-16.098 8.1133-32.746 16.5-49.172 24.609-2.3438 1.1602-9.5234 4.6836-11.992 12.621-2.4688 7.9336 1.3867 14.887 2.6719 17.18l3.3008 5.9453c8.8438 15.871 17.961 32.293 25.996 48.719 2.7461 5.6172 7.4297 13.402 16.172 15.844 9.5469 2.6719 17.938-2.7188 20.68-4.4844 12.043-7.7344 23.301-7.4062 37.633 1.0586 23.25 13.73 41.766 23.301 60.055 31.008 11.715 4.9375 23.199 7.4297 34.637 7.4297 9.8984 0 19.75-1.8633 29.676-5.543 22.598-8.4141 44.16-18.363 69.602-30.73l6.4219-3.125c26.324-12.797 53.531-25.996 80.105-39.5 21.16-10.719 29.523-29.637 21.336-48.152zm-32.219 26.754c-26.375 13.402-53.504 26.574-79.727 39.324l-6.4219 3.125c-24.812 12.066-45.797 21.738-67.484 29.824-15.617 5.8203-30.406 5.3398-46.578-1.4844-17.254-7.2812-34.891-16.398-57.184-29.574-11.184-6.6016-22.141-9.9258-32.797-9.9258-10.328 0-20.355 3.0977-30.027 9.2969-0.40234 0.25-0.73047 0.45312-1.0586 0.62891-0.35156-0.57812-0.75391-1.3359-1.2578-2.3438-8.3125-17.004-17.609-33.703-26.602-49.852l-2.0391-3.6523c15.742-7.7852 31.641-15.793 47.031-23.555 10.906-5.4922 21.816-10.984 32.723-16.449 17.887-8.9414 36.352-9.5234 56.453-1.7617 10.277 3.9531 20.656 8.4883 30.684 12.898 19.445 8.5156 39.574 17.332 61.113 22.973 6.0469 1.5859 7.332 7.3789 6.6016 11.863-0.90625 5.4922-6.8281 6.9258-11.664 7.1289-1.1836 0.050782-2.4922 0.023438-3.9062 0.023438-0.60547 0-1.1836 0-1.7891-0.023438-3.6523-0.42969-57.156-6.5742-84.793-10-0.78125-0.20312-1.7617-0.37891-2.9492-0.42969h-0.37891c-6.4727 0-11.812 5.1406-11.992 11.664-0.17578 5.9961 4.0547 11.082 9.75 12.168 0.48047 0.125 1.1094 0.27734 1.8633 0.35156 15.871 1.9648 38.34 4.6367 54.059 6.5 9.0195 1.0586 17.156 2.0156 23.023 2.6719 2.9727 0.32812 5.3672 0.60547 7.0273 0.78125 1.2852 0.15234 2.5703 0.27734 3.8281 0.27734h0.050781v0.050781c0.65625 0 1.3086 0 1.9648 0.023437 0.75391 0 1.5117 0.023438 2.2656 0.023438 0.95703 0 1.9648-0.023438 2.9961-0.050782 11.84-0.52734 21.461-5.0117 27.559-12.316 11.613-4.0547 26.98-9.6719 41.918-15.141 17.004-6.2227 34.562-12.621 46.629-16.777l0.25-0.050782c0.48047-0.10156 0.95703-0.22656 1.4375-0.35156 9.1172-2.4922 17.18-0.40234 19.598 5.0898 3.6055 8.0078-3.5508 13.699-10.176 17.051z"></path>
+                      <path d="m496.33 285.16c-3.1758-3.4258-9.0938-5.4922-15.289-0.074219-1.6367 1.4375-3.0742 2.9219-4.4844 4.3828l-10.328 10.68c-4.5859 4.7344-4.5859 4.7344-9.6992 10l-11.109 11.461-1.8125-1.8125c-1.8633-1.8633-3.6289-3.7031-5.4141-5.5664l-0.42969-0.42969c-1.5859-1.6641-3.1992-3.3008-4.8125-4.9375-2.7969-2.8477-5.8203-4.3086-8.9414-4.3086-1.9414 0-4.8359 0.57812-7.5586 3.3516-1.7383 1.7617-6.8281 8.1875 1.082 16.449 4.7109 4.9375 9.4727 9.8242 14.207 14.711l4.3086 4.457c1.9141 1.9648 4.6367 4.2812 8.793 4.6094l0.27734 0.023438h0.27734c5.0898-0.050782 8.0625-3.2734 9.8242-5.2148 0.22656-0.25 0.45312-0.50391 0.67969-0.73047l16.879-17.434c4.6602-4.7852 7.5312-7.7578 20.73-21.41 0.75391-0.78125 1.5117-1.5859 2.2656-2.3945 4.6328-4.9805 4.8594-11.203 0.55469-15.812z"></path>
+                    </g></g>
+                  </svg>
+                </span>
+                Destek Ol
+              </a>
+              {/* Shopier onay satırı */}
+              <div className="flex items-center justify-center mt-2">
+                <span className="text-black font-normal italic text-xs font-sans flex items-center">Shopier tarafından onaylanmıştır <img src="/assets/aaaaaaaadwü/shield_9623201.png" alt="onaylı" className="ml-1 w-4 h-4 inline-block align-middle" /></span>
+              </div>
+              <div className="text-sm text-green-800 mt-2">(Destek olanlara uygulama içinde {ProBadge})</div>
+            </div>
           </div>
         </div>
         {/* Leaderboards */}
@@ -354,7 +404,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
           {/* Eski Sezon Leaderboard */}
           {oldSeason && (
-            <div className="flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl relative opacity-75">
+            <div className="flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl relative opacity-75 mt-8 md:mt-12">
               <div className="w-full text-center mb-3">
                 <span className="text-lg font-black text-gray-300 tracking-wide uppercase drop-shadow">
                   {oldSeason.name}
@@ -450,31 +500,6 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             </div>
           )}
 
-        </div>
-      </div>
-      {/* Masaüstü için destek kutusu (başlık ve leaderboarddan sonra, oyun modlarının üstünde) */}
-      <div className="hidden md:block w-full max-w-5xl mx-auto mt-8 mb-8">
-        <div className="bg-green-100 border border-green-400 rounded-2xl shadow-lg p-8 flex flex-col items-center text-center">
-          <div className="text-red-600 text-2xl font-extrabold mb-3">ÜCRETSİZ <span className="text-green-900 font-black">AMA</span></div>
-          <div className="text-green-900 mb-4 text-lg">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/>{ProBadge} ile bize destek olabilirsin.</div>
-          <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-700 text-white font-extrabold py-5 px-16 rounded-full shadow-2xl transition text-2xl mt-4 animate-bounce-slow animate-pulse-bright">
-            <span className="mr-3 align-middle" style={{display:'inline-block', verticalAlign:'middle', width:'2em', height:'2em', position:'relative'}}>
-              <svg fill="#fff" stroke="#fff" width="1.7em" height="1.7em" viewBox="144 144 512 512" xmlns="http://www.w3.org/2000/svg" style={{position:'relative', zIndex:1}}>
-                <g><g>
-                  <circle cx="456" cy="312" r="28" fill="#FFD700" stroke="#FFD700" strokeWidth="4" />
-                  <path d="m456.32 424.81c-62.145 0-112.7-50.559-112.7-112.7s50.559-112.7 112.7-112.7 112.7 50.559 112.7 112.7-50.559 112.7-112.7 112.7zm0-201.38c-48.895 0-88.672 39.777-88.672 88.672s39.777 88.672 88.672 88.672 88.672-39.777 88.672-88.672-39.777-88.672-88.672-88.672z"></path>
-                  <path d="m602.1 468.29c-7.3555-16.652-27.055-24.285-47.887-18.566l-0.32812 0.074219c-0.60547 0.125-1.5352 0.35156-2.5938 0.70703-12.293 4.2305-30.102 10.73-47.281 17.004-9.168 3.3516-18.539 6.7773-27.055 9.8477-2.3672-12.543-11.285-22.695-24.105-26.047-19.723-5.1875-38.113-13.227-57.586-21.766-10.277-4.5078-20.906-9.1445-31.664-13.301-26.375-10.176-51.891-9.2695-75.824 2.6953-10.957 5.4648-21.867 10.984-32.797 16.473-16.098 8.1133-32.746 16.5-49.172 24.609-2.3438 1.1602-9.5234 4.6836-11.992 12.621-2.4688 7.9336 1.3867 14.887 2.6719 17.18l3.3008 5.9453c8.8438 15.871 17.961 32.293 25.996 48.719 2.7461 5.6172 7.4297 13.402 16.172 15.844 9.5469 2.6719 17.938-2.7188 20.68-4.4844 12.043-7.7344 23.301-7.4062 37.633 1.0586 23.25 13.73 41.766 23.301 60.055 31.008 11.715 4.9375 23.199 7.4297 34.637 7.4297 9.8984 0 19.75-1.8633 29.676-5.543 22.598-8.4141 44.16-18.363 69.602-30.73l6.4219-3.125c26.324-12.797 53.531-25.996 80.105-39.5 21.16-10.719 29.523-29.637 21.336-48.152zm-32.219 26.754c-26.375 13.402-53.504 26.574-79.727 39.324l-6.4219 3.125c-24.812 12.066-45.797 21.738-67.484 29.824-15.617 5.8203-30.406 5.3398-46.578-1.4844-17.254-7.2812-34.891-16.398-57.184-29.574-11.184-6.6016-22.141-9.9258-32.797-9.9258-10.328 0-20.355 3.0977-30.027 9.2969-0.40234 0.25-0.73047 0.45312-1.0586 0.62891-0.35156-0.57812-0.75391-1.3359-1.2578-2.3438-8.3125-17.004-17.609-33.703-26.602-49.852l-2.0391-3.6523c15.742-7.7852 31.641-15.793 47.031-23.555 10.906-5.4922 21.816-10.984 32.723-16.449 17.887-8.9414 36.352-9.5234 56.453-1.7617 10.277 3.9531 20.656 8.4883 30.684 12.898 19.445 8.5156 39.574 17.332 61.113 22.973 6.0469 1.5859 7.332 7.3789 6.6016 11.863-0.90625 5.4922-6.8281 6.9258-11.664 7.1289-1.1836 0.050782-2.4922 0.023438-3.9062 0.023438-0.60547 0-1.1836 0-1.7891-0.023438-3.6523-0.42969-57.156-6.5742-84.793-10-0.78125-0.20312-1.7617-0.37891-2.9492-0.42969h-0.37891c-6.4727 0-11.812 5.1406-11.992 11.664-0.17578 5.9961 4.0547 11.082 9.75 12.168 0.48047 0.125 1.1094 0.27734 1.8633 0.35156 15.871 1.9648 38.34 4.6367 54.059 6.5 9.0195 1.0586 17.156 2.0156 23.023 2.6719 2.9727 0.32812 5.3672 0.60547 7.0273 0.78125 1.2852 0.15234 2.5703 0.27734 3.8281 0.27734h0.050781v0.050781c0.65625 0 1.3086 0 1.9648 0.023437 0.75391 0 1.5117 0.023438 2.2656 0.023438 0.95703 0 1.9648-0.023438 2.9961-0.050782 11.84-0.52734 21.461-5.0117 27.559-12.316 11.613-4.0547 26.98-9.6719 41.918-15.141 17.004-6.2227 34.562-12.621 46.629-16.777l0.25-0.050782c0.48047-0.10156 0.95703-0.22656 1.4375-0.35156 9.1172-2.4922 17.18-0.40234 19.598 5.0898 3.6055 8.0078-3.5508 13.699-10.176 17.051z"></path>
-                  <path d="m496.33 285.16c-3.1758-3.4258-9.0938-5.4922-15.289-0.074219-1.6367 1.4375-3.0742 2.9219-4.4844 4.3828l-10.328 10.68c-4.5859 4.7344-4.5859 4.7344-9.6992 10l-11.109 11.461-1.8125-1.8125c-1.8633-1.8633-3.6289-3.7031-5.4141-5.5664l-0.42969-0.42969c-1.5859-1.6641-3.1992-3.3008-4.8125-4.9375-2.7969-2.8477-5.8203-4.3086-8.9414-4.3086-1.9414 0-4.8359 0.57812-7.5586 3.3516-1.7383 1.7617-6.8281 8.1875 1.082 16.449 4.7109 4.9375 9.4727 9.8242 14.207 14.711l4.3086 4.457c1.9141 1.9648 4.6367 4.2812 8.793 4.6094l0.27734 0.023438h0.27734c5.0898-0.050782 8.0625-3.2734 9.8242-5.2148 0.22656-0.25 0.45312-0.50391 0.67969-0.73047l16.879-17.434c4.6602-4.7852 7.5312-7.7578 20.73-21.41 0.75391-0.78125 1.5117-1.5859 2.2656-2.3945 4.6328-4.9805 4.8594-11.203 0.55469-15.812z"></path>
-                </g></g>
-              </svg>
-            </span>
-            Destek Ol
-          </a>
-          {/* Shopier onay satırı - masaüstü */}
-          <div className="flex items-center justify-center mt-2">
-            <span className="text-black font-normal italic text-xs font-sans flex items-center">Shopier tarafından onaylanmıştır <img src="/assets/aaaaaaaadwü/shield_9623201.png" alt="onaylı" className="ml-1 w-4 h-4 inline-block align-middle" /></span>
-          </div>
-          <div className="text-sm text-green-800 mt-3">(Destek olanlara uygulama içinde {ProBadge})</div>
         </div>
       </div>
       {/* Mobil için destek kutusu (eski yeri) */}
@@ -767,133 +792,83 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
         />
       </div>
 
+
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
-        {/* İsim Alma Modal */}
-        {showNameModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Hoş Geldiniz!</h2>
+
+        {/* Sezon Uyarı Modal */}
+        {showSeasonModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative w-full max-w-md"
+            >
+              {/* Glass Background */}
+              <div className="absolute inset-0 bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl"></div>
+              
+              {/* Content */}
+              <div className="relative p-8 text-center">
+                {/* Close Button */}
                 <button
-                  onClick={() => setShowNameModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  onClick={() => setShowSeasonModal(false)}
+                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:text-white hover:bg-white/10 transition-all duration-200"
                 >
-                  <HiX className="w-6 h-6" />
+                  <HiX className="w-4 h-4" />
                 </button>
+
+                {/* Trophy Icon */}
+                <div className="flex justify-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                    <Trophy className="w-8 h-8 text-yellow-300 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-white mb-3">
+                  Yeni Dönem Kelimeleri Ekleniyor!
+                </h2>
+
+                {/* Message */}
+                <p className="text-white/80 mb-6 leading-relaxed">
+                  Yeni dönem için hazırladığımız kelimeler ve özellikler yakında sizlerle! 
+                  <br />
+                  <span className="text-orange-300 font-semibold">Beklemede kalın! 🚀</span>
+                </p>
+
+                {/* Features */}
+                <div className="space-y-2 mb-6 text-sm text-white/70">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                    <span>Yeni dönem kelimeleri</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                    <span>Tüm kurlara özel ayrılmış kelimeler</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                    <span>Kısa analitik raporlar</span>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <motion.button
+                  onClick={() => setShowSeasonModal(false)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 rounded-xl font-semibold transition-all duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Harika! Bekliyorum 🎯
+                </motion.button>
               </div>
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="İsminizi girin..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent mb-4 text-gray-900"
-                onKeyPress={(e) => e.key === 'Enter' && handleNameSubmit()}
-              />
-              <button
-                onClick={handleNameSubmit}
-                disabled={isLoading || !userName.trim()}
-                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-              >
-                {isLoading ? 'Kaydediliyor...' : 'Devam Et'}
-              </button>
-            </div>
+            </motion.div>
           </div>
         )}
 
-        {/* Oyun Modları Görseldeki Bordo-Siyah Kartlar */}
-        <div id="game-modes-section" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8 mt-4">
-          {gameModes.map((mode, idx) => {
-            // Her karta çok hafif farklı bir transparan pastel renk
-            const pastelGradients = [
-              'from-[#ff416c]/10 to-[#ff4b2b]/10',
-              'from-[#42e695]/10 to-[#3bb2b8]/10',
-              'from-[#4776e6]/10 to-[#8e54e9]/10',
-              'from-[#f7971e]/10 to-[#ffd200]/10',
-              'from-[#f953c6]/10 to-[#b91d73]/10',
-              'from-[#43cea2]/10 to-[#185a9d]/10',
-            ];
-            const pastelBg = pastelGradients[idx % pastelGradients.length];
-            // Başlığa göre dosya adı eşleştirme
-            const imageMap: Record<string, string> = {
-              'Öğretici Mod': 'ogrenmemodu.jpg',
-              'Tüm Kelimeler': 'kelimekartlari.jpg', // Kelime kartları görselini kullan
-              'Çoktan Seçmeli': 'coktansecmeli.jpg',
-              'Eşleştirme': 'eşeştirme.jpg',
-              'Boşluk Doldurma': 'boslukdoldurma.jpg',
-              'Kelime Formları': 'wordform.jpg',
-              'Tanımdan Kelime': 'tanım.jpg',
-              'Paraphrase': 'parapprase.jpg',
-              'Essay Yazma': 'essay.jpg',
-              'Preposition': 'preposition.jpg',
-              'Kelime Kartları': 'kelimekartlari.jpg',
-              'Kelime Yarışı': 'kelimeyarisi.jpg',
-              'Konuşma': 'konusma.jpg', // örnek, png de olabilir
-            };
-            const imgSrc = imageMap[mode.title] ? `/assets/aaaaaaaadwü/${imageMap[mode.title]}` : '';
-            // Bordo-kırmızı/siyah gradient
-            return (
-              <Link to={mode.link} key={mode.id} className={`relative group rounded-xl overflow-hidden shadow-lg border-2 border-white/10 bg-black/30 bg-gradient-to-br ${pastelBg} flex flex-col backdrop-blur-md transition-all duration-200 hover:scale-105 cursor-pointer p-1.5 md:p-2`}>
-                {/* Başlık kartın en üstünde */}
-                <div className="w-full flex justify-center pt-1.5 pb-1.5 z-30">
-                  <span
-                    className="text-lg xs:text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold font-bebas uppercase drop-shadow-lg text-white text-center px-0"
-                    style={{
-                      letterSpacing: '0.01em',
-                      fontWeight: 700,
-                      width: '100%',
-                      display: 'block',
-                      fontSize: (typeof window !== 'undefined' && window.innerWidth >= 768)
-                        ? '1.8rem'
-                        : 'clamp(1.5rem, 6vw, 3.2rem)',
-                      lineHeight: 1.1,
-                      ...(typeof window !== 'undefined' && window.innerWidth >= 768
-                        ? {
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }
-                        : {
-                            whiteSpace: 'normal',
-                            overflow: 'visible',
-                            textOverflow: 'unset',
-                          }),
-                    }}
-                  >
-                    {mode.title}
-                  </span>
-                </div>
-                {/* Güçlü transparan border */}
-                <div className="absolute inset-0 z-10 rounded-xl pointer-events-none border-2 border-white/20 group-hover:border-[#ff416c]/60 transition-all duration-300" />
-                {/* Görsel ve başlık */}
-                <div className="relative w-full aspect-[1/1] min-h-[12px] md:min-h-[20px] overflow-hidden flex flex-col justify-center items-center"> 
-                  {/* Blurlu ve karartılmış arkaplan resmi */}
-                  <img 
-                    src={imgSrc} 
-                    alt="" 
-                    className="absolute inset-0 w-full h-full object-cover object-center blur-md brightness-50 scale-110" 
-                  />
-                  {/* Ana resim */}
-                  <img 
-                    src={imgSrc} 
-                    alt="Oyun görseli" 
-                    className="relative z-10 w-full h-full md:w-3/4 md:h-3/4 object-cover object-center rounded-t-xl transition-transform duration-300 group-hover:scale-110 group-hover:brightness-110" 
-                  />
-                </div>
-              </Link>
-            );
-          })}
-        </div>
       </main>
       {/* Sabit sağ alt köşede, dikkat çekmeyen bir şekilde */}
-      {/* Footer: About Founder */}
-      <div className="w-full text-center py-8 mt-12">
-        <Link 
-          to="/about-founder" 
-          className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-white/20"
-        >
-          <span>About Founder</span>
-        </Link>
-      </div>
       <div className="fixed bottom-2 right-3 z-50 pointer-events-auto select-none">
         <FeedbackButton />
       </div>

@@ -9,7 +9,9 @@
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "lint": "eslint .",
-    "bundle-analyze": "npm run build && npx vite-bundle-analyzer dist"
+    "bundle-analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "db:check": "node scripts/checkDatabase.mjs",
+    "db:create-season": "node scripts/createSeason.mjs"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",

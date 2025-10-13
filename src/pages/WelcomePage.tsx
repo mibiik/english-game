@@ -102,7 +102,7 @@ const WelcomePage: React.FC = React.memo(() => {
 						Koç Üniversitesi hazırlık listeleriyle uyumlu, oyunlarla öğrenin ve kelime haznenizi geliştirin. Hazırlığı geçmenin en eğlenceli yolu!
 					</motion.p>
 					
-					{/* Sezon Açıldı Duyurusu */}
+					{/* Sezon Çok Yakında Duyurusu */}
 					<motion.div 
 						variants={fadeUpAnimation} 
 						initial="hidden" 
@@ -110,9 +110,9 @@ const WelcomePage: React.FC = React.memo(() => {
 						transition={{ delay: 0.09 }} 
 						className="mb-8"
 					>
-						<div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-400/30 rounded-full text-green-300 text-sm font-medium">
+						<div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 rounded-full text-orange-300 text-sm font-medium">
 							<Trophy className="w-4 h-4 text-yellow-400" />
-							<span>2025-26 Sezonu Açıldı!</span>
+							<span>26. Sezon Çok Yakında!</span>
 						</div>
 					</motion.div>
 					<motion.div variants={fadeUpAnimation} initial="hidden" animate="show" transition={{ delay: 0.12 }} className="flex flex-col sm:flex-row gap-3 justify-center">

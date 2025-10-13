@@ -1,14 +1,11 @@
-import { puter } from './puterService';
+import { puterService } from './puterService';
 import { PrepositionExercise, WordForms } from '../types';
 
 class AiService {
   public async generateText(prompt: string): Promise<string> {
-    if (!puter) {
-        throw new Error('Puter is not available.');
-    }
     try {
       console.log('🤖 Puter.js ile istek yapılıyor (model: gpt-4o-mini)');
-      const result = await puter.ai.chat(prompt, {
+      const result = await puterService.chat(prompt, {
         model: 'gpt-4o-mini'
       });
       console.log('🤖 Puter.js yanıtı alındı:', result.message.content);

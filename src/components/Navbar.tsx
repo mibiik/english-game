@@ -479,27 +479,40 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogoClick = () => {
     setIsMenuOpen(false);
-    if (location.pathname === '/home') {
-      const gameModesSection = document.getElementById('game-modes-section');
-      if (gameModesSection) {
-        gameModesSection.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
-    } else {
-      // Oyun sayfalarındaysa ana sayfaya git ve oyun modlarına scroll yap
-      navigate('/home');
-      // Ana sayfa yüklendikten sonra oyun modlarına scroll yap
-      setTimeout(() => {
-        const gameModesSection = document.getElementById('game-modes-section');
-        if (gameModesSection) {
-          gameModesSection.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      }, 100);
+    
+    // Mevcut sayfa yolunu kontrol et
+    const currentPath = location.pathname;
+    
+    // Oyun sayfaları listesi
+    const gamePaths = [
+      '/multiple-choice',
+      '/matching-game',
+      '/flashcard',
+      '/word-race',
+      '/sentence-completion',
+      '/definition-to-word',
+      '/learning-mode',
+      '/memory-game',
+      '/speaking',
+      '/word-forms',
+      '/paraphrase',
+      '/preposition-mastery',
+      '/grammar-game',
+      '/essay-writing',
+      '/kuepe-mode'
+    ];
+    
+    // Eğer oyun modları sayfasındaysa ana sayfaya git
+    if (currentPath === '/game-modes') {
+      navigate('/');
+    }
+    // Eğer herhangi bir oyun sayfasındaysa oyun modlarına git
+    else if (gamePaths.some(path => currentPath.startsWith(path))) {
+      navigate('/game-modes');
+    }
+    // Diğer durumlarda ana sayfaya git
+    else {
+      navigate('/');
     }
   };
 
@@ -519,14 +532,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <Link to="/home" onClick={handleLogoClick} className="flex items-center">
+              <button onClick={handleLogoClick} className="flex items-center">
                 <img 
                   src="/a.png" 
                   alt="ELC Wordplay Logo" 
                   className="h-12 md:h-16 w-auto mr-2 md:mr-3 select-none" 
                   draggable="false" 
                 />
-              </Link>
+              </button>
             </div>
 
             {/* Desktop Center - Unit Selector */}

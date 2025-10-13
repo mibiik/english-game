@@ -12,6 +12,7 @@ import { userAnalyticsService } from './services/userAnalyticsService';
 import { deviceDetectionService } from './services/deviceDetectionService';
 import { analyticsCollector } from './services/analyticsCollector';
 import { notificationService } from './services/notificationService';
+import { puterService } from './services/puterService';
 
 
 function AppContent() {
@@ -125,6 +126,19 @@ function AppContent() {
       }, 3000);
       return;
     }
+
+    // Puter servisini başlat
+    const initializePuter = async () => {
+      try {
+        console.log('🚀 Puter servisi başlatılıyor...');
+        await puterService.initialize();
+        console.log('✅ Puter servisi başarıyla başlatıldı');
+      } catch (error) {
+        console.error('❌ Puter servisi başlatılamadı:', error);
+      }
+    };
+
+    initializePuter();
   }, []);
 
   // Bildirim servisini başlat

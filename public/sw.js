@@ -41,15 +41,10 @@ const ANOMALY_THRESHOLD = 100; // Anomali eşiği
 // Firebase Firestore bağlantısı
 async function initializeFirebase() {
   try {
-    // Firebase'i Service Worker'da başlat
-    if (typeof importScripts === 'function') {
-      importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-      importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js');
-      
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
-      return db;
-    }
+    // Service Worker'da Firebase'i devre dışı bırak
+    // CDN yükleme sorunları nedeniyle geçici olarak kapatıldı
+    console.log('Firebase Service Worker\'da devre dışı bırakıldı');
+    return null;
   } catch (error) {
     console.error('Firebase başlatılamadı:', error);
     return null;
@@ -187,7 +182,11 @@ async function startBackgroundMonitoring() {
   
   const db = await initializeFirebase();
   if (!db) {
-    console.error('Firebase başlatılamadı, monitoring başlatılamıyor');
+    console.log('Firebase devre dışı, monitoring sadece local olarak çalışıyor');
+    // Firebase olmadan da monitoring'i başlat
+    monitoringInterval = setInterval(async () => {
+      console.log('📊 Local monitoring aktif (Firebase olmadan)');
+    }, 300000); // 5 dakika
     return;
   }
   

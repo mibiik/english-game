@@ -57,16 +57,16 @@ class SupabaseScoreService {
         return false;
       }
 
-      // Oyun skorunu kaydet
+      // Oyun skorunu kaydet (snake_case kullan)
       const { error: gameScoreError } = await supabase
         .from('game_scores')
         .insert({
-          userId,
-          gameMode,
+          user_id: userId,
+          game_mode: gameMode,
           score,
           unit,
           level,
-          seasonId: currentSeason.id,
+          season_id: currentSeason.id,
           timestamp: new Date().toISOString()
         });
 
@@ -88,12 +88,12 @@ class SupabaseScoreService {
   // Sezon skorunu güncelle
   private async updateSeasonScore(userId: string, seasonId: string, additionalScore: number): Promise<void> {
     try {
-      // Mevcut sezon skorunu getir
+      // Mevcut sezon skorunu getir (snake_case kullan)
       const { data: existingScore, error: fetchError } = await supabase
         .from('season_scores')
         .select('*')
-        .eq('userId', userId)
-        .eq('seasonId', seasonId)
+        .eq('user_id', userId)
+        .eq('season_id', seasonId)
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
@@ -102,41 +102,52 @@ class SupabaseScoreService {
       }
 
       if (existingScore) {
-        // Mevcut skoru güncelle
+        // Mevcut skoru güncelle (snake_case kullan)
+        const newTotalScore = (existingScore.total_score || 0) + additionalScore;
+        const newGamesPlayed = (existingScore.games_played || 0) + 1;
+        
+        console.log(`🔄 Sezon skoru güncelleniyor: ${existingScore.total_score} -> ${newTotalScore}`);
+        
         const { error: updateError } = await supabase
           .from('season_scores')
           .update({
-            totalScore: existingScore.totalScore + additionalScore,
-            gamesPlayed: existingScore.gamesPlayed + 1,
-            lastPlayed: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            total_score: newTotalScore,
+            games_played: newGamesPlayed,
+            last_played: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
-          .eq('userId', userId)
-          .eq('seasonId', seasonId);
+          .eq('user_id', userId)
+          .eq('season_id', seasonId);
 
         if (updateError) {
-          console.error('Sezon skoru güncellenemedi:', updateError);
+          console.error('❌ Sezon skoru güncellenemedi:', updateError);
+        } else {
+          console.log('✅ Sezon skoru güncellendi:', newTotalScore);
         }
       } else {
-        // Yeni sezon skoru oluştur
+        // Yeni sezon skoru oluştur (snake_case kullan)
+        console.log(`🆕 Yeni sezon skoru oluşturuluyor: ${additionalScore}`);
+        
         const { error: insertError } = await supabase
           .from('season_scores')
           .insert({
-            userId,
-            seasonId,
-            totalScore: additionalScore,
-            gamesPlayed: 1,
-            lastPlayed: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            user_id: userId,
+            season_id: seasonId,
+            total_score: additionalScore,
+            games_played: 1,
+            last_played: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           });
 
         if (insertError) {
-          console.error('Yeni sezon skoru oluşturulamadı:', insertError);
+          console.error('❌ Yeni sezon skoru oluşturulamadı:', insertError);
+        } else {
+          console.log('✅ Yeni sezon skoru oluşturuldu:', additionalScore);
         }
       }
     } catch (error) {
-      console.error('Sezon skoru güncelleme hatası:', error);
+      console.error('❌ Sezon skoru güncelleme hatası:', error);
     }
   }
 
@@ -187,8 +198,8 @@ class SupabaseScoreService {
       const { data, error } = await supabase
         .from('game_scores')
         .select('*')
-        .eq('userId', userId)
-        .eq('seasonId', season.id)
+        .eq('user_id', userId)
+        .eq('season_id', season.id)
         .order('timestamp', { ascending: false })
         .limit(limit);
 
@@ -221,8 +232,8 @@ class SupabaseScoreService {
 
       const { data, error } = await supabase
         .from('season_scores')
-        .select('totalScore, gamesPlayed')
-        .eq('seasonId', season.id);
+        .select('total_score, games_played')
+        .eq('season_id', season.id);
 
       if (error) {
         console.error('Sezon istatistikleri getirilemedi:', error);
@@ -230,8 +241,8 @@ class SupabaseScoreService {
       }
 
       const totalPlayers = data.length;
-      const totalGames = data.reduce((sum, item) => sum + item.gamesPlayed, 0);
-      const totalScore = data.reduce((sum, item) => sum + item.totalScore, 0);
+      const totalGames = data.reduce((sum, item) => sum + item.games_played, 0);
+      const totalScore = data.reduce((sum, item) => sum + item.total_score, 0);
       const averageScore = totalPlayers > 0 ? totalScore / totalPlayers : 0;
 
       return {
@@ -258,16 +269,16 @@ class SupabaseScoreService {
 
       const { data, error } = await supabase
         .from('season_scores')
-        .select('userId, totalScore')
-        .eq('seasonId', season.id)
-        .order('totalScore', { ascending: false });
+        .select('user_id, total_score')
+        .eq('season_id', season.id)
+        .order('total_score', { ascending: false });
 
       if (error) {
         console.error('Sıralama getirilemedi:', error);
         return null;
       }
 
-      const userIndex = data.findIndex(item => item.userId === userId);
+      const userIndex = data.findIndex(item => item.user_id === userId);
       return userIndex >= 0 ? userIndex + 1 : null;
     } catch (error) {
       console.error('Sıralama getirme hatası:', error);

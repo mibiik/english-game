@@ -1,18 +1,16 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { Routes, Route, useSearchParams } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { UnitSelector } from './components/UnitSelector';
 import { WordDetail } from './data/words';
-import { authService } from './services/authService';
-import { newDetailedWords_part1 } from './data/words';
+import { kuepeWords as newDetailedWords_part1 } from './data/word2';
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
-import { newDetailedWords_part1 as preIntermediateWordsRaw } from './data/word2';
+import { kuepeWords as preIntermediateWordsRaw } from './data/word2';
 import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
 import { kuepeWords } from './data/kuepe';
 
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
-const WelcomePage = lazy(() => import('./pages/WelcomePage'));
+const GameModesPage = lazy(() => import('./pages/GameModesPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AboutFounder = lazy(() => import('./pages/AboutFounder'));
 const SeasonLeaderboardPage = lazy(() => import('./pages/SeasonLeaderboardPage'));
@@ -23,12 +21,9 @@ const Sss = lazy(() => import('./pages/Sss'));
 const Destek = lazy(() => import('./pages/Destek'));
 const Gizlilik = lazy(() => import('./pages/Gizlilik'));
 const KullanimSartlari = lazy(() => import('./pages/KullanimSartlari'));
-const SubscriptionInfo = lazy(() => import('./pages/SubscriptionInfo'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const CreateLiveQuiz = lazy(() => import('./pages/CreateLiveQuiz'));
 const JoinQuiz = lazy(() => import('./pages/JoinQuiz'));
-const LiveQuizStudent = lazy(() => import('./pages/LiveQuizStudent'));
-const LiveQuizTeacher = lazy(() => import('./pages/LiveQuizTeacher'));
 const QuizLobby = lazy(() => import('./pages/QuizLobby'));
 const QuizHostPlay = lazy(() => import('./pages/QuizHostPlay'));
 const PlayerQuizFlow = lazy(() => import('./pages/PlayerQuizFlow'));
@@ -41,17 +36,14 @@ const SupabaseTestPage = lazy(() => import('./pages/SupabaseTestPage'));
 
 // Game Modes - Lazy loading
 const MultipleChoice = lazy(() => import('./components/GameModes/MultipleChoice').then(module => ({ default: module.MultipleChoice })));
-const MatchingGame = lazy(() => import('./components/GameModes/MatchingGame').then(module => ({ default: module.MatchingGame })));
+const MatchingGame = lazy(() => import('./components/GameModes/MatchingGame').then(module => ({ default: module.default })));
 const FlashCard = lazy(() => import('./components/GameModes/FlashCard').then(module => ({ default: module.FlashCard })));
-const SpeedGame = lazy(() => import('./components/GameModes/SpeedGame').then(module => ({ default: module.SpeedGame })));
 const WordRace = lazy(() => import('./components/GameModes/WordRace').then(module => ({ default: module.WordRace })));
 const SentenceCompletion = lazy(() => import('./components/GameModes/SentenceCompletion').then(module => ({ default: module.SentenceCompletion })));
 const DefinitionToWordGame = lazy(() => import('./components/GameModes/DefinitionToWordGame').then(module => ({ default: module.DefinitionToWordGame })));
 const PrepositionMasteryGame = lazy(() => import('./components/GameModes/PrepositionMasteryGame').then(module => ({ default: module.PrepositionMasteryGame })));
-const ParaphraseChallenge = lazy(() => import('./components/GameModes/ParaphraseChallenge').then(module => ({ default: module.ParaphraseChallenge })));
 const LearningMode = lazy(() => import('./components/GameModes/LearningMode').then(module => ({ default: module.LearningMode })));
 const MemoryGame = lazy(() => import('./components/GameModes/MemoryGame').then(module => ({ default: module.MemoryGame })));
-const QuizGame = lazy(() => import('./components/GameModes/QuizGame').then(module => ({ default: module.QuizGame })));
 const SpeakingGame = lazy(() => import('./components/GameModes/SpeakingGame').then(module => ({ default: module.SpeakingGame })));
 const WordFormsGame = lazy(() => import('./components/GameModes/WordFormsGame'));
 
@@ -95,46 +87,6 @@ const ProtectedRoute: React.FC<{
   return <>{children}</>;
 };
 
-// Ana sayfa yönlendirme bileşeni
-const HomeRedirect: React.FC<{ 
-  filteredWords: WordDetail[]; 
-  currentUnit: string; 
-  currentLevel: string;
-  setCurrentUnit: (unit: string) => void;
-  setCurrentLevel: (level: 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe') => void;
-  isAuthenticated: boolean | null;
-}> = ({ 
-  filteredWords, 
-  currentUnit, 
-  currentLevel,
-  setCurrentUnit,
-  setCurrentLevel,
-  isAuthenticated
-}) => {
-  // Eğer authentication durumu henüz yüklenmediyse loading göster
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#111] to-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Yükleniyor...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  if (isAuthenticated) {
-    return (
-      <>
-        <div className="min-h-screen bg-gradient-to-b from-[#111] to-black">
-          <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'} />
-        </div>
-      </>
-    );
-  }
-  
-  return <WelcomePage />;
-};
 
 interface AppRoutesProps {
   currentUnit: string;
@@ -157,7 +109,22 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
-        <Route path="/" element={<HomeRedirect filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} setCurrentUnit={setCurrentUnit} setCurrentLevel={setCurrentLevel} isAuthenticated={isAuthenticated} />} />
+        <Route path="/" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+              </div>
+            </>
+          </ProtectedRoute>
+        } />
         <Route path="/home" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Navbar 
@@ -170,6 +137,22 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
               <div className="pt-32">
                 <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
               </div>
+          </ProtectedRoute>
+        } />
+        <Route path="/game-modes" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <GameModesPage currentUnit={currentUnit} currentLevel={currentLevel} />
+              </div>
+            </>
           </ProtectedRoute>
         } />
         <Route path="/profile" element={
@@ -695,7 +678,7 @@ function MatchingGameWrapperWithParams() {
     unitWords: unitWords.length 
   });
 
-  return <MatchingGame words={words} unit={unit} />;
+  return <MatchingGame words={words} />;
 }
 
 function GameWrapperWithParams({ component }: { component: React.ComponentType<any> }) {
@@ -733,6 +716,10 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   console.log('GameWrapper: Rendering component:', component.name, 'with words:', words.length);
   
   try {
+    // LearningMode sadece words prop'u alıyor
+    if (component.name === 'LearningMode') {
+      return React.createElement(component, { words });
+    }
     return React.createElement(component, { words, unit, level });
   } catch (error) {
     console.error('GameWrapper: Error rendering component:', component.name, error);
