@@ -74,34 +74,6 @@ export interface PrepositionExercise {
   };
 }
 
-export interface QuizQuestion {
-  questionText: string; // e.g., 'abandon'
-  options: string[]; // e.g., ['terk etmek', 'devam etmek', 'başlamak', 'unutmak']
-  correctAnswer: string; // e.g., 'terk etmek'
-  wordDetail: WordDetail; // Sorunun türetildiği kelimenin tüm detayları
-}
-
-export interface QuizPlayer {
-  id: string; // UID from Firebase Auth
-  nickname: string;
-  score: number;
-  streak: number; // Doğru cevap serisi
-  answeredCorrectly?: boolean | null; // Son soruya doğru cevap verdi mi?
-}
-
-export type QuizStatus = 'waiting' | 'in_progress' | 'leaderboard' | 'finished';
-
-export interface LiveQuizSession {
-  roomCode: string;
-  hostId: string;
-  status: QuizStatus;
-  currentQuestionIndex: number;
-  questions: QuizQuestion[];
-  players: { [key: string]: QuizPlayer }; // Oyuncu ID'si ile eşleştirilmiş oyuncu nesneleri
-  createdAt: number; // Timestamp
-  unit: string;
-  level: string;
-}
 
 export interface SentenceQuestion {
   sentence: string;

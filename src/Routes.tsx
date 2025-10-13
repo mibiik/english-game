@@ -22,11 +22,6 @@ const Destek = lazy(() => import('./pages/Destek'));
 const Gizlilik = lazy(() => import('./pages/Gizlilik'));
 const KullanimSartlari = lazy(() => import('./pages/KullanimSartlari'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
-const CreateLiveQuiz = lazy(() => import('./pages/CreateLiveQuiz'));
-const JoinQuiz = lazy(() => import('./pages/JoinQuiz'));
-const QuizLobby = lazy(() => import('./pages/QuizLobby'));
-const QuizHostPlay = lazy(() => import('./pages/QuizHostPlay'));
-const PlayerQuizFlow = lazy(() => import('./pages/PlayerQuizFlow'));
 const ParaphrasePage = lazy(() => import('./pages/ParaphrasePage'));
 const GrammarGamePage = lazy(() => import('./pages/GrammarGamePage'));
 const EssayWritingPage = lazy(() => import('./pages/EssayWritingPage'));
@@ -412,87 +407,6 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           </ProtectedRoute>
         } />
         
-        {/* Canlı Quiz Rotaları */}
-        <Route path="/live-quiz/create" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <CreateLiveQuiz />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
-        <Route path="/live-quiz/join" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <JoinQuiz />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
-        <Route path="/live-quiz/lobby/:roomCode" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <QuizLobby />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
-        <Route path="/live-quiz/play/host/:roomCode" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <QuizHostPlay />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
-        <Route path="/live-quiz/player-lobby/:roomCode" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <PlayerQuizFlow />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
 
         {/* Mesajlar Rotaları */}
         <Route path="/messages" element={

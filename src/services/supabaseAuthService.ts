@@ -101,28 +101,29 @@ class SupabaseAuthService {
     try {
       console.log('🚪 Çıkış yapılıyor...');
       
-      // Önce localStorage'ı temizle
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('authUserId');
-      localStorage.removeItem('lastAuthCheck');
-      
       // Supabase'den çıkış yap
       const { error } = await auth.signOut();
       
       if (error) {
         console.error('Supabase logout error:', error);
-        // Hata olsa bile localStorage temizlendiği için devam et
       }
+
+      // localStorage'ı temizle
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('authUserId');
+      localStorage.removeItem('lastAuthCheck');
+      localStorage.removeItem('userName');
 
       this.currentUser = null;
       console.log('✅ Çıkış başarıyla tamamlandı');
       
-      // Sayfayı yenile (auth state'in güncellenmesi için)
-      window.location.reload();
+      // Welcome sayfasına yönlendir
+      window.location.href = '/';
     } catch (error) {
       console.error('Kullanıcı çıkışı sırasında hata:', error);
-      // Hata olsa bile sayfayı yenile
-      window.location.reload();
+      // Hata olsa bile temizle ve yönlendir
+      localStorage.clear();
+      window.location.href = '/';
     }
   }
 
