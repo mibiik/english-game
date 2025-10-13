@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase';
 import { WordDetail } from '../data/words';
 import { detailedWords_part1 as upperIntermediateWords } from '../data/word4';
-import { newDetailedWords_part1 as intermediateWords } from '../data/words';
+import { kuepeWords as intermediateWords } from '../data/words';
 // Diğer kelime seviyelerini de buraya ekleyebilirsiniz.
 // import { foundationWords } from '../data/word1';
 // import { preIntermediateWords } from '../data/word2';
