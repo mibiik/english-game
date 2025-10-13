@@ -99,31 +99,13 @@ class SupabaseAuthService {
   // Kullanıcı çıkışı
   async logout(): Promise<void> {
     try {
-      console.log('🚪 Çıkış yapılıyor...');
-      
-      // Supabase'den çıkış yap
-      const { error } = await auth.signOut();
-      
-      if (error) {
-        console.error('Supabase logout error:', error);
-      }
-
-      // localStorage'ı temizle
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('authUserId');
-      localStorage.removeItem('lastAuthCheck');
-      localStorage.removeItem('userName');
-
-      this.currentUser = null;
-      console.log('✅ Çıkış başarıyla tamamlandı');
-      
-      // Welcome sayfasına yönlendir
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Kullanıcı çıkışı sırasında hata:', error);
-      // Hata olsa bile temizle ve yönlendir
+      await auth.signOut();
       localStorage.clear();
-      window.location.href = '/';
+      this.currentUser = null;
+      window.location.reload(); // Full refresh
+    } catch (error) {
+      localStorage.clear();
+      window.location.reload();
     }
   }
 
