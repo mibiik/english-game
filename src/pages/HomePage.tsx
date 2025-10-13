@@ -155,7 +155,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
     fetchLeaderboardData();
     
-    // Sayfa açıldığında sezon modal'ını göster
+    // Sayfa açıldığında sezon modal'ını göster (her seferinde)
     const timer = setTimeout(() => {
       setShowSeasonModal(true);
     }, 1000); // 1 saniye sonra göster
