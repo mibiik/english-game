@@ -234,7 +234,7 @@ function AppContent() {
             setIsAuthenticated(true);
             console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
             
-            // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
+            // Eğer welcome sayfasındaysa ana sayfaya yönlendir
             if (location.pathname === '/') {
               navigate('/home', { replace: true });
             }
@@ -288,7 +288,7 @@ function AppContent() {
           console.error('Cihaz değişikliği kontrolünde hata:', error);
         });
         
-        // Eğer karşılama sayfasındaysa ana sayfaya yönlendir
+        // Eğer welcome sayfasındaysa ana sayfaya yönlendir
         if (location.pathname === '/') {
           navigate('/home', { replace: true });
         }

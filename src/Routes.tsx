@@ -10,6 +10,7 @@ import { kuepeWords } from './data/kuepe';
 
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
+const WelcomePage = lazy(() => import('./pages/WelcomePage'));
 const GameModesPage = lazy(() => import('./pages/GameModesPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AboutFounder = lazy(() => import('./pages/AboutFounder'));
@@ -104,22 +105,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
-        <Route path="/" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
+        <Route path="/" element={<WelcomePage />} />
         <Route path="/home" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Navbar 
