@@ -30,7 +30,32 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
       }
       onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Bir hata oluştu');
+      console.error('Auth error:', err);
+      
+      // Supabase hata mesajlarını Türkçe'ye çevir
+      let errorMessage = 'Bir hata oluştu';
+      
+      if (err.message) {
+        if (err.message.includes('Invalid login credentials')) {
+          errorMessage = 'E-posta veya şifre hatalı';
+        } else if (err.message.includes('Email not confirmed')) {
+          errorMessage = 'E-posta adresinizi onaylamanız gerekiyor';
+        } else if (err.message.includes('User already registered')) {
+          errorMessage = 'Bu e-posta adresi zaten kullanımda';
+        } else if (err.message.includes('Password should be at least 6 characters')) {
+          errorMessage = 'Şifre en az 6 karakter olmalıdır';
+        } else if (err.message.includes('Invalid email')) {
+          errorMessage = 'Geçersiz e-posta adresi';
+        } else if (err.message.includes('Signup is disabled')) {
+          errorMessage = 'Kayıt şu anda devre dışı';
+        } else if (err.message.includes('Too many requests')) {
+          errorMessage = 'Çok fazla deneme yapıldı. Lütfen biraz bekleyin';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
