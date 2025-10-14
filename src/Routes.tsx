@@ -55,6 +55,8 @@ const ProtectedRoute: React.FC<{
   children: React.ReactNode;
   isAuthenticated: boolean | null;
 }> = ({ children, isAuthenticated }) => {
+  const [authModalShown, setAuthModalShown] = useState(false);
+  
   // Eğer authentication durumu henüz yüklenmediyse loading göster
   if (isAuthenticated === null) {
     return (
@@ -68,8 +70,14 @@ const ProtectedRoute: React.FC<{
   }
   
   if (!isAuthenticated) {
-    // Modal aç
-    window.dispatchEvent(new CustomEvent('show-auth'));
+    // Modal aç (sadece bir kere)
+    useEffect(() => {
+      if (!authModalShown) {
+        window.dispatchEvent(new CustomEvent('show-auth'));
+        setAuthModalShown(true);
+      }
+    }, [authModalShown]);
+    
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#111] to-black flex items-center justify-center">
         <div className="text-center">
