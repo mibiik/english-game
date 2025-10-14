@@ -306,7 +306,7 @@ const WelcomePage: React.FC = React.memo(() => {
 					</motion.div>
 
 					<div className="grid md:grid-cols-3 gap-8">
-						{/* Mehmet B. - Endüstri Mühendisliği */}
+						{/* Mehmet B. - İşletme */}
 						<motion.div
 							initial={{ opacity: 0, y: 40 }}
 							whileInView={{ opacity: 1, y: 0 }}
@@ -324,7 +324,7 @@ const WelcomePage: React.FC = React.memo(() => {
 								</div>
 							</div>
 							<blockquote className="text-neutral-300 leading-relaxed mb-4">
-								"Kuepeyi verdim ve uygulama o kadar işe yaradı ki çok teşekkür ediyorum. Umarım çok daha iyi yerlere gelirsiniz, başarılarınızın devamını diliyorum!"
+								"Bro, bu uygulama sayesinde KUEPE'yi geçtim! 🎉 Artık İngilizce konuşurken 'huhuhk' diye takılmıyorum. Kelimeleri oyunla öğrenmek gerçekten işe yarıyor. Hatta arkadaşlarım da 'Ne bu böyle, nasıl bu kadar hızlı geliştin?' diye soruyor. WordPlay sayesinde artık 'business' kelimesini bile doğru telaffuz edebiliyorum! 😄"
 							</blockquote>
 							<div className="flex items-center gap-1">
 								{[...Array(5)].map((_, i) => (
