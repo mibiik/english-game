@@ -13,6 +13,7 @@ import { deviceDetectionService } from './services/deviceDetectionService';
 import { analyticsCollector } from './services/analyticsCollector';
 import { notificationService } from './services/notificationService';
 import { puterService } from './services/puterService';
+import LazyAuth from './components/LazyAuth';
 
 
 function AppContent() {
@@ -52,6 +53,8 @@ function AppContent() {
   });
 
   const [showMehmetModal, setShowMehmetModal] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // iOS/Safari tespiti
   const isIOS = /iP(hone|od|ad)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
@@ -361,6 +364,20 @@ function AppContent() {
     };
   }, []);
 
+  // Auth modal event listener
+  useEffect(() => {
+    const handleShowAuth = () => {
+      setAuthMode('login');
+      setShowAuth(true);
+    };
+
+    window.addEventListener('show-auth', handleShowAuth);
+    
+    return () => {
+      window.removeEventListener('show-auth', handleShowAuth);
+    };
+  }, []);
+
   // Mehmet Bahçeçi için modal kontrolü
   useEffect(() => {
     const checkMehmetModal = async () => {
@@ -444,6 +461,45 @@ function AppContent() {
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
       />
+      
+      {/* Auth Modal */}
+      {showAuth && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="relative w-full max-w-md">
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl"></div>
+            <div className="relative p-8">
+              <button
+                onClick={() => setShowAuth(false)}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:text-white hover:bg-white/10 transition-all duration-200"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <LazyAuth
+                mode={authMode}
+                onClose={() => setShowAuth(false)}
+                onSuccess={() => { 
+                  setShowAuth(false); 
+                  navigate('/home'); 
+                }}
+              />
+              <div className="mt-6 text-center">
+                <span className="text-white/60 text-sm">
+                  {authMode === 'login' ? 'Hesabınız yok mu?' : 'Zaten hesabınız var mı?'}
+                </span>
+                <button
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  className="ml-2 text-white hover:text-white/80 font-medium text-sm transition-colors duration-200"
+                >
+                  {authMode === 'login' ? 'Kayıt ol' : 'Giriş yap'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <PWAInstallPrompt />
       <NotificationPermission />
       <PerformanceMonitor />
