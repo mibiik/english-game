@@ -31,7 +31,6 @@ import { supabaseAuthService } from '../services/supabaseAuthService';
 import { useIsMobile } from '../hooks/useDeviceDetection';
 import { soundService } from '../services/soundService';
 import { supabaseGameScoreService } from '../services/supabaseGameScoreService';
-import { supabaseScoreService } from '../services/supabaseScoreService';
 
 interface NavbarProps {
   onShowAuth: () => void;
@@ -375,7 +374,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         if (userId) {
           try {
             // Kullanıcı profilini getir
-            const { data: userProfile, error } = await supabaseScoreService.getUserProfile(userId);
+            const userProfile = await supabaseGameScoreService.getUserProfile(userId);
             if (userProfile) {
               setUserScore(userProfile.totalScore);
               localStorage.setItem('userScore', String(userProfile.totalScore));
@@ -387,29 +386,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               setIsAdmin(adminUserIds.includes(userId) || adminEmails.includes(userEmail));
             }
 
-            // Kullanıcı sıralamasını al
-            const rank = await supabaseScoreService.getUserRanking(userId);
-            setUserRank(rank);
-            
-            // Sezon skorunu al
-            console.log('🔍 Navbar: Sezon skoru alınıyor...', userId);
-            const seasonScore = await supabaseScoreService.getUserSeasonScore(userId);
-            console.log('📊 Navbar: Sezon skoru alındı:', seasonScore);
-            if (seasonScore !== null) {
-              setUserScore(seasonScore);
-              localStorage.setItem('userScore', String(seasonScore));
-              console.log('✅ Navbar: Skor güncellendi:', seasonScore);
+            // Kullanıcı toplam skorunu al
+            console.log('🔍 Navbar: Toplam skor alınıyor...', userId);
+            const totalScore = await supabaseGameScoreService.getUserTotalScore(userId);
+            console.log('📊 Navbar: Toplam skor alındı:', totalScore);
+            if (totalScore !== null) {
+              setUserScore(totalScore);
+              localStorage.setItem('userScore', String(totalScore));
+              console.log('✅ Navbar: Skor güncellendi:', totalScore);
             }
-
-            // Real-time skor dinleyicisi başlat
-            const unsubscribe = await supabaseScoreService.startScoreListener(userId, (newScore) => {
-              console.log('🔄 Navbar skor güncellendi:', newScore);
-              setUserScore(newScore);
-              localStorage.setItem('userScore', String(newScore));
-            });
-
-            // Cleanup function'ı return et
-            return unsubscribe;
           } catch (error) {
             console.error('Kullanıcı verisi alınırken hata:', error);
           }
@@ -422,13 +407,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       }
     };
 
-    let cleanup: (() => void) | undefined;
-    
-    fetchUserData().then(unsubscribe => {
-      if (unsubscribe) {
-        cleanup = unsubscribe;
-      }
-    });
+    fetchUserData();
 
     // Custom event listener for score updates
     const handleScoreUpdate = async (event: CustomEvent) => {
@@ -440,27 +419,24 @@ export const Navbar: React.FC<NavbarProps> = ({
       
       if (eventUserId === currentUserId) {
         console.log('✅ Custom event: Aynı kullanıcı, skor güncelleniyor...');
-        // Güncel sezon skorunu al
-        const seasonScore = await supabaseScoreService.getUserSeasonScore(currentUserId);
-        console.log('📊 Custom event: Yeni skor alındı:', seasonScore);
-        if (seasonScore !== null) {
-          console.log('🔄 Custom event ile skor güncellendi:', seasonScore);
-          setUserScore(seasonScore);
-          localStorage.setItem('userScore', String(seasonScore));
+        // Güncel toplam skorunu al
+        const totalScore = await supabaseGameScoreService.getUserTotalScore(currentUserId || '');
+        console.log('📊 Custom event: Yeni skor alındı:', totalScore);
+        if (totalScore !== null) {
+          console.log('🔄 Custom event ile skor güncellendi:', totalScore);
+          setUserScore(totalScore);
+          localStorage.setItem('userScore', String(totalScore));
         }
       } else {
         console.log('❌ Custom event: Farklı kullanıcı, skor güncellenmiyor');
       }
     };
 
-    window.addEventListener('scoreUpdated', handleScoreUpdate as EventListener);
+    window.addEventListener('scoreUpdated', handleScoreUpdate as unknown as EventListener);
 
     // Cleanup function
     return () => {
-      if (cleanup) {
-        cleanup();
-      }
-      window.removeEventListener('scoreUpdated', handleScoreUpdate as EventListener);
+      window.removeEventListener('scoreUpdated', handleScoreUpdate as unknown as EventListener);
     };
   }, []);
 
