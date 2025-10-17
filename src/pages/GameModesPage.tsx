@@ -121,11 +121,11 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
   ], [currentUnit, currentLevel]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative" style={{ paddingTop: '64px', marginTop: '-128px' }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative">
       {/* Header */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4">
         {/* Home Button */}
-        <div className="flex justify-start mb-6">
+        <div className="flex justify-start mb-4">
           <Link 
             to="/"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-700/80 to-gray-600/80 hover:from-gray-600/80 hover:to-gray-500/80 text-white rounded-full text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-600/50 hover:border-gray-500/50 backdrop-blur-sm"
@@ -134,7 +134,6 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
             <span>Ana Sayfa</span>
           </Link>
         </div>
-        
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)]">
             OYUN MODLARI

@@ -136,7 +136,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 currentLevel={currentLevel}
                 setCurrentLevel={setCurrentLevel}
               />
-              <div className="pt-32">
+              <div>
                 <GameModesPage currentUnit={currentUnit} currentLevel={currentLevel} />
               </div>
             </>

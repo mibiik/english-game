@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             <span className="text-white drop-shadow-lg font-bebas text-6xl md:text-7xl tracking-wider uppercase">Play'e</span>
           </motion.span>
         </div>
-        <div className="text-white font-bebas text-6xl md:text-7xl tracking-wider uppercase">
+        <div className="text-white drop-shadow-[0_0_10px_rgba(0,0,0,0.5)] font-bebas text-6xl md:text-7xl tracking-wider uppercase">
           Hoş Geldin Koç'lu!
         </div>
       </div>
@@ -213,11 +213,8 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
         transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
         className="fixed top-16 md:top-20 left-0 right-0 z-30 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white py-2 px-4 shadow-lg"
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
-          <span className="inline-flex items-center gap-2 font-semibold text-xs md:text-sm">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-lime-200">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <span className="inline-flex items-center font-semibold text-xs md:text-sm">
             2025-2026 güncel ELC kelimeleri kullanmaya hazır
           </span>
         </div>
@@ -225,70 +222,34 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
       
       <FeedbackButton />
       {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
-      <div className="w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-20 md:pt-20">
+      <div className="relative z-20 w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-4 md:pt-4">
         {/* Başlık ve açıklama */}
         <div className="flex-1">
-          <h1 className="text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center md:text-left leading-tight">
+          <h1 className="relative z-20 -mt-8 md:-mt-12 text-6xl md:text-9xl font-extrabold tracking-wider font-bebas uppercase mb-4 drop-shadow-[0_0_18px_rgba(0,190,255,0.25)] text-center md:text-left leading-tight">
             {headingLines.map((line, lineIndex) => (
               <span className="block" key={lineIndex}>{line}</span>
             ))}
           </h1>
-          <p className="mt-6 mb-8 text-base text-gray-300 font-inter leading-relaxed text-center md:text-left">
+          <p className="relative z-20 mt-6 mb-8 text-base text-white font-inter leading-relaxed text-center md:text-left">
             Koç Üniversitesi Hazırlık programının güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
-            <span className="block mt-2 text-sm text-gray-400 font-semibold opacity-60">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
+            <span className="block mt-2 text-sm text-gray-300 font-semibold">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
           </p>
-          <div className="flex justify-center md:justify-start mb-6 gap-3">
-            <Link 
-              to="/about-founder" 
-              className="inline-flex items-center px-3 py-1.5 bg-white/5 backdrop-blur-sm hover:bg-white/10 text-white/70 hover:text-white/90 rounded-full text-xs font-medium transition-all duration-300 border border-white/10 hover:border-white/20"
-            >
-              About Founder
-            </Link>
+          <div className="relative z-20 flex justify-center md:justify-start mb-6">
             <Link
               to="/game-modes"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full text-lg font-bold transition-all duration-300 shadow-2xl hover:shadow-red-500/25 transform hover:scale-105"
+              className="group relative z-20 inline-flex items-center justify-center px-16 py-5 bg-white text-gray-900 rounded-2xl text-lg font-bold transition-all duration-300 hover:bg-gray-100 hover:scale-105 shadow-lg hover:shadow-xl border border-gray-200"
             >
-              <div className="mr-2 relative">
-                <svg 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className="animate-pulse"
-                  style={{
-                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                  }}
-                >
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                  <line x1="8" y1="21" x2="16" y2="21"/>
-                  <line x1="12" y1="17" x2="12" y2="21"/>
-                  <circle cx="8" cy="10" r="1">
-                    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                  </circle>
-                  <circle cx="16" cy="10" r="1">
-                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
-                  </circle>
-                  <circle cx="8" cy="14" r="1">
-                    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-                  </circle>
-                  <circle cx="16" cy="14" r="1">
-                    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
-                  </circle>
-                </svg>
-                {/* Glow efekti */}
-                <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-75"></div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-gray-900 rounded-full group-hover:bg-red-500 transition-colors duration-300"></div>
+                <span>Çalışmaya Başla</span>
+                <div className="w-2 h-2 bg-gray-900 rounded-full group-hover:bg-red-500 transition-colors duration-300"></div>
               </div>
-              Oyun Modları
             </Link>
           </div>
           
           {/* Masaüstü için destek kutusu - Sol tarafta (Çok Geniş) */}
-          <div className="hidden md:block mt-6">
-            <div className="bg-green-100 border border-green-400 rounded-xl shadow-md p-4 flex flex-col items-center text-center max-w-xl">
+          <div className="relative z-20 hidden md:block mt-6">
+          <div className="relative z-20 bg-green-100 border border-green-400 rounded-xl shadow-md p-4 flex flex-col items-center text-center max-w-xl">
               <div className="text-red-600 text-lg font-extrabold mb-1">ÜCRETSİZ <span className="text-green-900 font-black">AMA</span></div>
               <div className="text-green-900 mb-2 text-sm">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/>{ProBadge} ile bize destek olabilirsin.</div>
               <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition text-sm mt-1">
@@ -313,9 +274,9 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
           </div>
         </div>
         {/* Leaderboards */}
-        <div className="flex-1 max-w-4xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-0 flex flex-col gap-4">
+        <div className="relative z-20 flex-1 max-w-4xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-0 flex flex-col gap-4">
           {/* Aktif Sezon Leaderboard */}
-          <div className="flex flex-col items-center p-4 bg-gradient-to-br from-green-900/80 to-green-800/80 rounded-3xl border-2 border-green-700 shadow-2xl relative">
+          <div className="relative z-20 flex flex-col items-center p-4 bg-gradient-to-br from-green-900/80 to-green-800/80 rounded-3xl border-2 border-green-700 shadow-2xl">
             <div className="w-full text-center mb-4">
               <span className="text-2xl font-black text-green-300 tracking-wide uppercase drop-shadow">
                 {currentSeason?.name || 'Aktif Sezon'}
@@ -408,7 +369,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
           {/* Eski Sezon Leaderboard */}
           {oldSeason && (
-          <div className="flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl relative opacity-75 mt-8 md:mt-12">
+          <div className="relative z-20 flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl opacity-75 mt-8 md:mt-12">
               <div className="w-full text-center mb-3">
                 <span className="text-lg font-black text-gray-300 tracking-wide uppercase drop-shadow">
                   {oldSeason?.name || '2024-25 Sezonu'}
@@ -506,9 +467,20 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
         </div>
       </div>
+      
+      {/* About Founder Button - Moved below */}
+      <div className="relative z-20 flex justify-center mt-8 mb-6">
+        <Link 
+          to="/about-founder" 
+          className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30 hover:border-white/50 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg"
+        >
+          About Founder
+        </Link>
+      </div>
+      
       {/* Mobil için destek kutusu (eski yeri) */}
-      <div className="block md:hidden w-full max-w-2xl mx-auto mt-6 mb-8">
-        <div className="bg-green-100 border border-green-400 rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
+      <div className="relative z-20 block md:hidden w-full max-w-2xl mx-auto mt-6 mb-8">
+        <div className="relative z-20 bg-green-100 border border-green-400 rounded-2xl shadow-lg p-6 flex flex-col items-center text-center">
           <div className="text-red-600 text-xl font-extrabold mb-2">ÜCRETSİZ <span className="text-green-900 font-black">AMA</span></div>
           <div className="text-green-900 mb-3 text-base">Uygulama tamamen ücretsiz; <span className="font-bold text-green-700">ama</span> yayında kalması ve gelişmesi için desteğe ihtiyacımız var.<br/>Küçük bir katkı bile çok değerli!<br/>{ProBadge} ile bize destek olabilirsin.</div>
           <a href="https://www.shopier.com/37829492" target="_blank" rel="noopener noreferrer" className="inline-block bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:from-green-600 hover:to-green-700 text-white font-extrabold py-4 px-12 rounded-full shadow-2xl transition text-2xl mt-4 animate-bounce-slow animate-pulse-bright">
@@ -620,7 +592,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
       </div>
       
       {/* Floating Elements - Optimized with fewer elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
         {/* Ana uçuşan elementler - Sabit pozisyonlar */}
           <motion.div
             className="absolute w-2 h-2 bg-red-500/20 rounded-full"
