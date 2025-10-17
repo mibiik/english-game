@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Trophy, User, Crown, Medal, Award, Star, Calendar, RefreshCw } from 'lucide-react';
+import { Crown, User, Calendar, RefreshCw } from 'lucide-react';
 import { seasonService, Season, SeasonLeaderboard } from '../services/seasonService';
-import { supabaseAuthService } from '../services/supabaseAuthService';
 import { db } from '../config/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 
@@ -16,7 +14,6 @@ function FallbackAvatar({ name, size = 40 }: { name: string, size?: number }) {
 }
 
 const SeasonLeaderboardPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
   const [currentSeason, setCurrentSeason] = useState<Season | null>(null);
   const [leaderboard, setLeaderboard] = useState<SeasonLeaderboard[]>([]);
   const [allSeasons, setAllSeasons] = useState<Season[]>([]);
@@ -44,6 +41,7 @@ const SeasonLeaderboardPage: React.FC = () => {
     if (selectedSeason) {
       loadLeaderboard(selectedSeason);
     } else if (currentSeason) {
+      setSelectedSeason(currentSeason.id); // Mevcut sezonu selectedSeason olarak ayarla
       loadLeaderboard(currentSeason.id);
     }
   }, [selectedSeason, currentSeason]);
@@ -59,8 +57,9 @@ const SeasonLeaderboardPage: React.FC = () => {
       const seasons = await seasonService.getAllSeasons();
       setAllSeasons(seasons);
 
-      // Mevcut sezonun leaderboard'unu getir
-      if (season) {
+      // Eğer selectedSeason yoksa mevcut sezonu ayarla
+      if (!selectedSeason && season) {
+        setSelectedSeason(season.id);
         const leaderboardData = await seasonService.getSeasonLeaderboard(season.id);
         setLeaderboard(leaderboardData);
       }
@@ -181,8 +180,32 @@ const SeasonLeaderboardPage: React.FC = () => {
     setSelectedSeason(seasonId);
   };
 
-  const handleRefresh = () => {
-    loadData();
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      // Mevcut sezonu yenile
+      const season = await seasonService.getCurrentSeason();
+      setCurrentSeason(season);
+
+      // Tüm sezonları yenile
+      const seasons = await seasonService.getAllSeasons();
+      setAllSeasons(seasons);
+
+      // Firebase verilerini yenile
+      await loadFirebaseOldSeason();
+
+      // Seçili sezonun leaderboard'unu yenile
+      if (selectedSeason) {
+        await loadLeaderboard(selectedSeason);
+      } else if (season) {
+        setSelectedSeason(season.id);
+        await loadLeaderboard(season.id);
+      }
+    } catch (error) {
+      console.error('Yenileme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -204,7 +227,11 @@ const SeasonLeaderboardPage: React.FC = () => {
                 onChange={(e) => handleSeasonChange(e.target.value)}
                 className="px-3 py-2 bg-gray-900/50 text-gray-200 text-sm rounded-xl border border-gray-600/50 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 transition-all duration-200 min-w-[200px]"
               >
-                <option value="">{currentSeason?.name || 'Yükleniyor...'}</option>
+                {currentSeason && (
+                  <option value={currentSeason.id}>
+                    {currentSeason.name} (Aktif)
+                  </option>
+                )}
                 {allSeasons
                   .filter(season => 
                     !season.name.includes('2024-25') && 
@@ -241,7 +268,7 @@ const SeasonLeaderboardPage: React.FC = () => {
           {selectedSeason === 'firebase-old-season-2024-25' 
             ? firebaseOldSeason?.name || 'Eski Sezon'
             : selectedSeason 
-              ? allSeasons.find(s => s.id === selectedSeason)?.name || 'Sezon' 
+              ? allSeasons.find(s => s.id === selectedSeason)?.name || currentSeason?.name || 'Sezon'
               : currentSeason?.name || 'LİDERLER'}
         </h1>
         <p className="text-gray-300 text-base md:text-lg font-medium mt-2">

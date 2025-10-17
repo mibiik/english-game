@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Sparkles } from 'lucide-react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { gameStateManager } from '../../lib/utils';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { learningStatsTracker } from '../../data/learningStats';
 import { authService } from '../../services/authService';
 import { soundService } from '../../services/soundService';
-import { definitionCacheService } from '../../services/definitionCacheService';
 
 interface FlashCardProps {
   words: WordDetail[];
@@ -77,16 +76,13 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
   // En başa kaydır
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const loadDefinition = useCallback(async (word: string) => {
+  const loadDefinition = useCallback(async (wordHead: string) => {
     if (definitionMode === 'english') {
       setIsLoadingDefinition(true);
       try {
-        const definition = await definitionCacheService.getDefinition(word, 'en');
-        setDefinitionText(definition);
-        setShowDefinition(true);
-      } catch (error) {
-        console.error('Definition yüklenirken hata:', error);
-        setDefinitionText('Definition could not be loaded.');
+        const w = roundWords.find(w => w.headword === wordHead) || words.find(w => w.headword === wordHead);
+        const inlineDef = (w as any)?.definition;
+        setDefinitionText(inlineDef || 'Definition not available.');
         setShowDefinition(true);
       } finally {
         setIsLoadingDefinition(false);
@@ -94,17 +90,15 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
     } else {
       setShowDefinition(false);
     }
-  }, [definitionMode]);
+  }, [definitionMode, roundWords, words]);
 
   const loadWordDetails = useCallback(async (word: WordDetail) => {
-    try {
-      const definition = await definitionCacheService.getDefinition(word.headword, 'en');
+    const inlineDef = (word as any)?.definition;
+    if (inlineDef) {
       setWordDefinitions(prev => ({
         ...prev,
-        [word.headword]: definition
+        [word.headword]: inlineDef
       }));
-    } catch (error) {
-      console.error('Word details yüklenirken hata:', error);
     }
   }, []);
 
@@ -161,7 +155,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
       // Anında puan ekle
       const userId = authService.getCurrentUserId();
       if (userId) {
-        gameScoreService.addScore(userId, 'flashcard', -1);
+        supabaseGameScoreService.addScore(userId, 'flashcard', -1);
       }
       setRepeatList(prev => {
         // Aynı kelime tekrar eklenmesin
@@ -176,7 +170,7 @@ export const FlashCard: React.FC<FlashCardProps> = ({ words }) => {
       // Anında puan ekle
       const userId = authService.getCurrentUserId();
       if (userId) {
-        gameScoreService.addScore(userId, 'flashcard', 1);
+        supabaseGameScoreService.addScore(userId, 'flashcard', 1);
       }
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1000);

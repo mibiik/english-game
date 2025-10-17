@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabase';
 import { supabaseAuthService } from '../services/supabaseAuthService';
-import { Word } from '../data/words';
+import { Word } from '../data/intermediate';
 
 export interface WordList {
   id: string;

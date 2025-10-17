@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../data/words';
+import { Word } from '../data/intermediate';
 import { wordListService, WordList } from '../services/wordListService';
 import { authService } from '../services/authService';
 import { Plus, List, Save, X } from 'lucide-react';

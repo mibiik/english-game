@@ -1,4 +1,4 @@
-import { Word } from '../data/words';
+import { Word } from '../data/intermediate';
 
 export interface Unit {
   id: string;

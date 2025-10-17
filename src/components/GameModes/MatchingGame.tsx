@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { AlarmClock, Target, Volume2, VolumeX, ChevronLeft, ChevronRight } from 'lucide-react';

@@ -1,4 +1,4 @@
-import { Word } from './words';
+import { Word } from './intermediate';
 
 interface DailyStats {
   date: string;

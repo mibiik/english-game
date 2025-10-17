@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Trophy, Loader2, AlertTriangle, RefreshCw, ArrowLeft, ArrowRight, CheckCircle, XCircle, Target } from 'lucide-react';
 import { SentenceCompletionService, SentenceQuestion } from '../../services/sentenceCompletionService';
 import { gameScoreService } from '../../services/gameScoreService';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { authService } from '../../services/authService';
 import { awardPoints } from '../../services/scoreService';
 import { soundService } from '../../services/soundService';

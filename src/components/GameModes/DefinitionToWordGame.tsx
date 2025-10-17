@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { gameStateManager } from '../../lib/utils';
 import { CheckCircle, X, RotateCcw, Sparkles, ArrowRight, Brain, Flame, Trophy, Target, XCircle } from 'lucide-react';
-import { definitionCacheService } from '../../services/definitionCacheService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
@@ -79,19 +78,13 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
     return allOptions.sort(() => Math.random() - 0.5);
   };
 
-  // initializeGame fonksiyonunu sadeleştir:
+  // initializeGame fonksiyonunu sadeleştir: sadece inline definition kullan
   const initializeGame = async () => {
     if (gameInitialized.current || words.length === 0) return;
     setIsLoading(true);
     try {
-      const headwords = words.map(w => w.headword);
-      const definitionPromise = definitionCacheService.getDefinitions(headwords, 'en');
-      const quickStartPromise = new Promise<Record<string, string>>(resolve => {
-        setTimeout(() => resolve({}), 2000);
-      });
-      const definitions = await Promise.race([definitionPromise, quickStartPromise]);
-      const gameQuestions: Question[] = words.map(word => ({
-        definition: definitions[word.headword] || `Loading definition for "${word.headword}"...`,
+      const gameQuestions: Question[] = words.map((word) => ({
+        definition: (word as any).definition || '',
         correct: word.headword,
         options: generateRandomOptions(word.headword, words),
         turkish: word.turkish,
@@ -116,37 +109,30 @@ export const DefinitionToWordGame: React.FC<DefinitionToWordGameProps> = ({ word
       setShowCongratulations(false);
       gameInitialized.current = true;
       setIsLoading(false);
-      // Arka planda eksik definition'ları doldur
-      if (Object.keys(definitions).length < headwords.length) {
-        definitionCacheService.getDefinitions(headwords, 'en').then(fullDefinitions => {
-          setQuestions(prev => prev.map(q => ({
-            ...q,
-            definition: fullDefinitions[q.correct] || q.definition
-          })));
-        });
-      }
     } catch (error) {
-      const gameQuestions: Question[] = words.map(word => ({
-        definition: `Loading definition for "${word.headword}"...`,
+      const fallbackQuestions: Question[] = words.map(word => ({
+        definition: '',
         correct: word.headword,
         options: generateRandomOptions(word.headword, words),
         turkish: word.turkish,
         wordId: word.headword
       }));
-      setQuestions(gameQuestions.sort(() => Math.random() - 0.5));
+      setQuestions(fallbackQuestions.sort(() => Math.random() - 0.5));
       setIsLoading(false);
     }
   };
 
-  // useEffect ile başlatma kısmını sadeleştir:
   useEffect(() => {
-    previousUnit.current = unit;
-    previousWordsCount.current = words.length;
-    if (words.length > 0) {
+    // Parametreler değiştiğinde oyunu sıfırla
+    if (previousUnit.current !== unit || previousWordsCount.current !== words.length) {
       gameInitialized.current = false;
-      initializeGame();
+      previousUnit.current = unit;
+      previousWordsCount.current = words.length;
+      setQuestions([]);
+      setCurrentIndex(0);
     }
-  }, [words, unit]);
+    initializeGame();
+  }, [unit, words]);
 
   // Progress hesapla
   useEffect(() => {

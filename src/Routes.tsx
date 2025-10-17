@@ -1,12 +1,10 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Routes, Route, useSearchParams } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { WordDetail } from './data/words';
-import { kuepeWords as newDetailedWords_part1 } from './data/word2';
-import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/word4';
-import { kuepeWords as preIntermediateWordsRaw } from './data/word2';
-import { newDetailedWords_part1 as foundationWordsRaw } from './data/word1';
-import { kuepeWords } from './data/kuepe';
+import { WordDetail, detailedWords_pathways3_part1 as intermediateWordsRaw } from './data/intermediate';
+import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/upperIntermediate';
+import { detailedWords_part1 as foundationWordsRaw } from './data/foundation';
+import { detailedWords_part1 as preIntermediateWordsRaw } from './data/preintermediate';
 
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -368,22 +366,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
             </>
           </ProtectedRoute>
         } />
-        <Route path="/kuepe-mode" element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <>
-              <Navbar 
-                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
-                currentUnit={currentUnit}
-                setCurrentUnit={setCurrentUnit}
-                currentLevel={currentLevel}
-                setCurrentLevel={setCurrentLevel}
-              />
-              <div className="pt-32">
-                <GameWrapperWithParams component={LearningMode} />
-              </div>
-            </>
-          </ProtectedRoute>
-        } />
+        {/* KUEPE modu kaldırıldı */}
         <Route path="/grammar-game" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <>
@@ -484,12 +467,10 @@ function getWordsByParams(unit: string, level: string): WordDetail[] {
     case 'foundation':
       sourceData = foundationWordsRaw;
       break;
-    case 'kuepe':
-      sourceData = kuepeWords;
-      break;
+    // KUEPE kaldırıldı
     case 'intermediate':
     default:
-      sourceData = newDetailedWords_part1;
+      sourceData = intermediateWordsRaw;
       break;
   }
 
@@ -597,7 +578,7 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   useEffect(() => {
     console.log('GameWrapper: URL params changed:', { unit, level, componentName: component.name });
     console.log('GameWrapper: Available data sources:', {
-      intermediateCount: newDetailedWords_part1.length,
+      intermediateCount: intermediateWordsRaw.length,
       upperIntermediateCount: upperIntermediateWordsRaw.length
     });
     

@@ -206,21 +206,20 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#070a1a] via-[#0a0d1a] to-[#01020a] text-gray-100 overflow-hidden relative" style={{ paddingTop: '64px', marginTop: '-128px' }}>
-      {/* 26. Sezon Çok Yakında Şeridi - Navbar'ın hemen altında, sabit */}
+      {/* 2025-2026 Güncel ELC Şeridi - Navbar'ın hemen altında, sabit */}
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
-        className="fixed top-20 left-0 right-0 z-30 bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 text-white py-2 px-4 shadow-lg"
+        className="fixed top-16 md:top-20 left-0 right-0 z-30 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white py-2 px-4 shadow-lg"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
-          <Trophy className="w-5 h-5 text-yellow-300 animate-pulse" />
-          <span className="font-semibold text-xs md:text-sm">
-            Yeni dönem kelime listesi çok yakında! 🚀 Beklemede Kalın
+          <span className="inline-flex items-center gap-2 font-semibold text-xs md:text-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-lime-200">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+            2025-2026 güncel ELC kelimeleri kullanmaya hazır
           </span>
-          <div className="hidden sm:flex items-center gap-2 text-xs opacity-90">
-
-          </div>
         </div>
       </motion.div>
       
@@ -409,10 +408,10 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
           {/* Eski Sezon Leaderboard */}
           {oldSeason && (
-            <div className="flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl relative opacity-75 mt-8 md:mt-12">
+          <div className="flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl relative opacity-75 mt-8 md:mt-12">
               <div className="w-full text-center mb-3">
                 <span className="text-lg font-black text-gray-300 tracking-wide uppercase drop-shadow">
-                  {oldSeason.name}
+                  {oldSeason?.name || '2024-25 Sezonu'}
                 </span>
                 <div className="w-12 h-1 bg-gray-400 mx-auto mt-1 rounded-full"></div>
                 <span className="text-xs text-gray-400 mt-1 block">Kapatılmış Sezon</span>
@@ -801,7 +800,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
 
         {/* Sezon Uyarı Modal */}
-        {showSeasonModal && (
+        {false && (
           <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}

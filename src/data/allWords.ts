@@ -1,7 +1,7 @@
-import { newDetailedWords_part1 as foundationWords } from './word1';
-import { newDetailedWords_part1 as preIntermediateWords } from './word2';
-import { detailedWords_part1 as upperIntermediateWords } from './word4';
-import { newDetailedWords_part1 as intermediateWords } from './words';
+import { detailedWords_part1 as foundationWords } from './foundation';
+import { detailedWords_part1 as preIntermediateWords } from './foundation';
+import { detailedWords_part1 as upperIntermediateWords } from './upperIntermediate';
+import { detailedWords_pathways3_part1 as intermediateWords } from './intermediate';
 import { kuepeWords } from './kuepe';
 
 export interface WordData {

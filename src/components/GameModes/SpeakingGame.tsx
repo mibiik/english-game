@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, Volume2, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 

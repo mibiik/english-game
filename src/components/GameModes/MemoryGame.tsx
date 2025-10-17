@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Brain } from 'lucide-react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { soundService } from '../../services/soundService';

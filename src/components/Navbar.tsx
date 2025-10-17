@@ -79,7 +79,8 @@ const MobileMenu: React.FC<{
     ...(isKuepeAuthorized() ? [{ id: 'kuepe', name: 'KUEPE' }] : []),
   ];
 
-  const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
+  const unitCount = currentLevel === 'foundation' ? 6 : 10;
+  const units = Array.from({ length: unitCount }, (_, i) => `Ünite ${i + 1}`);
 
   const handleLevelSelect = (levelName: string) => {
     const selectedLevel = levels.find(l => l.name === levelName);

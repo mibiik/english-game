@@ -1,4 +1,4 @@
-import { Word } from './words';
+import { Word } from './intermediate';
 import { difficultWordsManager } from './difficultWords';
 import { wordTracker } from './wordTracker';
 import { learningStatsTracker } from './learningStats';

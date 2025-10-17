@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, RefreshCw, CheckCircle, XCircle, Trophy, AlertTriangle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { aiService } from '../../services/aiService';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { Button } from '../ui/button';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';

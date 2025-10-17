@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Trophy, Target, CheckCircle, XCircle } from 'lucide-react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { learningStatsTracker } from '../../data/learningStats';
 import { updateWordDifficulty } from '../../data/difficultWords';
 import { supabaseAuthService } from '../../services/supabaseAuthService';

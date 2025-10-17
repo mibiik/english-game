@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { WordDetail } from '../data/words';
+import { WordDetail } from '../data/intermediate';
 import { userAnalyticsService } from '../services/userAnalyticsService';
 
 interface GameWrapperProps {

@@ -1,4 +1,4 @@
-import { WordDetail } from './word4';
+import { WordDetail } from './upperIntermediate';
 
 export const wordDetails: WordDetail[] = [
   {

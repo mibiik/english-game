@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../../data/words';
+import { Word } from '../../data/intermediate';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { useAuth } from '../../services/authService';
 import { wordTypes, WordType } from '../../data/wordTypes';

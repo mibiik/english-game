@@ -102,19 +102,21 @@ const WelcomePage: React.FC = React.memo(() => {
 						Koç Üniversitesi hazırlık listeleriyle uyumlu, oyunlarla öğrenin ve kelime haznenizi geliştirin. Hazırlığı geçmenin en eğlenceli yolu!
 					</motion.p>
 					
-					{/* Sezon Çok Yakında Duyurusu */}
-					<motion.div 
-						variants={fadeUpAnimation} 
-						initial="hidden" 
-						animate="show" 
-						transition={{ delay: 0.09 }} 
-						className="mb-8"
-					>
-						<div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 rounded-full text-orange-300 text-sm font-medium">
-							<Trophy className="w-4 h-4 text-yellow-400" />
-							<span>26. Sezon Çok Yakında!</span>
-						</div>
-					</motion.div>
+          {/* 2025-2026 bilgilendirme */}
+          <motion.div 
+            variants={fadeUpAnimation} 
+            initial="hidden" 
+            animate="show" 
+            transition={{ delay: 0.09 }} 
+            className="mb-8"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-400/30 rounded-full text-emerald-300 text-sm font-medium">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-emerald-200">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              <span>2025-2026 Güz dönemi kelimeleri seni bekliyor!</span>
+            </div>
+          </motion.div>
 					<motion.div variants={fadeUpAnimation} initial="hidden" animate="show" transition={{ delay: 0.12 }} className="flex flex-col sm:flex-row gap-3 justify-center">
 						<button onClick={() => { setAuthMode('register'); setShowAuth(true); }} className="btn-shine inline-flex items-center gap-2 rounded-2xl px-6 py-3 bg-white text-neutral-950 font-medium hover:bg-neutral-200 transition-colors focus-white">
 							Ücretsiz Başla

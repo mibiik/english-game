@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, ArrowRight, FileText, Check, AlertCircle, Lock, Globe } from 'lucide-react';
 import { wordListService } from '../services/wordListService';
-import { Word } from '../data/words';
+import { Word } from '../data/intermediate';
 import { authService } from '../services/authService';
 
 interface WordListImportProps {

@@ -114,7 +114,8 @@ const Dropdown: React.FC<{
 
 // --- MASAÜSTÜ BİLEŞENİ ---
 const DesktopUnitSelector: React.FC<UnitSelectorProps> = ({ currentUnit, setCurrentUnit, currentLevel, setCurrentLevel }) => {
-  const units = Array.from({ length: 8 }, (_, i) => `Ünite ${i + 1}`);
+  const unitCount = currentLevel === 'foundation' ? 6 : 10;
+  const units = Array.from({ length: unitCount }, (_, i) => `Ünite ${i + 1}`);
   const levels: { id: Level; name: string }[] = [
     { id: 'foundation', name: 'Foundation' },
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },
@@ -165,7 +166,8 @@ const MobileUnitSelector: React.FC<UnitSelectorProps & { isOpen: boolean; onClos
   isOpen,
   onClose
 }) => {
-  const units = Array.from({ length: 8 }, (_, i) => `${i + 1}`);
+  const unitCount = currentLevel === 'foundation' ? 6 : 10;
+  const units = Array.from({ length: unitCount }, (_, i) => `${i + 1}`);
   const levels: { id: Level; name: string }[] = [
     { id: 'foundation', name: 'Foundation' },
     { id: 'pre-intermediate', name: 'Pre-Intermediate' },

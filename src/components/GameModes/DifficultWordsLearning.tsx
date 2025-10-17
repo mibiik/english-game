@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Brain, Eye, Ear, Heart, Move, Lightbulb, Clock, 

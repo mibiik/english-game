@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { VocabularyService, Unit, VocabularyGame } from '../../services/vocabularyService';
 import { generateSentences } from '../../services/openRouterService';
-import { Word } from '../../data/words';
+import { Word } from '../../data/intermediate';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { userAnalyticsService } from '../../services/userAnalyticsService';
 import { authService } from '../../services/authService';

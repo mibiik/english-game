@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Trophy, CheckCircle, XCircle } from 'lucide-react';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gameStateManager } from '../../lib/utils';
 import { updateWordDifficulty } from '../../data/difficultWords';

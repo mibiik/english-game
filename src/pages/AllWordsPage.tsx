@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, BookOpen, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { WordDetail } from '../data/words';
-import { newDetailedWords_part1 as foundationWords } from '../data/word1';
-import { kuepeWords as preIntermediateWords } from '../data/word2';
-import { detailedWords_part1 as upperIntermediateWords } from '../data/word4';
-import { kuepeWords as intermediateWords } from '../data/words';
-import { kuepeWords } from '../data/kuepe';
+import { Search, BookOpen, X, ChevronDown, Sparkles, Loader2 } from 'lucide-react';
+import { WordDetail } from '../data/intermediate';
+import { detailedWords_part1 as foundationWords } from '../data/foundation';
+import { detailedWords_part1 as preIntermediateWords } from '../data/foundation';
+import { detailedWords_part1 as upperIntermediateWords } from '../data/upperIntermediate';
+import { detailedWords_pathways3_part1 as intermediateWords } from '../data/intermediate';
+// KUEPE kaldırıldı
 import { definitionCacheService } from '../services/definitionCacheService';
-import { ArrowLeft, ArrowRight, ArrowUp, Lightbulb, Star, Loader2, Volume2, Bookmark, Sparkles, Zap, CheckCircle } from 'lucide-react';
 
 interface AllWordsPageProps {
   currentLevel: string;
@@ -147,9 +146,7 @@ const AllWordsPage: React.FC<AllWordsPageProps> = ({ currentLevel }) => {
       case 'upper-intermediate':
         words = upperIntermediateWords;
         break;
-      case 'kuepe':
-        words = kuepeWords;
-        break;
+      // KUEPE kaldırıldı
       case 'intermediate':
       default:
         words = intermediateWords;

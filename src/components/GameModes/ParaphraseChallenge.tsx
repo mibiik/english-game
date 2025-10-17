@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { aiService } from '../../services/aiService';
-import { definitionCacheService } from '../../services/definitionCacheService';
-import { WordDetail } from '../../data/words';
+import { WordDetail } from '../../data/intermediate';
 import { RefreshCw, CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
@@ -66,31 +65,14 @@ export const ParaphraseChallenge: React.FC<ParaphraseChallengeProps> = ({ words,
     setSelectedWord(word);
     setIsLoadingMeaning(true);
     try {
-      const meaning = await definitionCacheService.getDefinition(word, 'en');
-      const sections = meaning.split('\n\n').map(section => {
-        if (section.startsWith('**')) {
-          const title = section.replace(/\*\*/g, '').split('\n')[0];
-          const content = section.split('\n').slice(1);
-          return `<strong>${title}</strong>\n${content.map(line => {
-            if (line.startsWith('* **')) {
-              return `<strong>${line.replace(/\* \*\*|\*\*/g, '').replace(/^\* /, '')}</strong>`;
-            }
-            return line.replace(/^\* /, '');
-          }).join('\n')}`;
-        }
-        return section;
-      }).join('\n\n');
-      
-      setWordMeaning(sections);
-      
-      // Timer for automatically closing after showing word meaning
+      const matched = words.find(w => w.headword.toLowerCase() === word.toLowerCase());
+      const inlineDef = (matched as any)?.definition;
+      setWordMeaning(inlineDef || 'Definition not available.');
       setTimeout(() => {
         setSelectedWord('');
-      }, 3000); // Close after 3 seconds
-      
+      }, 3000);
     } catch (error) {
-      setWordMeaning('An error occurred while loading the word meaning.');
-      // Close shortly after in case of error
+      setWordMeaning('Definition not available.');
       setTimeout(() => {
         setSelectedWord('');
       }, 2000);

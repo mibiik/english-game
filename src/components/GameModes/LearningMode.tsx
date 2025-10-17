@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { WordDetail } from '../../data/words';
-import { definitionCacheService } from '../../services/definitionCacheService';
-import { ArrowLeft, ArrowRight, Lightbulb, Star, Loader2, Volume2, ChevronLeft, ChevronRight, Bookmark, Sparkles, Zap, CheckCircle } from 'lucide-react';
+import { WordDetail, detailedWords_pathways3_part1 as intermediateWords } from '../../data/intermediate';
+import { Lightbulb, Loader2, Volume2, ChevronLeft, ChevronRight, Sparkles, Zap, CheckCircle, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 // Tüm kelimeler için import
-import { allWordsWithTranslations } from '../../data/allWords';
-import { newDetailedWords_part1 as foundationWords } from '../../data/word1';
-import { kuepeWords as preIntermediateWords } from '../../data/word2';
-import { detailedWords_part1 as upperIntermediateWords } from '../../data/word4';
-import { kuepeWords as intermediateWords } from '../../data/words';
-import { kuepeWords } from '../../data/kuepe';
+// import { allWordsWithTranslations } from '../../data/allWords';
+import { detailedWords_part1 as foundationWords } from '../../data/foundation';
+import { detailedWords_part1 as preIntermediateWords } from '../../data/foundation';
+import { detailedWords_part1 as upperIntermediateWords } from '../../data/upperIntermediate';
+// KUEPE kaldırıldı
 import { awardPoints } from '../../services/scoreService';
 import { userService } from '../../services/userService';
 import { authService } from '../../services/authService';
+import { supabaseAuthService } from '../../services/supabaseAuthService';
 
 interface LearningModeProps {
   words: WordDetail[];
@@ -72,52 +71,11 @@ const getThemeClasses = (theme: Theme) => {
     }
 };
 
-const WordFormsDisplay: React.FC<{ forms: WordDetail['forms'] }> = ({ forms }) => {
-  const formEntries = Object.entries(forms).filter(([, value]) => Array.isArray(value) && value.length > 0);
-
-  if (formEntries.length === 0) {
-    return null;
-  }
-
-  return (
-    <div>
-      <h3 className="font-semibold text-white text-md mb-2 mt-4">Kelime Formları:</h3>
-      <div className="flex flex-wrap gap-2">
-        {formEntries.map(([type, words]) => (
-          <div key={type} className="bg-gray-700 rounded-md px-3 py-1">
-            <span className="text-xs text-cyan-400 capitalize mr-2">{type}:</span>
-            <span className="text-sm text-gray-200">{words.join(', ')}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const SynonymDisplay: React.FC<{ synonyms: string[] }> = ({ synonyms }) => {
-  if (!synonyms || synonyms.length === 0) {
-    return null;
-  }
-
-  return (
-    <div>
-      <h3 className="font-semibold text-white text-md mb-2 mt-4">Eş Anlamlılar:</h3>
-      <div className="flex flex-wrap gap-2">
-        {synonyms.map((synonym, index) => (
-          <div key={index} className="bg-purple-700 rounded-md px-3 py-1">
-            <span className="text-sm text-purple-200">{synonym}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+// removed unused WordFormsDisplay
 
 export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   // ALL HOOKS MUST BE CALLED FIRST - BEFORE ANY CONDITIONAL RETURNS
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [definitions, setDefinitions] = useState<Record<string, string>>({});
-  const [isLoadingDefinitions, setIsLoadingDefinitions] = useState(false);
   const [showTurkish, setShowTurkish] = useState(true);
   const [theme, setTheme] = useState<Theme>('blue');
   const [mainDefinition, setMainDefinition] = useState<{ text: string | null, isLoading: boolean }>({ text: null, isLoading: false });
@@ -140,39 +98,58 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     }
   });
 
-  // Tüm kelimeleri birleştir
-  const allDetailedWords = useMemo(() => [
-    ...foundationWords,
-    ...preIntermediateWords,
-    ...upperIntermediateWords,
-    ...intermediateWords,
-    ...kuepeWords
-  ], []);
-
-  const wordsToDisplay = useMemo(() => {
-    if (showOnlyDifficult) {
-      // Tüm zorlandığı kelimeleri göster (sadece mevcut üniteden değil)
-      const difficultWordsList = allDetailedWords.filter(word => difficultWords.includes(word.headword));
-      
-      // Eğer zorlandığı kelime yoksa, rastgele 10 kelime göster
-      if (difficultWordsList.length === 0) {
-        const shuffledWords = [...allDetailedWords].sort(() => 0.5 - Math.random());
-        return shuffledWords.slice(0, 10);
-      }
-      
-      return difficultWordsList;
-    }
-    return words;
-  }, [words, difficultWords, showOnlyDifficult, allDetailedWords]);
-
   // Tüm zorlandığı kelime sayısı (tüm ünitelerden)
   const totalDifficultWordsCount = useMemo(() => {
     return difficultWords.length;
   }, [difficultWords]);
 
+  // Tüm kelimeleri birleştir
+  const allDetailedWords = useMemo(() => [
+    ...foundationWords,
+    ...preIntermediateWords,
+    ...upperIntermediateWords,
+    ...intermediateWords
+  ], []);
+
+  const wordsToDisplay = useMemo(() => {
+    if (showOnlyDifficult) {
+      const difficultWordsList = allDetailedWords.filter(word => difficultWords.includes(word.headword));
+      if (difficultWordsList.length === 0) {
+        const shuffledWords = [...allDetailedWords].sort(() => 0.5 - Math.random());
+        return shuffledWords.slice(0, 10);
+      }
+      return difficultWordsList;
+    }
+    return words;
+  }, [words, difficultWords, showOnlyDifficult, allDetailedWords]);
+
   const popoverRef = useRef<HTMLDivElement>(null);
   const themeClasses = getThemeClasses(theme);
   const currentWord = useMemo(() => wordsToDisplay[currentIndex], [wordsToDisplay, currentIndex]);
+
+  // Ana kelime definition'ını inline veriden al
+  useEffect(() => {
+    if (currentWord && (currentWord as any).definition) {
+      setMainDefinition({ text: (currentWord as any).definition, isLoading: false });
+    } else {
+      setMainDefinition({ text: null, isLoading: false });
+    }
+  }, [currentWord]);
+
+  const handleWordFormClick = useCallback(async (form: string, targetId: string) => {
+    if (definitionState.targetId === targetId) {
+      setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
+      return;
+    }
+
+    setDefinitionState({ 
+      word: form, 
+      definition: 'Definition not available.', 
+      isLoading: false, 
+      error: null, 
+      targetId 
+    });
+  }, [definitionState.targetId]);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % wordsToDisplay.length);
@@ -247,88 +224,16 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     });
   }, [showOnlyDifficult, allDetailedWords, currentIndex]);
 
-  const handleWordFormClick = useCallback(async (form: string, targetId: string) => {
-    if (definitionState.targetId === targetId) {
-      handleClosePopover();
-      return;
-    }
-
-    setDefinitionState({ 
-      word: form, 
-      definition: null, 
-      isLoading: true, 
-      error: null, 
-      targetId: targetId 
-    });
-
-    try {
-      const definition = await definitionCacheService.getDefinition(form, 'en');
-      setDefinitionState(prev => ({ ...prev, definition, isLoading: false }));
-    } catch (error) {
-      console.error(error);
-      setDefinitionState(prev => ({ ...prev, error: 'Failed to fetch definition.', isLoading: false }));
-    }
-  }, [definitionState.targetId, handleClosePopover]);
-
-  // Fetch definition for the main headword by deriving from the main definitions state
-  useEffect(() => {
-    if (currentWord) {
-      const definitionText = definitions[currentWord.headword];
-      if (definitionText) {
-        setMainDefinition({ text: definitionText, isLoading: false });
-      } else {
-        // The other useEffect is responsible for fetching, so just show loading
-      setMainDefinition({ text: null, isLoading: true });
-      }
-    }
-  }, [currentWord, definitions]);
-
   useEffect(() => {
     localStorage.setItem('difficultWords', JSON.stringify(difficultWords));
   }, [difficultWords]);
   
   useEffect(() => {
     setCurrentIndex(0);
-    setDefinitions({});
   }, [showOnlyDifficult, words]);
 
   // En başa kaydır
   useEffect(() => { window.scrollTo(0, 0); }, []);
-
-  useEffect(() => {
-    const fetchInBatches = async (wordsToFetch: string[]) => {
-      const batchSize = 10;
-      setIsLoadingDefinitions(true);
-
-      for (let i = 0; i < wordsToFetch.length; i += batchSize) {
-        const batch = wordsToFetch.slice(i, i + batchSize);
-        if (batch.length > 0) {
-          try {
-            const newDefinitions = await definitionCacheService.getDefinitions(batch, 'en');
-            setDefinitions(prev => ({ ...prev, ...newDefinitions }));
-          } catch (error) {
-            console.error("Error fetching batch definitions:", error);
-            const failedDefinitions = batch.reduce((acc, word) => {
-              acc[word] = 'Definition could not be loaded.';
-              return acc;
-            }, {} as Record<string, string>);
-            setDefinitions(prev => ({ ...prev, ...failedDefinitions }));
-          }
-        }
-      }
-      setIsLoadingDefinitions(false);
-    };
-
-    if (wordsToDisplay.length > 0) {
-      const wordsWithoutDefs = wordsToDisplay
-        .map(w => w.headword)
-        .filter(headword => !definitions[headword]);
-
-      if (wordsWithoutDefs.length > 0) {
-        fetchInBatches(wordsWithoutDefs);
-      }
-    }
-  }, [wordsToDisplay, definitions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -351,18 +256,20 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     };
   }, [definitionState.targetId, handleClosePopover]);
 
-  // Component mount olduğunda zor kelimeleri çek ve sadece bir kez puan ver
+  // Component mount olduğunda zor kelimeleri çek ve (sadece giriş yapılmış kullanıcı için) bir kez puan ver
   useEffect(() => {
-    // Sadece bir kez puan vermek için localStorage kontrolü
-    const hasAwardedPoints = localStorage.getItem('learningModePointsAwarded');
-    if (!hasAwardedPoints) {
-      awardPoints('learning-mode', 10, '1');
-      localStorage.setItem('learningModePointsAwarded', 'true');
-    }
-    
-    // Firestore'dan zor kelimeleri çek
-    const userId = authService.getCurrentUserId();
+    const userId = supabaseAuthService.getCurrentUserId();
+
+    // Kullanıcı giriş yapmışsa, kullanıcıya özel anahtar ile bir kez puan ver
     if (userId) {
+      const awardedKey = `learningModePointsAwarded:${userId}`;
+      const hasAwardedForUser = localStorage.getItem(awardedKey);
+      if (!hasAwardedForUser) {
+        awardPoints('learning-mode', 10, '1');
+        localStorage.setItem(awardedKey, 'true');
+      }
+
+      // Cloud'dan zor kelimeleri çek
       userService.getDifficultWordsFromCloud(userId).then(cloudWords => {
         if (cloudWords && Array.isArray(cloudWords)) {
           setDifficultWords(cloudWords);
@@ -432,7 +339,8 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
 
   // KUEPE için synonym render fonksiyonu
   const renderSynonyms = useCallback(() => {
-    if (!currentWord || !currentWord.synonyms || currentWord.synonyms.length === 0) {
+    const synonyms = (currentWord as any)?.synonyms as string[] | undefined;
+    if (!currentWord || !Array.isArray(synonyms) || synonyms.length === 0) {
       return null;
     }
 
@@ -442,7 +350,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
           <Zap className="w-5 h-5 mr-2" /> Eş Anlamlılar
         </h3>
         <div className="flex flex-wrap gap-3">
-          {currentWord.synonyms.map((synonym: string, index: number) => (
+          {synonyms.map((synonym: string, index: number) => (
             <div key={index} className={`px-4 py-2 rounded-lg transition-all duration-200 ${theme === 'classic' ? 'bg-purple-700 text-purple-200' : theme === 'blue' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`}>
               <span className="font-medium">{synonym}</span>
             </div>
