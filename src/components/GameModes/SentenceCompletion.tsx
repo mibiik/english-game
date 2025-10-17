@@ -8,6 +8,7 @@ import { WordDetail } from '../../data/intermediate';
 import { authService } from '../../services/authService';
 import { awardPoints } from '../../services/scoreService';
 import { soundService } from '../../services/soundService';
+import AIServiceModal from '../AIServiceModal';
 
 interface SentenceCompletionProps {
   words: WordDetail[];
@@ -75,8 +76,17 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
   const [theme, setTheme] = useState<Theme>('blue');
   const [correctCount, setCorrectCount] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const themeClasses = useMemo(() => getThemeClasses(theme), [theme]);
+
+  // Show AI modal on first load
+  useEffect(() => {
+    const hasSeenAIModal = localStorage.getItem('sentence-completion-ai-modal-seen');
+    if (!hasSeenAIModal) {
+      setShowAIModal(true);
+    }
+  }, []);
 
   // --- DATA LOADING AND GAME SETUP ---
   const loadGame = useCallback(async () => {
@@ -355,7 +365,21 @@ export const SentenceCompletion: React.FC<SentenceCompletionProps> = ({ words })
     );
   };
 
-  return renderContent();
+  return (
+    <>
+      {renderContent()}
+      
+      {/* AI Service Modal */}
+      <AIServiceModal
+        isOpen={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+          localStorage.setItem('sentence-completion-ai-modal-seen', 'true');
+        }}
+        serviceName="Sentence Completion"
+      />
+    </>
+  );
 };
 
 // --- YARDIMCI BİLEŞENLER ---

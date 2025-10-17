@@ -234,7 +234,6 @@ const SeasonLeaderboardPage: React.FC = () => {
                 )}
                 {allSeasons
                   .filter(season => 
-                    !season.name.includes('2024-25') && 
                     season.id !== currentSeason?.id // Mevcut sezonu tekrar gösterme
                   )
                   .map((season) => (

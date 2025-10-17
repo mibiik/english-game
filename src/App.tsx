@@ -235,8 +235,8 @@ function AppContent() {
             console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
             
             // Eğer welcome sayfasındaysa ana sayfaya yönlendir
-            if (location.pathname === '/') {
-              navigate('/home', { replace: true });
+            if (location.pathname === '/welcome') {
+              navigate('/', { replace: true });
             }
           } else {
             // Session geçersiz, localStorage'ı temizle

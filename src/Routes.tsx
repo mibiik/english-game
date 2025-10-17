@@ -20,7 +20,7 @@ const Sss = lazy(() => import('./pages/Sss'));
 const Destek = lazy(() => import('./pages/Destek'));
 const Gizlilik = lazy(() => import('./pages/Gizlilik'));
 const KullanimSartlari = lazy(() => import('./pages/KullanimSartlari'));
-const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
 const ParaphrasePage = lazy(() => import('./pages/ParaphrasePage'));
 const GrammarGamePage = lazy(() => import('./pages/GrammarGamePage'));
 const EssayWritingPage = lazy(() => import('./pages/EssayWritingPage'));
@@ -68,19 +68,16 @@ const ProtectedRoute: React.FC<{
   }
   
   if (!isAuthenticated) {
-    // Modal aç (sadece bir kere)
+    // Giriş yapmamış kullanıcıları WelcomePage'e yönlendir
     useEffect(() => {
-      if (!authModalShown) {
-        window.dispatchEvent(new CustomEvent('show-auth'));
-        setAuthModalShown(true);
-      }
-    }, [authModalShown]);
+      window.location.href = '/welcome';
+    }, []);
     
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#111] to-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-gray-300">Giriş yapılıyor...</p>
+          <p className="text-gray-300">Yönlendiriliyor...</p>
         </div>
       </div>
     );
@@ -111,7 +108,21 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
-        <Route path="/" element={<WelcomePage />} />
+        <Route path="/" element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Navbar 
+                onShowAuth={() => window.dispatchEvent(new CustomEvent('show-auth'))} 
+                currentUnit={currentUnit}
+                setCurrentUnit={setCurrentUnit}
+                currentLevel={currentLevel}
+                setCurrentLevel={setCurrentLevel}
+              />
+              <div className="pt-32">
+                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+              </div>
+          </ProtectedRoute>
+        } />
+        <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/home" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Navbar 
@@ -420,7 +431,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
         } />
         <Route path="/admin" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <AdminPanel />
+            <AdminPage />
           </ProtectedRoute>
         } />
         <Route path="/iletisim" element={<Iletisim />} />

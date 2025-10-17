@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import AIServiceModal from '../components/AIServiceModal';
 
 const EssayWritingPage: React.FC = () => {
   const [essay, setEssay] = useState('');
   const [wordCount, setWordCount] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+
+  // Show AI modal on first load
+  useEffect(() => {
+    const hasSeenAIModal = localStorage.getItem('essay-writing-ai-modal-seen');
+    if (!hasSeenAIModal) {
+      setShowAIModal(true);
+    }
+  }, []);
 
   const handleEssayChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -101,6 +111,17 @@ const EssayWritingPage: React.FC = () => {
           </motion.div>
         </div>
       </div>
+      
+      {/* AI Service Modal */}
+      <AIServiceModal
+        isOpen={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+          localStorage.setItem('essay-writing-ai-modal-seen', 'true');
+        }}
+        serviceName="Essay Writing"
+      />
+    </div>
     );
 };
 

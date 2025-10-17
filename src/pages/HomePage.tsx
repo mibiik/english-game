@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiX } from 'react-icons/hi';
 import { Trophy } from 'lucide-react';
 import { supabase } from '../config/supabase';
-import { db } from '../config/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import FeedbackButton from '../components/FeedbackButton';
 
 export interface Word {
@@ -30,12 +27,9 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   }
 
   const navigate = useNavigate();
-  const [showSeasonModal, setShowSeasonModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
-  const [oldSeasonUsers, setOldSeasonUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
   const [currentSeason, setCurrentSeason] = useState<{id: string, name: string} | null>(null);
-  const [oldSeason, setOldSeason] = useState<{id: string, name: string} | null>(null);
 
 
 
@@ -47,17 +41,14 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     return topUsers.slice(0, 5);
   }, [topUsers]);
 
-  const oldSeasonData = useMemo(() => {
-    return oldSeasonUsers.slice(0, 5);
-  }, [oldSeasonUsers]);
 
   useEffect(() => {
-    // Aktif sezon: Supabase, Eski sezon: Firebase
+    // Aktif sezon: Supabase
     const fetchLeaderboardData = async () => {
       try {
         console.log('🔍 HomePage: Leaderboard verisi yükleniyor...');
         
-        // 1. AKTİF SEZON - SUPABASE'DEN AL
+        // AKTİF SEZON - SUPABASE'DEN AL
         console.log('📊 Aktif sezon Supabase\'den alınıyor...');
         const { data: seasonsData, error: seasonsError } = await supabase
           .from('seasons')
@@ -101,52 +92,6 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
           console.log('⚠️ Aktif sezon Supabase\'de bulunamadı');
         }
 
-        // 2. ESKİ SEZON - FIREBASE'DEN AL (Mevcut sistem)
-        console.log('🔥 Eski sezon Firebase\'den alınıyor...');
-        console.log('🔥 Firebase db objesi:', db);
-        
-        try {
-          // Firebase'den mevcut kullanıcıları çek (eski sezon olarak göster)
-          const usersQuery = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
-          console.log('🔥 Firebase sorgusu oluşturuldu:', usersQuery);
-          
-          const usersSnapshot = await getDocs(usersQuery);
-          console.log('🔥 Firebase sorgu sonucu:', usersSnapshot.size, 'doküman bulundu');
-          
-          if (!usersSnapshot.empty) {
-            // Eski sezon bilgisi oluştur
-            setOldSeason({ id: 'firebase-old-season-2024-25', name: '2024-25 Sezonu' });
-            console.log('✅ Eski sezon Firebase\'den yüklendi: 2024-25 Sezonu');
-            
-            // Firebase kullanıcılarını eski sezon olarak göster (anonim kullanıcıları filtrele)
-            const oldUsers = usersSnapshot.docs
-              .map(doc => {
-                const data = doc.data();
-                console.log('🔥 Firebase doküman verisi:', doc.id, data);
-                return {
-                  displayName: data.displayName || 'Anonim',
-                  photoURL: data.photoURL || data.avatarUrl,
-                  totalScore: data.totalScore || 0,
-                  userId: doc.id,
-                };
-              })
-              .filter(user => 
-                user.displayName && 
-                user.displayName !== 'Anonim' && 
-                user.displayName.trim() !== '' &&
-                user.totalScore > 0 &&
-                user.displayName !== 'Silinmiş Kullanıcı' &&
-                user.displayName !== 'Deleted User'
-              );
-            
-            setOldSeasonUsers(oldUsers);
-            console.log('✅ Eski sezon skorları Firebase\'den yüklendi:', oldUsers);
-          } else {
-            console.log('⚠️ Firebase\'de kullanıcı verisi bulunamadı');
-          }
-        } catch (firebaseError) {
-          console.error('❌ Firebase veri çekme hatası:', firebaseError);
-        }
 
       } catch (error) {
         console.error('❌ Leaderboard yüklenirken hata:', error);
@@ -154,18 +99,6 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     };
 
     fetchLeaderboardData();
-    
-    // Sayfa açıldığında sezon modal'ını göster (sadece 21 kere)
-    const showSeasonModalCount = parseInt(localStorage.getItem('seasonModalShownCount') || '0');
-    if (showSeasonModalCount < 21) {
-      const timer = setTimeout(() => {
-        setShowSeasonModal(true);
-        // Modal gösterildiğinde sayacı artır
-        localStorage.setItem('seasonModalShownCount', String(showSeasonModalCount + 1));
-      }, 1000); // 1 saniye sonra göster
-      
-      return () => clearTimeout(timer);
-    }
   }, []);
 
 
@@ -234,10 +167,10 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             Koç Üniversitesi Hazırlık programının güncel kelime listeleriyle tam uyumlu, öğrenme sürecinizi hızlandırmak için tasarlanmış interaktif alıştırmalarla İngilizce'nizi geliştirin.<br/>
             <span className="block mt-2 text-sm text-gray-300 font-semibold">Bu site Koç Üniversitesi'nin resmi sitesi değildir, bağımsız bir girişimdir.</span>
           </p>
-          <div className="relative z-20 flex justify-center md:justify-start mb-6">
+          <div className="relative z-20 flex justify-center mb-6">
             <Link
               to="/game-modes"
-              className="group relative z-20 inline-flex items-center justify-center px-16 py-5 bg-white text-gray-900 rounded-2xl text-lg font-bold transition-all duration-300 hover:bg-gray-100 hover:scale-105 shadow-lg hover:shadow-xl border border-gray-200"
+              className="group relative z-20 inline-flex items-center justify-center px-12 py-3 bg-white text-gray-900 rounded-2xl text-base font-bold transition-all duration-300 hover:bg-gray-100 hover:scale-105 shadow-lg hover:shadow-xl border border-gray-200"
             >
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-gray-900 rounded-full group-hover:bg-red-500 transition-colors duration-300"></div>
@@ -367,103 +300,6 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             )}
           </div>
 
-          {/* Eski Sezon Leaderboard */}
-          {oldSeason && (
-          <div className="relative z-20 flex flex-col items-center p-3 bg-gradient-to-br from-gray-700/80 to-gray-600/80 rounded-2xl border-2 border-gray-500 shadow-xl opacity-75 mt-8 md:mt-12">
-              <div className="w-full text-center mb-3">
-                <span className="text-lg font-black text-gray-300 tracking-wide uppercase drop-shadow">
-                  {oldSeason?.name || '2024-25 Sezonu'}
-                </span>
-                <div className="w-12 h-1 bg-gray-400 mx-auto mt-1 rounded-full"></div>
-                <span className="text-xs text-gray-400 mt-1 block">Kapatılmış Sezon</span>
-              </div>
-              
-              {oldSeasonData.length > 0 ? (
-                <>
-                <div className="flex items-end justify-center gap-2 mb-2">
-                {/* 2. Kullanıcı */}
-                <div className="flex flex-col items-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
-                    {oldSeasonData[1]?.photoURL ? (
-                      <img src={oldSeasonData[1].photoURL} alt={oldSeasonData[1].displayName} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-purple-600">{oldSeasonData[1]?.displayName?.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-extrabold text-purple-300 text-center w-full tracking-wide">{oldSeasonData[1]?.displayName?.toUpperCase()}</span>
-                  <span className="text-xs font-extrabold text-white text-center w-full">{oldSeasonData[1]?.totalScore}</span>
-                  <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-1.5 py-0.5 font-bold">2</span>
-                </div>
-                
-                {/* 1. Kullanıcı */}
-                <div className="flex flex-col items-center flex-1 z-10">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-3 border-yellow-300 mb-1 shadow-lg relative">
-                    {oldSeasonData[0]?.photoURL ? (
-                      <img src={oldSeasonData[0].photoURL} alt={oldSeasonData[0].displayName} className="w-full h-full object-cover relative z-10" />
-                    ) : (
-                      <span className="text-lg font-extrabold text-yellow-700 relative z-10">{oldSeasonData[0]?.displayName?.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-extrabold text-yellow-300 text-center w-full tracking-wide">{oldSeasonData[0]?.displayName?.toUpperCase()}</span>
-                  <span className="text-sm font-extrabold text-white text-center w-full">{oldSeasonData[0]?.totalScore}</span>
-                  <span className="mt-1 text-xs bg-yellow-400 text-yellow-900 rounded-full px-1.5 py-0.5 font-bold">1</span>
-                </div>
-                
-                {/* 3. Kullanıcı */}
-                <div className="flex flex-col items-center flex-1">
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
-                    {oldSeasonData[2]?.photoURL ? (
-                      <img src={oldSeasonData[2].photoURL} alt={oldSeasonData[2].displayName} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-pink-600">{oldSeasonData[2]?.displayName?.charAt(0).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <span className="text-xs font-extrabold text-pink-300 text-center w-full tracking-wide">{oldSeasonData[2]?.displayName?.toUpperCase()}</span>
-                  <span className="text-xs font-extrabold text-white text-center w-full">{oldSeasonData[2]?.totalScore}</span>
-                  <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-1.5 py-0.5 font-bold">3</span>
-                </div>
-              </div>
-              
-                {/* 4 ve 5. kullanıcılar için ek liste */}
-                {(oldSeasonData[3] || oldSeasonData[4]) && (
-                  <div className="w-full mt-1">
-                    <ul className="divide-y divide-gray-600">
-                      {oldSeasonData.slice(3, 5).map((user, idx) => (
-                        <li key={user.displayName} className="flex items-center py-1 gap-2">
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
-                            {user.photoURL ? (
-                              <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className={`text-xs font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
-                            )}
-                          </div>
-                          <span className="flex-1 text-xs font-semibold text-gray-200 truncate">{user.displayName}</span>
-                          <span className="text-xs font-bold text-gray-100">{user.totalScore}</span>
-                          <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <button 
-                  onClick={() => {
-                    localStorage.setItem('selectedSeasonFromHome', 'firebase-old-season-2024-25');
-                    navigate('/leaderboard');
-                  }}
-                  className="mt-2 md:mt-1 px-3 py-1 md:px-2 md:py-0.5 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all"
-                >
-                  Tümünü Gör
-                </button>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center w-full h-16">
-                  <Trophy className="w-6 h-6 text-gray-400 mb-1" />
-                  <span className="text-xs font-semibold text-gray-300">Veri Yok</span>
-                  <span className="text-xs text-gray-400">Bu sezonda henüz skor bulunmuyor</span>
-                </div>
-              )}
-            </div>
-          )}
 
         </div>
       </div>
@@ -771,77 +607,6 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
       <main className="w-full px-2 sm:px-4 lg:px-8 py-10 relative z-10">
 
-        {/* Sezon Uyarı Modal */}
-        {false && (
-          <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-full max-w-md"
-            >
-              {/* Glass Background */}
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl"></div>
-              
-              {/* Content */}
-              <div className="relative p-8 text-center">
-                {/* Close Button */}
-                <button
-                  onClick={() => setShowSeasonModal(false)}
-                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:text-white hover:bg-white/10 transition-all duration-200"
-                >
-                  <HiX className="w-4 h-4" />
-                </button>
-
-                {/* Trophy Icon */}
-                <div className="flex justify-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-                    <Trophy className="w-8 h-8 text-yellow-300 animate-pulse" />
-                  </div>
-                </div>
-
-                {/* Title */}
-                <h2 className="text-2xl font-bold text-white mb-3">
-                  Yeni Dönem Kelimeleri Ekleniyor!
-                </h2>
-
-                {/* Message */}
-                <p className="text-white/80 mb-6 leading-relaxed">
-                  Yeni dönem için hazırladığımız kelimeler ve özellikler yakında sizlerle! 
-                  <br />
-                  <span className="text-orange-300 font-semibold">Beklemede kalın! 🚀</span>
-                </p>
-
-                {/* Features */}
-                <div className="space-y-2 mb-6 text-sm text-white/70">
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
-                    <span>Yeni dönem kelimeleri</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
-                    <span>Tüm kurlara özel ayrılmış kelimeler</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
-                    <span>Kısa analitik raporlar</span>
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                <motion.button
-                  onClick={() => setShowSeasonModal(false)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3 rounded-xl font-semibold transition-all duration-300"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Harika! Bekliyorum 🎯
-                </motion.button>
-              </div>
-            </motion.div>
-          </div>
-        )}
 
       </main>
       {/* Sabit sağ alt köşede, dikkat çekmeyen bir şekilde */}

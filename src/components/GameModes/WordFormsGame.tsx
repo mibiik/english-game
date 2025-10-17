@@ -7,6 +7,7 @@ import { Button } from '../ui/button';
 import { supabaseAuthService } from '../../services/supabaseAuthService';
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { soundService } from '../../services/soundService';
+import AIServiceModal from '../AIServiceModal';
 
 // --- TYPE DEFINITIONS ---
 interface WordFormsGameProps {
@@ -76,6 +77,15 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [streak, setStreak] = useState(0);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+
+  // Show AI modal on first load
+  useEffect(() => {
+    const hasSeenAIModal = localStorage.getItem('word-forms-ai-modal-seen');
+    if (!hasSeenAIModal) {
+      setShowAIModal(true);
+    }
+  }, []);
 
   const loadQuestions = useCallback(async () => {
     setStatus('loading');
@@ -366,6 +376,16 @@ const WordFormsGame: React.FC<WordFormsGameProps> = ({ words }) => {
           </motion.div>
         </AnimatePresence>
       </main>
+      
+      {/* AI Service Modal */}
+      <AIServiceModal
+        isOpen={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+          localStorage.setItem('word-forms-ai-modal-seen', 'true');
+        }}
+        serviceName="Word Forms"
+      />
     </div>
   );
 };

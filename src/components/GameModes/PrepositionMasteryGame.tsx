@@ -8,6 +8,7 @@ import { supabaseGameScoreService } from '../../services/supabaseGameScoreServic
 import { authService } from '../../services/authService';
 import { awardPoints } from '../../services/scoreService';
 import { soundService } from '../../services/soundService';
+import AIServiceModal from '../AIServiceModal';
 
 type GameState = 'menu' | 'loading' | 'playing' | 'finished';
 type Difficulty = 'easy' | 'medium' | 'hard' | 'mixed';
@@ -60,6 +61,15 @@ export const PrepositionMasteryGame: React.FC = () => {
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+
+  // Show AI modal on first load
+  useEffect(() => {
+    const hasSeenAIModal = localStorage.getItem('preposition-ai-modal-seen');
+    if (!hasSeenAIModal) {
+      setShowAIModal(true);
+    }
+  }, []);
 
   const startGame = useCallback(async (selectedDifficulty: Difficulty) => {
     setDifficulty(selectedDifficulty);
@@ -250,6 +260,16 @@ export const PrepositionMasteryGame: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+      
+      {/* AI Service Modal */}
+      <AIServiceModal
+        isOpen={showAIModal}
+        onClose={() => {
+          setShowAIModal(false);
+          localStorage.setItem('preposition-ai-modal-seen', 'true');
+        }}
+        serviceName="Preposition Mastery"
+      />
     </div>
   );
 };

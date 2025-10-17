@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
-import { authService } from '../services/authService';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import app from '../config/firebase';
-
-const db = getFirestore(app);
+import { supabase } from '../config/supabase';
 
 const FeedbackButton: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -18,23 +14,38 @@ const FeedbackButton: React.FC = () => {
     setSending(true);
     setError('');
     setSuccess(false);
-    const user = authService.getCurrentUser();
-    if (!user || !user.displayName) {
-      setError('Geri bildirim göndermek için giriş yapmalısınız.');
-      setSending(false);
-      return;
-    }
+    
     try {
-      await addDoc(collection(db, 'feedbacks'), {
-        name: user.displayName,
-        feedback,
-        date: serverTimestamp(),
-      });
+      // Get current user from Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setError('Geri bildirim göndermek için giriş yapmalısınız.');
+        setSending(false);
+        return;
+      }
+
+      // Insert feedback into Supabase
+      const { error } = await supabase
+        .from('feedbacks')
+        .insert([
+          {
+            user_id: user.id,
+            name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'Anonim',
+            feedback: feedback.trim()
+          }
+        ]);
+
+      if (error) {
+        throw error;
+      }
+
       setSuccess(true);
       setFeedback('');
       setOpen(false);
     } catch (err: any) {
-      setError('Gönderim sırasında bir hata oluştu.');
+      console.error('Feedback error:', err);
+      setError('Gönderim sırasında bir hata oluştu: ' + (err.message || 'Bilinmeyen hata'));
     } finally {
       setSending(false);
     }
