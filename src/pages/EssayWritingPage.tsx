@@ -110,8 +110,7 @@ const EssayWritingPage: React.FC = () => {
             </div>
           </motion.div>
         </div>
-      </div>
-      
+
       {/* AI Service Modal */}
       <AIServiceModal
         isOpen={showAIModal}

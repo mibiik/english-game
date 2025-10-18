@@ -21,15 +21,16 @@ interface HomePageProps {
 
 
 const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUnit, currentLevel }) => {
-  // Defensive check: Eğer props'lar eksikse yükleniyor göster
-  if (!filteredWords || !currentUnit || !currentLevel) {
-    return <div className="text-white text-center py-20">Yükleniyor...</div>;
-  }
-
+  // Hooks must run unconditionally at the top of the component (Rules of Hooks).
   const navigate = useNavigate();
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
   const [currentSeason, setCurrentSeason] = useState<{id: string, name: string} | null>(null);
+
+  // Defensive check: Eğer props'lar eksikse yükleniyor göster
+  if (!filteredWords || !currentUnit || !currentLevel) {
+    return <div className="text-white text-center py-20">Yükleniyor...</div>;
+  }
 
 
 
