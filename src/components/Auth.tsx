@@ -24,16 +24,19 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
 
     try {
       if (mode === 'register') {
-        await supabaseAuthService.register(email, password, displayName);
+        const user = await supabaseAuthService.register(email, password, displayName);
+        console.log('✅ Kayıt başarılı:', user.email);
       } else {
-        await supabaseAuthService.login(email, password);
+        const user = await supabaseAuthService.login(email, password);
+        console.log('✅ Giriş başarılı:', user.email);
       }
-      // Giriş başarılıysa localStorage'a kaydet
-      try {
-        localStorage.setItem('isAuthenticated', 'true');
-      } catch {}
+      
+      // Oturum bilgileri supabaseAuthService tarafından otomatik kaydedilir
+      // onAuthStateChange event'i tetiklenir ve App.tsx'te localStorage güncellenir
+      
       onSuccess();
     } catch (err: any) {
+      console.error('❌ Auth hatası:', err);
       setError(err.message || 'Bir hata oluştu');
     } finally {
       setIsLoading(false);

@@ -29,20 +29,22 @@ function AppContent() {
     try { localStorage.setItem(key, value); } catch { /* ignore */ }
   };
 
-  // Firebase Authentication durumu
+  // Authentication durumu - null: yükleniyor, true: giriş yapmış, false: giriş yapmamış
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    // Başlangıçta localStorage'dan kontrol et
     try {
-      const value = localStorage.getItem('isAuthenticated');
-      return value === 'true';
+      const storedUser = localStorage.getItem('supabase.auth.token');
+      const authUserId = localStorage.getItem('authUserId');
+      // Eğer localStorage'da oturum bilgisi varsa, null döndür (yükleniyor)
+      // Böylece asenkron kontrol tamamlanana kadar kullanıcı yönlendirilmez
+      if (storedUser && authUserId) {
+        return null; // Yükleniyor durumu
+      }
+      return false; // Kesinlikle giriş yapmamış
     } catch {
-      return null;
+      return null; // Hata durumunda yükleniyor
     }
   });
-  // Giriş durumu localStorage'da değişirse güncelle
-  useEffect(() => {
-    const value = safeGetItem('isAuthenticated');
-    setIsAuthenticated(value === 'true');
-  }, []);
 
   const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'>(() => {
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
@@ -235,11 +237,10 @@ function AppContent() {
     const checkStoredAuth = async () => {
       const storedUser = localStorage.getItem('supabase.auth.token');
       const authUserId = localStorage.getItem('authUserId');
-      const lastAuthCheck = localStorage.getItem('lastAuthCheck');
       
-      if (storedUser && authUserId && lastAuthCheck) {
+      if (storedUser && authUserId) {
         try {
-          // Önce Supabase session'ını kontrol et
+          // Supabase session'ını kontrol et
           const isSessionValid = await supabaseAuthService.isSessionValid();
           
           if (isSessionValid) {
@@ -250,23 +251,32 @@ function AppContent() {
             if (location.pathname === '/welcome') {
               navigate('/', { replace: true });
             }
-      } else {
-        // Session geçersiz, localStorage'ı temizle
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('authUserId');
-        localStorage.removeItem('lastAuthCheck');
-        setIsAuthenticated(false);
-        
-        // Eğer ana sayfadaysa welcome sayfasına yönlendir
-        if (location.pathname === '/') {
-          navigate('/welcome', { replace: true });
-        }
-      }
+          } else {
+            // Session geçersiz, localStorage'ı temizle
+            console.log('❌ Session geçersiz, localStorage temizleniyor');
+            localStorage.removeItem('supabase.auth.token');
+            localStorage.removeItem('authUserId');
+            localStorage.removeItem('lastAuthCheck');
+            localStorage.removeItem('isAuthenticated');
+            setIsAuthenticated(false);
+            
+            // Korumalı sayfadaysa welcome sayfasına yönlendir
+            const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari', '/about-founder'];
+            if (!publicPages.includes(location.pathname)) {
+              navigate('/welcome', { replace: true });
+            }
+          }
         } catch (error) {
-          console.error('Session validation error:', error);
+          console.error('❌ Session validation error:', error);
+          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('authUserId');
+          localStorage.removeItem('lastAuthCheck');
+          localStorage.removeItem('isAuthenticated');
           setIsAuthenticated(false);
         }
       } else {
+        // localStorage'da oturum bilgisi yok
+        console.log('ℹ️ localStorage\'da oturum bilgisi bulunamadı');
         setIsAuthenticated(false);
       }
     };
@@ -277,17 +287,25 @@ function AppContent() {
   // Supabase Authentication durumunu dinle
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
+      console.log('🔐 Auth state changed:', event, session ? 'User logged in' : 'User logged out');
       const user = session?.user || null;
       setIsAuthenticated(!!user);
       
       if (user) {
         // Kullanıcı giriş yapmış
-        console.log('User is authenticated:', user.email);
+        console.log('✅ User is authenticated:', user.email);
         
         // Oturum bilgilerini localStorage'a kaydet
         localStorage.setItem('lastAuthCheck', new Date().toISOString());
         localStorage.setItem('authUserId', user.id);
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('supabase.auth.token', JSON.stringify({
+          id: user.id,
+          email: user.email,
+          displayName: user.user_metadata?.display_name,
+          photoURL: user.user_metadata?.avatar_url,
+          lastLogin: new Date().toISOString()
+        }));
         
         // Cihaz bilgisini tespit et ve kaydet
         deviceDetectionService.saveDeviceInfo(user.id).then(() => {
@@ -311,15 +329,16 @@ function AppContent() {
         }
       } else {
         // Kullanıcı çıkış yapmış
-        console.log('User is not authenticated');
+        console.log('❌ User is not authenticated');
         
         // localStorage'dan oturum bilgilerini temizle
         localStorage.removeItem('lastAuthCheck');
         localStorage.removeItem('authUserId');
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('supabase.auth.token');
         
         // Eğer korumalı bir sayfadaysa welcome sayfasına yönlendir
-        // Footer linkleri (hakkımızda, iletişim, sss, destek, gizlilik, kullanım şartları) korumalı değil
-        const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
+        const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari', '/about-founder'];
         if (!publicPages.includes(location.pathname)) {
           navigate('/welcome', { replace: true });
         }
