@@ -28,6 +28,10 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
       } else {
         await supabaseAuthService.login(email, password);
       }
+      // Giriş başarılıysa localStorage'a kaydet
+      try {
+        localStorage.setItem('isAuthenticated', 'true');
+      } catch {}
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Bir hata oluştu');

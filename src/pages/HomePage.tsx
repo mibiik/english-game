@@ -184,6 +184,84 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
       
       <FeedbackButton />
       {/* Masaüstü: başlık ve mini leaderboard yan yana, mobilde alt alta */}
+      {/* Aktif Sezon Leaderboard - Yeşil şeridin altında */}
+      <div className="relative z-20 flex-1 max-w-4xl mx-auto mt-6">
+        <div className="relative z-20 flex flex-col items-center p-4 bg-gradient-to-br from-green-900/80 to-green-800/80 rounded-3xl border-2 border-green-700 shadow-2xl">
+          <div className="w-full text-center mb-4">
+            <span className="text-2xl font-black text-green-300 tracking-wide uppercase drop-shadow">
+              {currentSeason?.name || 'Aktif Sezon'}
+            </span>
+            <div className="w-16 h-1 bg-green-400 mx-auto mt-2 rounded-full"></div>
+          </div>
+          {showLeaderboard && (
+            <>
+              <div className="flex items-end justify-center gap-4 md:gap-3 mb-2">
+                {/* İlk 3 oyuncu */}
+                <div className="flex items-end justify-center gap-4">
+                  {leaderboardData.slice(0, 3).map((user, idx) => (
+                    <div key={user.displayName} className={`flex flex-col items-center ${idx === 1 ? 'order-first' : ''} ${idx === 0 ? '-mb-4' : ''}`}>
+                      <div className={`w-${idx === 0 ? '28' : '20'} h-${idx === 0 ? '28' : '20'} rounded-full overflow-hidden border-4 ${
+                        idx === 0 ? 'border-yellow-400 shadow-xl' : idx === 1 ? 'border-[#c0c0c0] shadow-lg' : 'border-[#cd7f32] shadow-lg'
+                      } bg-white relative`}>
+                        {user?.photoURL ? (
+                          <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className={`w-full h-full flex items-center justify-center text-2xl font-bold ${
+                            idx === 0 ? 'text-yellow-600' : idx === 1 ? 'text-gray-600' : 'text-[#cd7f32]'
+                          }`}>
+                            {user?.displayName?.charAt(0) || '?'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 text-center">
+                        <div className="font-bold text-white text-sm truncate max-w-[100px]">{user?.displayName}</div>
+                        <div className="mt-1">
+                          <span className={`font-bold text-xl ${
+                            idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-[#c0c0c0]' : 'text-[#cd7f32]'
+                          }`}>
+                            {user?.totalScore}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 4. ve 5. sıradakiler için liste */}
+              {(leaderboardData[3] || leaderboardData[4]) && (
+                <div className="w-full mt-2">
+                  <ul className="divide-y divide-gray-700">
+                    {leaderboardData.slice(3, 5).map((user, idx) => (
+                      <li key={user.displayName} className="flex items-center py-2 gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border-2 ${
+                          idx === 0 ? 'border-blue-400' : 'border-green-400'
+                        } bg-gray-800`}>
+                          {user.photoURL ? (
+                            <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className={`text-base font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>
+                              {user.displayName.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <span className="flex-1 text-sm font-semibold text-gray-200 truncate">{user.displayName}</span>
+                        <span className="text-base font-bold text-gray-100">{user.totalScore}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                          idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'
+                        }`}>{idx + 4}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+          <button onClick={() => navigate('/leaderboard')} className="mt-2 px-4 py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">
+            Tümünü Gör
+          </button>
+        </div>
+      </div>
+
       <div className="relative z-20 w-full flex flex-col md:flex-row md:items-start md:justify-center gap-8 md:gap-16 px-2 md:px-8 max-w-7xl mx-auto pt-4 md:pt-4">
         {/* Başlık ve açıklama */}
         <div className="flex-1">

@@ -147,8 +147,8 @@ const SeasonLeaderboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black px-4 flex flex-col items-center font-sans -mt-[230px] pt-0">
-      <div className="w-full max-w-5xl mx-auto flex items-center justify-end gap-2 mt-[240px]">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black px-4 flex flex-col items-center font-sans -mt-32 pt-0">
+      <div className="w-full max-w-5xl mx-auto flex items-center justify-end gap-2 mt-2">
         <select 
           value={selectedSeason} 
           onChange={(e) => setSelectedSeason(e.target.value)} 

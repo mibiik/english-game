@@ -30,7 +30,19 @@ function AppContent() {
   };
 
   // Firebase Authentication durumu
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    try {
+      const value = localStorage.getItem('isAuthenticated');
+      return value === 'true';
+    } catch {
+      return null;
+    }
+  });
+  // Giriş durumu localStorage'da değişirse güncelle
+  useEffect(() => {
+    const value = safeGetItem('isAuthenticated');
+    setIsAuthenticated(value === 'true');
+  }, []);
 
   const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'>(() => {
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
