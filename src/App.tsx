@@ -232,7 +232,7 @@ function AppContent() {
     };
   }, []);
 
-  // Sayfa yüklendiğinde localStorage'dan authentication durumunu kontrol et
+  // Sayfa yüklendiğinde localStorage'dan authentication durumunu kontrol et (SADECE İLK YÜKLEMEDE)
   useEffect(() => {
     const checkStoredAuth = async () => {
       const storedUser = localStorage.getItem('supabase.auth.token');
@@ -282,7 +282,7 @@ function AppContent() {
     };
 
     checkStoredAuth();
-  }, [navigate, location.pathname]);
+  }, []); // Sadece component mount olduğunda çalışsın
 
   // Supabase Authentication durumunu dinle
   useEffect(() => {

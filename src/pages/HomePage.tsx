@@ -409,79 +409,79 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
       </div>
 
       {/* Mobil için Leaderboards - Alt Alta */}
-      <div className="md:hidden relative z-20 w-full max-w-4xl mx-auto mt-8 mb-8 px-4 flex flex-col gap-6">
+      <div className="md:hidden relative z-20 w-full max-w-4xl mx-auto mt-8 mb-8 px-4 flex flex-col gap-4">
         {/* Aktif Sezon Leaderboard */}
-        <div className="relative z-20 flex flex-col items-center p-6 bg-gradient-to-br from-green-900/80 to-green-800/80 rounded-3xl border-2 border-green-700 shadow-2xl">
-          <div className="w-full text-center mb-4">
-            <span className="text-2xl font-black text-green-300 tracking-wide uppercase drop-shadow">
+        <div className="relative z-20 flex flex-col items-center p-3 bg-gradient-to-br from-green-900/80 to-green-800/80 rounded-2xl border-2 border-green-700 shadow-2xl">
+          <div className="w-full text-center mb-2">
+            <span className="text-lg font-black text-green-300 tracking-wide uppercase drop-shadow">
               {currentSeason?.name || 'Aktif Sezon'}
             </span>
-            <div className="w-16 h-1 bg-green-400 mx-auto mt-2 rounded-full"></div>
+            <div className="w-12 h-0.5 bg-green-400 mx-auto mt-1 rounded-full"></div>
           </div>
           
           {showLeaderboard ? (
             <>
-              <div className="flex items-end justify-center gap-4 md:gap-6 mb-4">
+              <div className="flex items-end justify-center gap-3 mb-2">
                 {/* 2. Kullanıcı */}
                 <div className="flex flex-col items-center flex-1">
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
                     {leaderboardData[1]?.photoURL ? (
                       <img src={leaderboardData[1].photoURL} alt={leaderboardData[1].displayName} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-lg font-bold text-purple-600">{leaderboardData[1]?.displayName?.charAt(0).toUpperCase()}</span>
+                      <span className="text-sm font-bold text-purple-600">{leaderboardData[1]?.displayName?.charAt(0).toUpperCase()}</span>
                     )}
                   </div>
-                  <span className="text-sm font-extrabold text-purple-300 text-center w-full tracking-wide">{leaderboardData[1]?.displayName?.toUpperCase()}</span>
-                  <span className="text-lg font-extrabold text-white text-center w-full">{leaderboardData[1]?.totalScore}</span>
-                  <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-3 py-1 font-bold">2</span>
+                  <span className="text-xs font-extrabold text-purple-300 text-center w-full tracking-wide">{leaderboardData[1]?.displayName?.toUpperCase()}</span>
+                  <span className="text-sm font-extrabold text-white text-center w-full">{leaderboardData[1]?.totalScore}</span>
+                  <span className="mt-0.5 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
                 </div>
                 
                 {/* 1. Kullanıcı */}
                 <div className="flex flex-col items-center flex-1 z-10">
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-4 border-yellow-300 mb-2 shadow-lg relative" style={{boxShadow:'0 0 32px 8px #ffd70088, 0 0 0 6px #fffbe6cc'}}>
-                    <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 32px 12px #ffd70088, 0 0 0 8px #fffbe644'}}></div>
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-400 flex items-center justify-center overflow-hidden border-3 border-yellow-300 mb-1 shadow-lg relative" style={{boxShadow:'0 0 20px 4px #ffd70088, 0 0 0 3px #fffbe6cc'}}>
+                    <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 20px 6px #ffd70088, 0 0 0 4px #fffbe644'}}></div>
                     {leaderboardData[0]?.photoURL ? (
                       <img src={leaderboardData[0].photoURL} alt={leaderboardData[0].displayName} className="w-full h-full object-cover relative z-10" />
                     ) : (
-                      <span className="text-3xl md:text-4xl font-extrabold text-yellow-700 relative z-10">{leaderboardData[0]?.displayName?.charAt(0).toUpperCase()}</span>
+                      <span className="text-xl font-extrabold text-yellow-700 relative z-10">{leaderboardData[0]?.displayName?.charAt(0).toUpperCase()}</span>
                     )}
                   </div>
-                  <span className="text-lg font-extrabold text-yellow-300 text-center w-full tracking-wide">{leaderboardData[0]?.displayName?.toUpperCase()}</span>
-                  <span className="text-2xl md:text-3xl font-extrabold text-white text-center w-full">{leaderboardData[0]?.totalScore}</span>
-                  <span className="mt-1 text-sm bg-yellow-400 text-yellow-900 rounded-full px-3 py-1 font-bold">1</span>
+                  <span className="text-sm font-extrabold text-yellow-300 text-center w-full tracking-wide">{leaderboardData[0]?.displayName?.toUpperCase()}</span>
+                  <span className="text-lg font-extrabold text-white text-center w-full">{leaderboardData[0]?.totalScore}</span>
+                  <span className="mt-0.5 text-xs bg-yellow-400 text-yellow-900 rounded-full px-2 py-0.5 font-bold">1</span>
                 </div>
                 
                 {/* 3. Kullanıcı */}
                 <div className="flex flex-col items-center flex-1">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
                     {leaderboardData[2]?.photoURL ? (
                       <img src={leaderboardData[2].photoURL} alt={leaderboardData[2].displayName} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-base font-bold text-pink-600">{leaderboardData[2]?.displayName?.charAt(0).toUpperCase()}</span>
+                      <span className="text-xs font-bold text-pink-600">{leaderboardData[2]?.displayName?.charAt(0).toUpperCase()}</span>
                     )}
                   </div>
-                  <span className="text-sm font-extrabold text-pink-300 text-center w-full tracking-wide">{leaderboardData[2]?.displayName?.toUpperCase()}</span>
-                  <span className="text-base font-extrabold text-white text-center w-full">{leaderboardData[2]?.totalScore}</span>
-                  <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-3 py-1 font-bold">3</span>
+                  <span className="text-xs font-extrabold text-pink-300 text-center w-full tracking-wide">{leaderboardData[2]?.displayName?.toUpperCase()}</span>
+                  <span className="text-sm font-extrabold text-white text-center w-full">{leaderboardData[2]?.totalScore}</span>
+                  <span className="mt-0.5 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
                 </div>
               </div>
               
               {/* 4 ve 5. kullanıcılar */}
               {(leaderboardData[3] || leaderboardData[4]) && (
-                <div className="w-full mt-4">
+                <div className="w-full mt-2">
                   <ul className="divide-y divide-gray-700">
                     {leaderboardData.slice(3, 5).map((user, idx) => (
-                      <li key={user.displayName} className="flex items-center py-3 gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
+                      <li key={user.displayName} className="flex items-center py-1.5 gap-2">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
                           {user.photoURL ? (
                             <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
                           ) : (
-                            <span className={`text-base font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
+                            <span className={`text-xs font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
                           )}
                         </div>
-                        <span className="flex-1 text-base font-semibold text-gray-200 truncate">{user.displayName}</span>
-                        <span className="text-lg font-bold text-gray-100">{user.totalScore}</span>
-                        <span className={`ml-2 text-sm px-3 py-1 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
+                        <span className="flex-1 text-xs font-semibold text-gray-200 truncate">{user.displayName}</span>
+                        <span className="text-sm font-bold text-gray-100">{user.totalScore}</span>
+                        <span className={`ml-1 text-xs px-2 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
                       </li>
                     ))}
                   </ul>
@@ -493,7 +493,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
                   localStorage.setItem('selectedSeasonFromHome', currentSeason.id);
                 }
                 navigate('/leaderboard');
-              }} className="mt-4 px-6 py-2 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-sm font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+              }} className="mt-2 px-4 py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center w-full h-32 cursor-pointer select-none" onClick={() => setShowLeaderboard(true)}>
@@ -506,75 +506,75 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
 
         {/* Eski Sezon (Firebase) Leaderboard */}
         {firebaseUsers && firebaseUsers.length > 0 && (
-          <div className="relative z-20 flex flex-col items-center p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl">
-            <div className="w-full text-center mb-4">
-              <span className="text-2xl font-black text-gray-300 tracking-wide uppercase drop-shadow">
+          <div className="relative z-20 flex flex-col items-center p-3 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-2xl border-2 border-gray-700 shadow-2xl">
+            <div className="w-full text-center mb-2">
+              <span className="text-lg font-black text-gray-300 tracking-wide uppercase drop-shadow">
                 {firebaseOldSeasonName || 'Eski Sezon'}
               </span>
-              <div className="w-16 h-1 bg-gray-500 mx-auto mt-2 rounded-full"></div>
+              <div className="w-12 h-0.5 bg-gray-500 mx-auto mt-1 rounded-full"></div>
             </div>
 
-            <div className="flex items-end justify-center gap-4 md:gap-6 mb-4 w-full">
+            <div className="flex items-end justify-center gap-3 mb-2 w-full">
               {/* 2. Kullanıcı */}
               <div className="flex flex-col items-center flex-1">
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-2">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
                   {firebaseUsers[1]?.photoURL ? (
                     <img src={firebaseUsers[1].photoURL} alt={firebaseUsers[1].displayName} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-lg font-bold text-purple-600">{firebaseUsers[1]?.displayName?.charAt(0).toUpperCase()}</span>
+                    <span className="text-sm font-bold text-purple-600">{firebaseUsers[1]?.displayName?.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
-                <span className="text-sm font-extrabold text-purple-300 text-center w-full tracking-wide">{firebaseUsers[1]?.displayName?.toUpperCase()}</span>
-                <span className="text-lg font-extrabold text-white text-center w-full">{firebaseUsers[1]?.totalScore}</span>
-                <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-3 py-1 font-bold">2</span>
+                <span className="text-xs font-extrabold text-purple-300 text-center w-full tracking-wide">{firebaseUsers[1]?.displayName?.toUpperCase()}</span>
+                <span className="text-sm font-extrabold text-white text-center w-full">{firebaseUsers[1]?.totalScore}</span>
+                <span className="mt-0.5 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
               </div>
 
               {/* 1. Kullanıcı */}
               <div className="flex flex-col items-center flex-1 z-10">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 flex items-center justify-center overflow-hidden border-4 border-gray-300 mb-2 shadow-lg relative" style={{boxShadow:'0 0 32px 8px #bbb, 0 0 0 6px #fff3'}}>
-                  <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 32px 12px #ddd'}}></div>
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 flex items-center justify-center overflow-hidden border-3 border-gray-300 mb-1 shadow-lg relative" style={{boxShadow:'0 0 20px 4px #bbb, 0 0 0 3px #fff3'}}>
+                  <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 20px 6px #ddd'}}></div>
                   {firebaseUsers[0]?.photoURL ? (
                     <img src={firebaseUsers[0].photoURL} alt={firebaseUsers[0].displayName} className="w-full h-full object-cover relative z-10" />
                   ) : (
-                    <span className="text-3xl md:text-4xl font-extrabold text-gray-700 relative z-10">{firebaseUsers[0]?.displayName?.charAt(0).toUpperCase()}</span>
+                    <span className="text-xl font-extrabold text-gray-700 relative z-10">{firebaseUsers[0]?.displayName?.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
-                <span className="text-lg font-extrabold text-gray-300 text-center w-full tracking-wide">{firebaseUsers[0]?.displayName?.toUpperCase()}</span>
-                <span className="text-2xl md:text-3xl font-extrabold text-white text-center w-full">{firebaseUsers[0]?.totalScore}</span>
-                <span className="mt-1 text-sm bg-gray-400 text-gray-900 rounded-full px-3 py-1 font-bold">1</span>
+                <span className="text-sm font-extrabold text-gray-300 text-center w-full tracking-wide">{firebaseUsers[0]?.displayName?.toUpperCase()}</span>
+                <span className="text-lg font-extrabold text-white text-center w-full">{firebaseUsers[0]?.totalScore}</span>
+                <span className="mt-0.5 text-xs bg-gray-400 text-gray-900 rounded-full px-2 py-0.5 font-bold">1</span>
               </div>
 
               {/* 3. Kullanıcı */}
               <div className="flex flex-col items-center flex-1">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
                   {firebaseUsers[2]?.photoURL ? (
                     <img src={firebaseUsers[2].photoURL} alt={firebaseUsers[2].displayName} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-base font-bold text-pink-600">{firebaseUsers[2]?.displayName?.charAt(0).toUpperCase()}</span>
+                    <span className="text-xs font-bold text-pink-600">{firebaseUsers[2]?.displayName?.charAt(0).toUpperCase()}</span>
                   )}
                 </div>
-                <span className="text-sm font-extrabold text-pink-300 text-center w-full tracking-wide">{firebaseUsers[2]?.displayName?.toUpperCase()}</span>
-                <span className="text-base font-extrabold text-white text-center w-full">{firebaseUsers[2]?.totalScore}</span>
-                <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-3 py-1 font-bold">3</span>
+                <span className="text-xs font-extrabold text-pink-300 text-center w-full tracking-wide">{firebaseUsers[2]?.displayName?.toUpperCase()}</span>
+                <span className="text-sm font-extrabold text-white text-center w-full">{firebaseUsers[2]?.totalScore}</span>
+                <span className="mt-0.5 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
               </div>
             </div>
 
             {/* 4-5 listesi */}
             {(firebaseUsers[3] || firebaseUsers[4]) && (
-              <div className="w-full mt-4">
+              <div className="w-full mt-2">
                 <ul className="divide-y divide-gray-700">
                   {firebaseUsers.slice(3, 5).map((user, idx) => (
-                    <li key={user.userId} className="flex items-center py-3 gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
+                    <li key={user.userId} className="flex items-center py-1.5 gap-2">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
                         {user.photoURL ? (
                           <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
                         ) : (
-                          <span className={`text-base font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
+                          <span className={`text-xs font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
                         )}
                       </div>
-                      <span className="flex-1 text-base font-semibold text-gray-200 truncate">{user.displayName}</span>
-                      <span className="text-lg font-bold text-gray-100">{user.totalScore}</span>
-                      <span className={`ml-2 text-sm px-3 py-1 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
+                      <span className="flex-1 text-xs font-semibold text-gray-200 truncate">{user.displayName}</span>
+                      <span className="text-sm font-bold text-gray-100">{user.totalScore}</span>
+                      <span className={`ml-1 text-xs px-2 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
                     </li>
                   ))}
                 </ul>
@@ -584,7 +584,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
             <button onClick={() => {
               localStorage.setItem('selectedSeasonFromHome', FIREBASE_SEASON_ID);
               navigate('/leaderboard');
-            }} className="mt-4 px-6 py-2 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-sm font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+            }} className="mt-2 px-4 py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
           </div>
         )}
       </div>
