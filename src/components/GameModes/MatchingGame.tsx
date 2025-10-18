@@ -146,7 +146,6 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
     
     // Kelime kontrolü
     if (currentUnitWords.length === 0) {
-      console.error('❌ MatchingGame - Bu ünite için kelime bulunamadı:', { unit, totalWords: words.length });
       return;
     }
     
