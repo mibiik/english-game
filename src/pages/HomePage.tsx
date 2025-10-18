@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 import { supabase } from '../config/supabase';
+import { db } from '../config/firebase';
+import { FIREBASE_SEASON_ID } from '../constants/seasons';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import FeedbackButton from '../components/FeedbackButton';
 
 export interface Word {
@@ -26,6 +29,8 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [topUsers, setTopUsers] = useState<{displayName:string, photoURL?:string, totalScore:number}[]>([]);
   const [currentSeason, setCurrentSeason] = useState<{id: string, name: string} | null>(null);
+  const [firebaseUsers, setFirebaseUsers] = useState<{ userId: string; displayName: string; photoURL?: string; totalScore: number }[]>([]);
+  const [firebaseOldSeasonName, setFirebaseOldSeasonName] = useState<string | null>(null);
 
   // Defensive check: Eğer props'lar eksikse yükleniyor göster
   if (!filteredWords || !currentUnit || !currentLevel) {
@@ -100,6 +105,29 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
     };
 
     fetchLeaderboardData();
+    // Ayrıca Firebase - eski sezon verilerini arkaplanda yükle (kısa gösterim için)
+    const loadFirebaseOldSeason = async () => {
+      try {
+        const usersQuery = query(collection(db, 'userProfiles'), orderBy('totalScore', 'desc'));
+        const usersSnapshot = await getDocs(usersQuery);
+          if (!usersSnapshot.empty) {
+          const firebaseSeasonId = FIREBASE_SEASON_ID;
+          setFirebaseOldSeasonName('2024-25 Sezonu');
+
+          const fUsers = usersSnapshot.docs
+            .map((doc) => ({ userId: doc.id, ...(doc.data() as any) }))
+            .filter(u => u.displayName && u.displayName !== 'Anonim' && u.displayName.trim() !== '' && (u.totalScore || 0) > 0)
+            .map((u, idx) => ({ userId: u.userId, displayName: u.displayName, photoURL: u.photoURL || u.avatarUrl, totalScore: u.totalScore || 0 }))
+            .slice(0, 10);
+
+          setFirebaseUsers(fUsers);
+        }
+      } catch (err) {
+        console.warn('Firebase eski sezon yükleme hatası (HomePage):', err);
+      }
+    };
+
+    loadFirebaseOldSeason();
   }, []);
 
 
@@ -305,6 +333,92 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
         </div>
       </div>
       
+      {/* Eski Sezon (Firebase) - Aktif sezona benzer leaderboard */}
+      {firebaseUsers && firebaseUsers.length > 0 && (
+        <div className="relative z-20 flex-1 max-w-4xl mx-auto md:mx-0 mb-2 md:mb-0 md:mt-6 flex flex-col gap-4">
+          <div className="relative z-20 flex flex-col items-center p-4 bg-gradient-to-br from-gray-900/80 to-gray-800/80 rounded-3xl border-2 border-gray-700 shadow-2xl">
+            <div className="w-full text-center mb-4">
+              <span className="text-2xl font-black text-gray-300 tracking-wide uppercase drop-shadow">
+                {firebaseOldSeasonName || 'Eski Sezon'}
+              </span>
+              <div className="w-16 h-1 bg-gray-500 mx-auto mt-2 rounded-full"></div>
+            </div>
+
+            {/* Podium benzeri gösterim (3 üst) */}
+            <div className="flex items-end justify-center gap-4 md:gap-3 mb-2 md:mb-1 w-full">
+              {/* 2. Kullanıcı */}
+              <div className="flex flex-col items-center flex-1">
+                <div className="w-10 h-10 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
+                  {firebaseUsers[1]?.photoURL ? (
+                    <img src={firebaseUsers[1].photoURL} alt={firebaseUsers[1].displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-base md:text-sm font-bold text-purple-600">{firebaseUsers[1]?.displayName?.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="text-xs md:text-xs font-extrabold text-purple-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{firebaseUsers[1]?.displayName?.toUpperCase()}</span>
+                <span className="text-base md:text-base font-extrabold text-white text-center w-full">{firebaseUsers[1]?.totalScore}</span>
+                <span className="mt-1 text-xs bg-purple-400 text-white rounded-full px-2 py-0.5 font-bold">2</span>
+              </div>
+
+              {/* 1. Kullanıcı */}
+              <div className="flex flex-col items-center flex-1 z-10">
+                <div className="w-20 h-20 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 flex items-center justify-center overflow-hidden border-4 border-gray-300 mb-1 shadow-lg relative" style={{boxShadow:'0 0 32px 8px #bbb, 0 0 0 6px #fff3'}}>
+                  <div className="absolute inset-0 rounded-full pointer-events-none animate-pulse" style={{boxShadow:'0 0 32px 12px #ddd'}}></div>
+                  {firebaseUsers[0]?.photoURL ? (
+                    <img src={firebaseUsers[0].photoURL} alt={firebaseUsers[0].displayName} className="w-full h-full object-cover relative z-10" />
+                  ) : (
+                    <span className="text-3xl md:text-2xl font-extrabold text-gray-700 relative z-10">{firebaseUsers[0]?.displayName?.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="text-base md:text-base font-extrabold text-gray-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{firebaseUsers[0]?.displayName?.toUpperCase()}</span>
+                <span className="text-2xl md:text-xl font-extrabold text-white text-center w-full">{firebaseUsers[0]?.totalScore}</span>
+                <span className="mt-1 text-xs bg-gray-400 text-gray-900 rounded-full px-2 py-0.5 font-bold">1</span>
+              </div>
+
+              {/* 3. Kullanıcı */}
+              <div className="flex flex-col items-center flex-1">
+                <div className="w-8 h-8 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-pink-200 to-pink-400 flex items-center justify-center overflow-hidden border-2 border-pink-300 mb-1">
+                  {firebaseUsers[2]?.photoURL ? (
+                    <img src={firebaseUsers[2].photoURL} alt={firebaseUsers[2].displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs md:text-xs font-bold text-pink-600">{firebaseUsers[2]?.displayName?.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <span className="text-xs md:text-xs font-extrabold text-pink-300 text-center w-full tracking-wide" style={{letterSpacing:'0.04em'}}>{firebaseUsers[2]?.displayName?.toUpperCase()}</span>
+                <span className="text-sm md:text-xs font-extrabold text-white text-center w-full">{firebaseUsers[2]?.totalScore}</span>
+                <span className="mt-1 text-xs bg-pink-400 text-white rounded-full px-2 py-0.5 font-bold">3</span>
+              </div>
+            </div>
+
+            {/* 4-5 listesi */}
+            {(firebaseUsers[3] || firebaseUsers[4]) && (
+              <div className="w-full mt-2 md:mt-1">
+                <ul className="divide-y divide-gray-700">
+                  {firebaseUsers.slice(3, 5).map((user, idx) => (
+                    <li key={user.userId} className="flex items-center py-2 md:py-1 gap-3">
+                      <div className={`w-8 h-8 md:w-7 md:h-7 rounded-full flex items-center justify-center overflow-hidden border-2 ${idx === 0 ? 'border-blue-400' : 'border-green-400'} bg-gray-800`}>
+                        {user.photoURL ? (
+                          <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className={`text-base md:text-sm font-bold ${idx === 0 ? 'text-blue-400' : 'text-green-400'}`}>{user.displayName.charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <span className="flex-1 text-sm md:text-xs font-semibold text-gray-200 truncate">{user.displayName}</span>
+                      <span className="text-base md:text-xs font-bold text-gray-100">{user.totalScore}</span>
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-bold ${idx === 0 ? 'bg-blue-400 text-white' : 'bg-green-400 text-white'}`}>{idx + 4}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <button onClick={() => {
+            localStorage.setItem('selectedSeasonFromHome', FIREBASE_SEASON_ID);
+              navigate('/leaderboard');
+            }} className="mt-2 md:mt-1 px-4 py-1 md:px-3 md:py-1 rounded-full bg-gray-900 border border-gray-600 text-gray-200 text-xs md:text-xs font-semibold hover:bg-gray-800 hover:text-white transition-all">Tümünü Gör</button>
+          </div>
+        </div>
+      )}
       {/* About Founder Button - Moved below */}
       <div className="relative z-20 flex justify-center mt-8 mb-6">
         <Link 
