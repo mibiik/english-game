@@ -25,8 +25,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { UserAnalytics } from '../components/UserAnalytics';
 import { userService } from '../services/userService'; // Yeni eklenen import
-import DeviceInfoDisplay from '../components/DeviceInfoDisplay';
-import AdvancedAnalytics from '../components/AdvancedAnalytics';
+import { DeviceInfoDisplay } from '../components/DeviceInfoDisplay';
+import { AdvancedAnalytics } from '../components/AdvancedAnalytics';
 
 // Oyun modları için isim ve ikon haritaları
 const gameModeNames: Record<GameMode, string> = {
@@ -486,4 +486,4 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-export default ProfilePage; 
+export default ProfilePage;

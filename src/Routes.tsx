@@ -54,7 +54,16 @@ const ProtectedRoute: React.FC<{
   isAuthenticated: boolean | null;
 }> = ({ children, isAuthenticated }) => {
   const [authModalShown, setAuthModalShown] = useState(false);
-  
+
+  // useEffect must be called unconditionally (Rules of Hooks).
+  // If the user is explicitly unauthenticated, redirect to /welcome.
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      // Use location replace to avoid leaving a history entry for the protected page
+      window.location.replace('/welcome');
+    }
+  }, [isAuthenticated]);
+
   // Eğer authentication durumu henüz yüklenmediyse loading göster
   if (isAuthenticated === null) {
     return (
@@ -66,13 +75,9 @@ const ProtectedRoute: React.FC<{
       </div>
     );
   }
-  
+
+  // Giriş yapmamış kullanıcılar için kısa bir yönlendirme ekranı göster (useEffect yukarıda yönlendirir)
   if (!isAuthenticated) {
-    // Giriş yapmamış kullanıcıları WelcomePage'e yönlendir
-    useEffect(() => {
-      window.location.href = '/welcome';
-    }, []);
-    
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#111] to-black flex items-center justify-center">
         <div className="text-center">
@@ -82,7 +87,7 @@ const ProtectedRoute: React.FC<{
       </div>
     );
   }
-  
+
   return <>{children}</>;
 };
 
@@ -105,7 +110,6 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
   isAuthenticated,
 }) => {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
         <Route path="/" element={
@@ -118,11 +122,17 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div className="pt-32">
-                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+                </Suspense>
               </div>
           </ProtectedRoute>
         } />
-        <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/welcome" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <WelcomePage />
+          </Suspense>
+        } />
         <Route path="/home" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Navbar 
@@ -133,7 +143,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div className="pt-32">
-                <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <HomePage filteredWords={filteredWords} currentUnit={currentUnit} currentLevel={currentLevel} />
+                </Suspense>
               </div>
           </ProtectedRoute>
         } />
@@ -148,7 +160,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div>
-                <GameModesPage currentUnit={currentUnit} currentLevel={currentLevel} />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <GameModesPage currentUnit={currentUnit} currentLevel={currentLevel} />
+                </Suspense>
               </div>
             </>
           </ProtectedRoute>
@@ -164,7 +178,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div className="pt-32">
-                <ProfilePage />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ProfilePage />
+                </Suspense>
               </div>
             </>
           </ProtectedRoute>
@@ -180,7 +196,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div className="pt-32">
-                <ParaphrasePage />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ParaphrasePage />
+                </Suspense>
               </div>
             </>
           </ProtectedRoute>
@@ -196,7 +214,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 setCurrentLevel={setCurrentLevel}
               />
               <div className="pt-32">
-                <PrepositionMasteryGame />
+                <Suspense fallback={<LoadingSpinner />}>
+                  <PrepositionMasteryGame />
+                </Suspense>
               </div>
             </>
           </ProtectedRoute>
@@ -458,10 +478,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           </ProtectedRoute>
         } />
         <Route path="/supabase-test" element={<SupabaseTestPage />} />
-
-
       </Routes>
-    </Suspense>
   );
 };
 

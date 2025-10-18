@@ -238,13 +238,18 @@ function AppContent() {
             if (location.pathname === '/welcome') {
               navigate('/', { replace: true });
             }
-          } else {
-            // Session geçersiz, localStorage'ı temizle
-            localStorage.removeItem('supabase.auth.token');
-            localStorage.removeItem('authUserId');
-            localStorage.removeItem('lastAuthCheck');
-            setIsAuthenticated(false);
-          }
+      } else {
+        // Session geçersiz, localStorage'ı temizle
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('authUserId');
+        localStorage.removeItem('lastAuthCheck');
+        setIsAuthenticated(false);
+        
+        // Eğer ana sayfadaysa welcome sayfasına yönlendir
+        if (location.pathname === '/') {
+          navigate('/welcome', { replace: true });
+        }
+      }
         } catch (error) {
           console.error('Session validation error:', error);
           setIsAuthenticated(false);
@@ -289,8 +294,8 @@ function AppContent() {
         });
         
         // Eğer welcome sayfasındaysa ana sayfaya yönlendir
-        if (location.pathname === '/') {
-          navigate('/home', { replace: true });
+        if (location.pathname === '/welcome') {
+          navigate('/', { replace: true });
         }
       } else {
         // Kullanıcı çıkış yapmış
@@ -300,11 +305,11 @@ function AppContent() {
         localStorage.removeItem('lastAuthCheck');
         localStorage.removeItem('authUserId');
         
-        // Eğer korumalı bir sayfadaysa karşılama sayfasına yönlendir
+        // Eğer korumalı bir sayfadaysa welcome sayfasına yönlendir
         // Footer linkleri (hakkımızda, iletişim, sss, destek, gizlilik, kullanım şartları) korumalı değil
-        const publicPages = ['/', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
+        const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
         if (!publicPages.includes(location.pathname)) {
-          navigate('/', { replace: true });
+          navigate('/welcome', { replace: true });
         }
       }
     });

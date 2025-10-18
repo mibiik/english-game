@@ -561,7 +561,7 @@ const WelcomePage: React.FC = React.memo(() => {
         <LazyAuth
 								mode={authMode}
           onClose={() => setShowAuth(false)}
-								onSuccess={() => { setShowAuth(false); navigate('/home'); }}
+								onSuccess={() => { setShowAuth(false); navigate('/'); }}
 							/>
 							
 							{/* Switch Mode */}
