@@ -98,7 +98,7 @@ export function MatchingGame({ words, unit }: MatchingGameProps) {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [scoreChange, setScoreChange] = useState<null | { value: number, key: number }>(null);
   const [showDefneModal, setShowDefneModal] = useState(false);
-  const [showWarning, setShowWarning] = useState(true);
+  const [showWarning, setShowWarning] = useState(false);
   const [removeTimer, setRemoveTimer] = useState(false); // Süre kaldırıldı mı?
 
   // Kullanıcı ID'sini al
