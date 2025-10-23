@@ -22,6 +22,11 @@ const SeasonLeaderboardPage: React.FC = () => {
   const [firebaseUsers, setFirebaseUsers] = useState<SeasonLeaderboard[]>([]);
   const initialFromHome = useRef<string | null>(null);
 
+  // Sayfa açıldığında en üste scroll
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     (async () => {
       setLoading(true);

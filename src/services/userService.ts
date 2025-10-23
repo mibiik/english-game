@@ -1,5 +1,7 @@
 import { supabase } from '../config/supabase';
 import { supabaseAuthService } from './supabaseAuthService';
+import { db } from '../config/firebase';
+import { collection, query, orderBy, limit, getDocs, getDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export interface User {
   userId: string;
@@ -29,7 +31,7 @@ class UserService {
 
   // Yeni kullanıcı kaydı
   public async registerUser(displayName: string, email: string, photoURL?: string, userId?: string): Promise<void> {
-    const currentUserId = userId || authService.getCurrentUserId();
+    const currentUserId = userId || supabaseAuthService.getCurrentUserId();
     if (!currentUserId) throw new Error('Kullanıcı oturum açmamış');
 
     const userData: User = {
@@ -327,7 +329,7 @@ class UserService {
   // Modal görüldü olarak işaretle
   public async markModalAsSeen(): Promise<void> {
     try {
-      const userId = authService.getCurrentUserId();
+      const userId = supabaseAuthService.getCurrentUserId();
       if (userId) {
         await updateDoc(doc(db, this.usersCollection, userId), {
           hasSeenWelcomePopup: true,
@@ -343,7 +345,7 @@ class UserService {
   // Modal görülüp görülmediğini kontrol et
   public async checkIfModalSeen(): Promise<boolean> {
     try {
-      const userId = authService.getCurrentUserId();
+      const userId = supabaseAuthService.getCurrentUserId();
       if (!userId) return false;
 
       const userDoc = await getDoc(doc(db, this.usersCollection, userId));
@@ -361,7 +363,7 @@ class UserService {
   // Kullanıcı adını kaydet
   public async saveUserName(name: string): Promise<void> {
     try {
-      const userId = authService.getCurrentUserId();
+      const userId = supabaseAuthService.getCurrentUserId();
       if (userId) {
         await updateDoc(doc(db, this.usersCollection, userId), {
           displayName: name,

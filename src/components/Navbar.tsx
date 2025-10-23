@@ -31,6 +31,7 @@ import { supabaseAuthService } from '../services/supabaseAuthService';
 import { useIsMobile } from '../hooks/useDeviceDetection';
 import { soundService } from '../services/soundService';
 import { supabaseGameScoreService } from '../services/supabaseGameScoreService';
+import { supabaseScoreService } from '../services/supabaseScoreService';
 
 interface NavbarProps {
   onShowAuth: () => void;
@@ -396,6 +397,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               localStorage.setItem('userScore', String(totalScore));
               console.log('✅ Navbar: Skor güncellendi:', totalScore);
             }
+
+            // Kullanıcı sıralamasını al
+            const ranking = await supabaseScoreService.getUserRanking(userId);
+            if (ranking !== null) {
+              setUserRank(ranking);
+              console.log('✅ Navbar: Sıralama güncellendi:', ranking);
+            }
           } catch (error) {
             console.error('Kullanıcı verisi alınırken hata:', error);
           }
@@ -427,6 +435,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           console.log('🔄 Custom event ile skor güncellendi:', totalScore);
           setUserScore(totalScore);
           localStorage.setItem('userScore', String(totalScore));
+        }
+
+        // Güncel sıralamayı al
+        const ranking = await supabaseScoreService.getUserRanking(currentUserId || '');
+        if (ranking !== null) {
+          setUserRank(ranking);
+          console.log('🔄 Custom event ile sıralama güncellendi:', ranking);
         }
       } else {
         console.log('❌ Custom event: Farklı kullanıcı, skor güncellenmiyor');

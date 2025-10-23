@@ -238,7 +238,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
           
           {showLeaderboard ? (
             <>
-              <div className="flex items-end justify-center gap-6 mb-3">
+              <div className="flex items-end justify-center gap-6 mb-3 w-full">
                 {/* 2. Kullanıcı */}
                 <div className="flex flex-col items-center flex-1">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1.5">
@@ -421,7 +421,7 @@ const HomePage: React.FC<HomePageProps> = React.memo(({ filteredWords, currentUn
           
           {showLeaderboard ? (
             <>
-              <div className="flex items-end justify-center gap-3 mb-2">
+              <div className="flex items-end justify-center gap-3 mb-2 w-full">
                 {/* 2. Kullanıcı */}
                 <div className="flex flex-col items-center flex-1">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-200 to-purple-400 flex items-center justify-center overflow-hidden border-2 border-purple-300 mb-1">
