@@ -31,21 +31,7 @@ function AppContent() {
   };
 
   // Authentication durumu - null: yükleniyor, true: giriş yapmış, false: giriş yapmamış
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
-    // Başlangıçta localStorage'dan kontrol et
-    try {
-      const storedUser = localStorage.getItem('supabase.auth.token');
-      const authUserId = localStorage.getItem('authUserId');
-      // Eğer localStorage'da oturum bilgisi varsa, null döndür (yükleniyor)
-      // Böylece asenkron kontrol tamamlanana kadar kullanıcı yönlendirilmez
-      if (storedUser && authUserId) {
-        return null; // Yükleniyor durumu
-      }
-      return false; // Kesinlikle giriş yapmamış
-    } catch {
-      return null; // Hata durumunda yükleniyor
-    }
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'>(() => {
     const urlLevel = searchParams.get('level') as 'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe';
@@ -84,11 +70,8 @@ function AppContent() {
     const lastBuildTime = safeGetItem('lastBuildTime');
     
     if (buildTime && lastBuildTime && buildTime !== lastBuildTime) {
-      console.log('🔄 Yeni build tespit edildi, yumuşak yenileme yapılıyor (oturum korunur)...');
+      console.log('🔄 Yeni build tespit edildi, otomatik yenileme yapılmıyor (oturum korunuyor).');
       safeSetItem('lastBuildTime', buildTime);
-      // Oturumu etkilemeden sadece sayfayı yenile
-      window.location.reload();
-      return;
     }
 
     // İlk yüklemede build time'ı kaydet
@@ -233,51 +216,23 @@ function AppContent() {
     };
   }, []);
 
-  // Sayfa yüklendiğinde localStorage'dan authentication durumunu kontrol et (SADECE İLK YÜKLEMEDE)
+  // Sayfa yüklendiğinde Supabase üzerinden authentication durumunu kontrol et (SADECE İLK YÜKLEMEDE)
   useEffect(() => {
     const checkStoredAuth = async () => {
-      const storedUser = localStorage.getItem('supabase.auth.token');
-      const authUserId = localStorage.getItem('authUserId');
-      
-      if (storedUser && authUserId) {
-        try {
-          // Supabase session'ını kontrol et
-          const isSessionValid = await supabaseAuthService.isSessionValid();
-          
-          if (isSessionValid) {
-            setIsAuthenticated(true);
-            console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
-            
-            // Eğer welcome sayfasındaysa ana sayfaya yönlendir
-            if (location.pathname === '/welcome') {
-              navigate('/', { replace: true });
-            }
-          } else {
-            // Session geçersiz, localStorage'ı temizle
-            console.log('❌ Session geçersiz, localStorage temizleniyor');
-            localStorage.removeItem('supabase.auth.token');
-            localStorage.removeItem('authUserId');
-            localStorage.removeItem('lastAuthCheck');
-            localStorage.removeItem('isAuthenticated');
-            setIsAuthenticated(false);
-            
-            // Korumalı sayfadaysa welcome sayfasına yönlendir
-            const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari', '/about-founder'];
-            if (!publicPages.includes(location.pathname)) {
-              navigate('/welcome', { replace: true });
-            }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setIsAuthenticated(true);
+          localStorage.setItem('authUserId', user.id);
+          console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
+          if (location.pathname === '/welcome') {
+            navigate('/', { replace: true });
           }
-        } catch (error) {
-          console.error('❌ Session validation error:', error);
-          localStorage.removeItem('supabase.auth.token');
-          localStorage.removeItem('authUserId');
-          localStorage.removeItem('lastAuthCheck');
-          localStorage.removeItem('isAuthenticated');
+        } else {
           setIsAuthenticated(false);
         }
-      } else {
-        // localStorage'da oturum bilgisi yok
-        console.log('ℹ️ localStorage\'da oturum bilgisi bulunamadı');
+      } catch (error) {
+        console.error('❌ Session validation error:', error);
         setIsAuthenticated(false);
       }
     };
@@ -331,14 +286,7 @@ function AppContent() {
       } else {
         // Kullanıcı çıkış yapmış
         console.log('❌ User is not authenticated');
-        
-        // localStorage'dan oturum bilgilerini temizle
-        localStorage.removeItem('lastAuthCheck');
-        localStorage.removeItem('authUserId');
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('supabase.auth.token');
-        
-        // Eğer korumalı bir sayfadaysa welcome sayfasına yönlendir
+        // localStorage temizliği yok; gereksiz çıkışa sebep olmasın
         const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari', '/about-founder'];
         if (!publicPages.includes(location.pathname)) {
           navigate('/welcome', { replace: true });
@@ -365,11 +313,14 @@ function AppContent() {
         setIsAuthenticated(false);
         console.log('Auth state synchronized - user is not authenticated');
       } else {
-        // Tutarsız durum - localStorage'ı temizle ve Supabase state'ini kullan
-        console.log('Auth state inconsistency detected, clearing localStorage');
-        localStorage.removeItem('lastAuthCheck');
-        localStorage.removeItem('authUserId');
-        setIsAuthenticated(!!user);
+        // Tutarsız durumda temizleme yapmadan Supabase state'ine senkronize ol
+        console.log('Auth state inconsistency detected, syncing without clearing');
+        if (user) {
+          localStorage.setItem('authUserId', user.id);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
       }
     };
 
