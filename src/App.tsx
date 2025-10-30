@@ -159,31 +159,6 @@ function AppContent() {
     };
   }, [isAuthenticated]);
 
-  // Giriş yapmamış kullanıcılar için (public) yedek kontrol - mobil dahil
-  useEffect(() => {
-    const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 saat
-    if (isAuthenticated) return; // sadece anonim kullanıcılar
-
-    const checkPublic = () => {
-      try {
-        const lastRaw = localStorage.getItem('shareModalLastShownPublic');
-        const last = lastRaw ? parseInt(lastRaw, 10) : 0;
-        if (Date.now() - last >= INTERVAL_MS) {
-          setShowShareModal(true);
-        }
-      } catch (_e) {
-        setShowShareModal(true);
-      }
-    };
-
-    // Açılışta hemen kontrol
-    checkPublic();
-
-    // Düzenli aralık (5 dk)
-    const id = window.setInterval(checkPublic, 5 * 60 * 1000);
-    return () => window.clearInterval(id);
-  }, [isAuthenticated]);
-
   // Bildirim servisini başlat
   useEffect(() => {
     const initializeNotifications = async () => {
@@ -534,12 +509,9 @@ function AppContent() {
                   .from('users')
                   .update({ sharePromptLastShownAt: new Date().toISOString() })
                   .eq('id', userId);
-              } else {
-                // anonim kullanıcı için localStorage'a yaz
-                localStorage.setItem('shareModalLastShownPublic', String(Date.now()));
               }
             } catch (e) {
-              console.warn('Share prompt kapanış kaydı hatası:', e);
+              console.warn('sharePromptLastShownAt güncellenemedi:', e);
             } finally {
               setShowShareModal(false);
             }
