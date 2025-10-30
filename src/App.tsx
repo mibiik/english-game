@@ -72,50 +72,10 @@ function AppContent() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
-  // iOS/Safari tespiti
-  const isIOS = /iP(hone|od|ad)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  // Platform tespiti kaldırıldı (oturum korunumu için agresif temizlik devre dışı)
 
   // Cache temizleme fonksiyonu
-  const clearAllCaches = async () => {
-    try {
-      // iOS Safari'de agresif cache temizleme oturumu düşürebilir; atla
-      if (isIOS && isSafari) {
-        console.warn('iOS Safari tespit edildi: cache temizleme atlanıyor.');
-        return;
-      }
-      // Service Worker cache'lerini temizle
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(
-          cacheNames.map(cacheName => caches.delete(cacheName))
-        );
-      }
-
-      // Service Worker'ı yeniden yükle
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const registration of registrations) {
-          await registration.unregister();
-        }
-      }
-
-      // IndexedDB'yi temizle
-      if ('indexedDB' in window) {
-        const databases = await indexedDB.databases();
-        for (const db of databases) {
-          if (db.name) {
-            indexedDB.deleteDatabase(db.name);
-          }
-        }
-      }
-
-      // Sayfayı yenile
-      window.location.reload();
-    } catch (error) {
-      console.error('❌ Cache temizleme hatası:', error);
-    }
-  };
+  // Oturumun korunması adına agresif cache temizleme kaldırıldı.
 
   // Uygulama başlangıcında cache kontrolü
   useEffect(() => {
@@ -124,9 +84,10 @@ function AppContent() {
     const lastBuildTime = safeGetItem('lastBuildTime');
     
     if (buildTime && lastBuildTime && buildTime !== lastBuildTime) {
-      console.log('🔄 Yeni build tespit edildi, cache temizleniyor...');
+      console.log('🔄 Yeni build tespit edildi, yumuşak yenileme yapılıyor (oturum korunur)...');
       safeSetItem('lastBuildTime', buildTime);
-      clearAllCaches();
+      // Oturumu etkilemeden sadece sayfayı yenile
+      window.location.reload();
       return;
     }
 
@@ -136,15 +97,7 @@ function AppContent() {
     }
 
     // Kullanıcılar için otomatik bir kez cache temizleme (iOS Safari'de devre dışı)
-    const hasClearedCache = safeGetItem('hasClearedCache');
-    if (!hasClearedCache && !(isIOS && isSafari)) {
-      console.log('🔄 İlk kez cache temizleme yapılıyor...');
-      safeSetItem('hasClearedCache', 'true');
-      setTimeout(() => {
-        clearAllCaches();
-      }, 3000);
-      return;
-    }
+    // Oturumu riske atmamak için otomatik cache temizleme KAPATILDI
 
     // Puter servisini başlat
     const initializePuter = async () => {
@@ -179,16 +132,17 @@ function AppContent() {
           .single();
 
         if (error) {
-          console.warn('sharePromptLastShownAt okunamadı:', error.message);
-          return;
+          console.warn('sharePromptLastShownAt okunamadı, varsayılan gösterim uygulanacak:', error.message);
         }
 
         const last = data?.sharePromptLastShownAt ? new Date(data.sharePromptLastShownAt).getTime() : 0;
+        console.log('SharePrompt kontrolü:', { lastShownAt: data?.sharePromptLastShownAt, last, now: Date.now() });
         if (Date.now() - last >= INTERVAL_MS) {
           setShowShareModal(true);
         }
       } catch (e) {
-        console.warn('Share modal profil kontrol hatası:', e);
+        console.warn('Share modal profil kontrol hatası, varsayılan gösterim uygulanacak:', e);
+        setShowShareModal(true);
       }
     };
 
@@ -203,6 +157,31 @@ function AppContent() {
     return () => {
       if (intervalId) window.clearInterval(intervalId);
     };
+  }, [isAuthenticated]);
+
+  // Giriş yapmamış kullanıcılar için (public) yedek kontrol - mobil dahil
+  useEffect(() => {
+    const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 saat
+    if (isAuthenticated) return; // sadece anonim kullanıcılar
+
+    const checkPublic = () => {
+      try {
+        const lastRaw = localStorage.getItem('shareModalLastShownPublic');
+        const last = lastRaw ? parseInt(lastRaw, 10) : 0;
+        if (Date.now() - last >= INTERVAL_MS) {
+          setShowShareModal(true);
+        }
+      } catch (_e) {
+        setShowShareModal(true);
+      }
+    };
+
+    // Açılışta hemen kontrol
+    checkPublic();
+
+    // Düzenli aralık (5 dk)
+    const id = window.setInterval(checkPublic, 5 * 60 * 1000);
+    return () => window.clearInterval(id);
   }, [isAuthenticated]);
 
   // Bildirim servisini başlat
@@ -555,9 +534,12 @@ function AppContent() {
                   .from('users')
                   .update({ sharePromptLastShownAt: new Date().toISOString() })
                   .eq('id', userId);
+              } else {
+                // anonim kullanıcı için localStorage'a yaz
+                localStorage.setItem('shareModalLastShownPublic', String(Date.now()));
               }
             } catch (e) {
-              console.warn('sharePromptLastShownAt güncellenemedi:', e);
+              console.warn('Share prompt kapanış kaydı hatası:', e);
             } finally {
               setShowShareModal(false);
             }

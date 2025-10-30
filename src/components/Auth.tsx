@@ -37,7 +37,21 @@ export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
       onSuccess();
     } catch (err: any) {
       console.error('❌ Auth hatası:', err);
-      setError(err.message || 'Bir hata oluştu');
+      const raw = (err?.message || '').toString().toLowerCase();
+      // Supabase yaygın mesajlarını Türkçe'ye çevir
+      let friendly = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      if (raw.includes('invalid login credentials') || raw.includes('invalid credentials')) {
+        friendly = 'E-posta veya şifre hatalı.';
+      } else if (raw.includes('email not confirmed') || raw.includes('not confirmed')) {
+        friendly = 'E-posta adresiniz doğrulanmamış. Lütfen e-postanızı doğrulayın.';
+      } else if (raw.includes('too many requests') || raw.includes('rate limit')) {
+        friendly = 'Çok fazla deneme yaptınız. Lütfen bir süre sonra tekrar deneyin.';
+      } else if (raw.includes('network') || raw.includes('fetch') || raw.includes('timeout')) {
+        friendly = 'Ağ hatası. İnternet bağlantınızı kontrol edip tekrar deneyin.';
+      } else if (raw.includes('password should be at least') || raw.includes('password must be at least')) {
+        friendly = 'Şifre en az 6 karakter olmalıdır.';
+      }
+      setError(friendly);
     } finally {
       setIsLoading(false);
     }
