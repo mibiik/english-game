@@ -256,18 +256,13 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     };
   }, [definitionState.targetId, handleClosePopover]);
 
-  // Component mount olduğunda zor kelimeleri çek ve (sadece giriş yapılmış kullanıcı için) bir kez puan ver
+  // Component mount olduğunda zor kelimeleri çek ve (giriş yapıldıysa) her girişte 10 puan ver
   useEffect(() => {
     const userId = supabaseAuthService.getCurrentUserId();
 
-    // Kullanıcı giriş yapmışsa, kullanıcıya özel anahtar ile bir kez puan ver
     if (userId) {
-      const awardedKey = `learningModePointsAwarded:${userId}`;
-      const hasAwardedForUser = localStorage.getItem(awardedKey);
-      if (!hasAwardedForUser) {
-        awardPoints('learning-mode', 10, '1');
-        localStorage.setItem(awardedKey, 'true');
-      }
+      // Her girişte 10 puan
+      awardPoints('learning-mode', 10, (words && words[0] && (words[0] as any).unit) || '1');
 
       // Cloud'dan zor kelimeleri çek
       userService.getDifficultWordsFromCloud(userId).then(cloudWords => {
