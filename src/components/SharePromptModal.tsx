@@ -7,7 +7,7 @@ interface SharePromptModalProps {
 
 const SharePromptModal: React.FC<SharePromptModalProps> = ({ isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
-  const shareText = 'Wordliste çalışabileceğin müthiş bir uygulama, hemen dene:';
+  const shareText = 'Wordliste çalışabileceğin müthiş bir uygulama bulduum:';
   const shareUrl = 'https://kuwordplay.com';
 
   const handleCopy = useCallback(async () => {
@@ -61,8 +61,11 @@ const SharePromptModal: React.FC<SharePromptModalProps> = ({ isOpen, onClose }) 
               onClick={onClose}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-semibold transition text-center shadow-[0_10px_30px_-12px_rgba(16,185,129,0.6)]"
+              className="flex-1 px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-semibold transition shadow-[0_10px_30px_-12px_rgba(16,185,129,0.6)] inline-flex items-center justify-center gap-2"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-white">
+                <path d="M20.52 3.48A11.94 11.94 0 0012.01 0C5.4 0 .05 5.34.05 11.92c0 2.1.56 4.15 1.63 5.96L0 24l6.29-1.64a11.9 11.9 0 005.72 1.46h.01c6.6 0 11.96-5.35 11.96-11.93 0-3.19-1.24-6.19-3.46-8.41zM12.02 21.5h-.01a9.6 9.6 0 01-4.9-1.34l-.35-.2-3.73.97.99-3.64-.23-.37a9.58 9.58 0 01-1.47-5.02c0-5.29 4.31-9.59 9.61-9.59a9.57 9.57 0 016.78 2.8 9.55 9.55 0 012.82 6.79c0 5.29-4.31 9.6-9.61 9.6zm5.47-7.15c-.3-.15-1.78-.88-2.06-.98-.28-.1-.48-.15-.68.15-.2.29-.78.98-.95 1.18-.17.2-.35.22-.65.08-.3-.15-1.25-.46-2.39-1.45-.88-.75-1.47-1.67-1.64-1.96-.17-.29-.02-.45.13-.6.13-.13.3-.35.46-.53.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.64-.93-2.24-.24-.58-.49-.5-.68-.51h-.58c-.2 0-.53.08-.8.38-.27.29-1.05 1.03-1.05 2.51s1.08 2.91 1.23 3.11c.15.2 2.13 3.25 5.16 4.56.72.31 1.28.49 1.72.63.72.23 1.36.2 1.87.12.57-.08 1.78-.73 2.03-1.44.25-.71.25-1.31.17-1.44-.08-.13-.27-.2-.57-.35z"/>
+              </svg>
               WhatsApp ile Paylaş
             </a>
           </div>
