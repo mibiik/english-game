@@ -7,7 +7,7 @@ interface SharePromptModalProps {
 
 const SharePromptModal: React.FC<SharePromptModalProps> = ({ isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
-  const shareText = 'Wordliste çalışabileceiğin müthiş bir uygulama hemen dene: kuwordplay.com';
+  const shareText = 'Wordliste çalışabileceğin müthiş bir uygulama, hemen dene:';
   const shareUrl = 'https://kuwordplay.com';
 
   const handleCopy = useCallback(async () => {
@@ -57,7 +57,7 @@ const SharePromptModal: React.FC<SharePromptModalProps> = ({ isOpen, onClose }) 
           )}
           <div className="flex">
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${shareText} — ${shareUrl}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`}
               onClick={onClose}
               target="_blank"
               rel="noopener noreferrer"
