@@ -96,7 +96,7 @@ function AppContent() {
     initializePuter();
   }, []);
 
-  // Paylaşım modali zamanlayıcı
+  // Paylaşım modali zamanlayıcı (Supabase + localStorage fallback)
   useEffect(() => {
     const INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 saat
 
@@ -114,18 +114,26 @@ function AppContent() {
           .eq('id', userId)
           .single();
 
-        if (error) {
-          console.warn('sharePromptLastShownAt okunamadı, varsayılan gösterim uygulanacak:', error.message);
+        // Supabase başarısızsa local fallback kullan
+        let last = 0;
+        if (!error && data?.sharePromptLastShownAt) {
+          last = new Date(data.sharePromptLastShownAt).getTime();
+        } else {
+          const localLast = safeGetItem('shareModalLastShownLocal');
+          last = localLast ? parseInt(localLast, 10) : 0;
         }
 
-        const last = data?.sharePromptLastShownAt ? new Date(data.sharePromptLastShownAt).getTime() : 0;
-        console.log('SharePrompt kontrolü:', { lastShownAt: data?.sharePromptLastShownAt, last, now: Date.now() });
+        console.log('SharePrompt kontrolü:', { lastFrom: error ? 'local' : 'remote', last, now: Date.now() });
         if (Date.now() - last >= INTERVAL_MS) {
           setShowShareModal(true);
         }
       } catch (e) {
-        console.warn('Share modal profil kontrol hatası, varsayılan gösterim uygulanacak:', e);
-        setShowShareModal(true);
+        console.warn('Share modal profil kontrol hatası, local fallback kullanılacak:', e);
+        const localLast = safeGetItem('shareModalLastShownLocal');
+        const last = localLast ? parseInt(localLast, 10) : 0;
+        if (Date.now() - last >= INTERVAL_MS) {
+          setShowShareModal(true);
+        }
       }
     };
 
@@ -464,6 +472,8 @@ function AppContent() {
             } catch (e) {
               console.warn('sharePromptLastShownAt güncellenemedi:', e);
             } finally {
+              // Her durumda local fallback timestamp güncelle
+              safeSetItem('shareModalLastShownLocal', String(Date.now()));
               setShowShareModal(false);
             }
           })();
