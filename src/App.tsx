@@ -115,7 +115,7 @@ function AppContent() {
 
   // Paylaşım modali zamanlayıcı
   useEffect(() => {
-    const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 saat
+    const INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 saat
 
     let intervalId: number | undefined;
 
