@@ -14,6 +14,7 @@ import { analyticsCollector } from './services/analyticsCollector';
 import { notificationService } from './services/notificationService';
 import { puterService } from './services/puterService';
 import LazyAuth from './components/LazyAuth';
+import SharePromptModal from './components/SharePromptModal';
 
 
 function AppContent() {
@@ -68,6 +69,7 @@ function AppContent() {
 
   const [showMehmetModal, setShowMehmetModal] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   // iOS/Safari tespiti
@@ -157,6 +159,51 @@ function AppContent() {
 
     initializePuter();
   }, []);
+
+  // Paylaşım modali zamanlayıcı
+  useEffect(() => {
+    const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 saat
+
+    let intervalId: number | undefined;
+
+    const checkFromProfileAndMaybeShow = async () => {
+      try {
+        if (!isAuthenticated) return;
+        const userId = localStorage.getItem('authUserId');
+        if (!userId) return;
+
+        const { data, error } = await supabase
+          .from('users')
+          .select('sharePromptLastShownAt')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.warn('sharePromptLastShownAt okunamadı:', error.message);
+          return;
+        }
+
+        const last = data?.sharePromptLastShownAt ? new Date(data.sharePromptLastShownAt).getTime() : 0;
+        if (Date.now() - last >= INTERVAL_MS) {
+          setShowShareModal(true);
+        }
+      } catch (e) {
+        console.warn('Share modal profil kontrol hatası:', e);
+      }
+    };
+
+    // Açılışta hemen kontrol et
+    checkFromProfileAndMaybeShow();
+
+    // Düzenli aralıklarla kontrol et (5 dk)
+    intervalId = window.setInterval(() => {
+      checkFromProfileAndMaybeShow();
+    }, 5 * 60 * 1000);
+
+    return () => {
+      if (intervalId) window.clearInterval(intervalId);
+    };
+  }, [isAuthenticated]);
 
   // Bildirim servisini başlat
   useEffect(() => {
@@ -496,6 +543,26 @@ function AppContent() {
       <MehmetModal 
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
+      />
+      <SharePromptModal
+        isOpen={showShareModal}
+        onClose={() => {
+          (async () => {
+            try {
+              const userId = localStorage.getItem('authUserId');
+              if (userId) {
+                await supabase
+                  .from('users')
+                  .update({ sharePromptLastShownAt: new Date().toISOString() })
+                  .eq('id', userId);
+              }
+            } catch (e) {
+              console.warn('sharePromptLastShownAt güncellenemedi:', e);
+            } finally {
+              setShowShareModal(false);
+            }
+          })();
+        }}
       />
       
       {/* Auth Modal */}
