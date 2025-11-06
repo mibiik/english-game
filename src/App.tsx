@@ -98,7 +98,7 @@ function AppContent() {
 
   // Paylaşım modali zamanlayıcı (Supabase + localStorage fallback)
   useEffect(() => {
-    const INTERVAL_MS = 12 * 60 * 60 * 1000; // 12 saat
+    const INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 gün (haftada bir)
 
     let intervalId: number | undefined;
 
