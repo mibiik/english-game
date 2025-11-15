@@ -313,7 +313,7 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
               <ChevronLeft className="w-5 h-5" />
               Geri Dön
             </button>
-            <button onClick={startGame} className={`flex-1 text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg ${themeClasses.button} transition-all duration-200`}>
+            <button onClick={startGame} className={`flex-1 text-center rounded-full px-6 py-3 text-lg font-semibold text-white shadow-lg ${themeClasses.button} transition-all duration-200`}>
               Tekrar Oyna
             </button>
           </div>
@@ -370,62 +370,64 @@ export function SpeakingGame({ words }: SpeakingGameProps) {
             animate={{ opacity: 1, y: 0 }}
             className={`${themeClasses.cardBg} rounded-2xl shadow-xl border ${themeClasses.border} p-6 md:p-8`}
           >
-            {/* Kelime */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentWord.headword}
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-center mb-8"
+            <div className="flex flex-col items-center justify-center">
+              {/* Kelime */}
+              <AnimatePresence mode="wait">
+                  <motion.div
+                      key={currentWord.headword}
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-center mb-8"
+                  >
+                      <h3 className={`text-5xl md:text-6xl lg:text-7xl font-black text-center ${themeClasses.textDark} mb-4`} style={{ textShadow: theme === 'classic' ? '0 0 20px rgba(6, 182, 212, 0.3)' : theme === 'pink' ? '0 0 20px rgba(236, 72, 153, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.3)' }}>
+                          {currentWord.headword}
+                      </h3>
+                      <p className={`text-xl md:text-2xl ${themeClasses.textSecondary} font-bold`}>
+                          {currentWord.turkish}
+                      </p>
+                  </motion.div>
+              </AnimatePresence>
+
+              {/* Butonlar */}
+              <div className="flex items-center justify-center gap-5 mb-6">
+                <motion.button
+                  onClick={() => speak(currentWord.headword)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`p-5 rounded-full ${themeClasses.cardBg} border-2 ${themeClasses.border} ${themeClasses.textSecondary} hover:shadow-xl transition-all duration-300 shadow-lg backdrop-blur-sm`}
+                  title="Kelimeyi dinle"
                 >
-                    <h3 className={`text-5xl md:text-6xl lg:text-7xl font-black text-center ${themeClasses.textDark} mb-4`} style={{ textShadow: theme === 'classic' ? '0 0 20px rgba(6, 182, 212, 0.3)' : theme === 'pink' ? '0 0 20px rgba(236, 72, 153, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.3)' }}>
-                        {currentWord.headword}
-                    </h3>
-                    <p className={`text-xl md:text-2xl ${themeClasses.textSecondary} font-bold`}>
-                        {currentWord.turkish}
-                    </p>
-                </motion.div>
-            </AnimatePresence>
+                  <Volume2 className="w-7 h-7" />
+                </motion.button>
 
-            {/* Butonlar */}
-            <div className="flex items-center justify-center gap-5 mb-6">
-              <motion.button
-                onClick={() => speak(currentWord.headword)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className={`p-5 rounded-2xl ${themeClasses.cardBg} border-2 ${themeClasses.border} ${themeClasses.textSecondary} hover:shadow-xl transition-all duration-300 shadow-lg backdrop-blur-sm`}
-                title="Kelimeyi dinle"
-              >
-                <Volume2 className="w-7 h-7" />
-              </motion.button>
+                <motion.button
+                  onClick={startListening}
+                  disabled={isListening}
+                  whileHover={!isListening ? { scale: 1.1 } : {}}
+                  whileTap={!isListening ? { scale: 0.95 } : {}}
+                  className={`p-6 rounded-full text-white transition-all duration-300 shadow-2xl border-2 ${
+                    isListening 
+                      ? 'bg-red-500 border-red-400 animate-pulse scale-110' 
+                      : `${theme === 'classic' ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400 hover:from-cyan-600 hover:to-blue-700' : theme === 'pink' ? 'bg-gradient-to-br from-pink-500 to-rose-600 border-pink-400 hover:from-pink-600 hover:to-rose-700' : 'bg-gradient-to-br from-blue-500 to-indigo-600 border-blue-400 hover:from-blue-600 hover:to-indigo-700'}`
+                  }`}
+                  title="Telaffuz et"
+                >
+                  <Mic className="w-9 h-9" />
+                </motion.button>
 
-              <motion.button
-                onClick={startListening}
-                disabled={isListening}
-                whileHover={!isListening ? { scale: 1.1 } : {}}
-                whileTap={!isListening ? { scale: 0.95 } : {}}
-                className={`p-6 rounded-2xl text-white transition-all duration-300 shadow-2xl border-2 ${
-                  isListening 
-                    ? 'bg-red-500 border-red-400 animate-pulse scale-110' 
-                    : `${theme === 'classic' ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400 hover:from-cyan-600 hover:to-blue-700' : theme === 'pink' ? 'bg-gradient-to-br from-pink-500 to-rose-600 border-pink-400 hover:from-pink-600 hover:to-rose-700' : 'bg-gradient-to-br from-blue-500 to-indigo-600 border-blue-400 hover:from-blue-600 hover:to-indigo-700'}`
-                }`}
-                title="Telaffuz et"
-              >
-                <Mic className="w-9 h-9" />
-              </motion.button>
-
-              <motion.button
-                onClick={nextWord}
-                disabled={isListening}
-                whileHover={!isListening ? { scale: 1.1 } : {}}
-                whileTap={!isListening ? { scale: 0.95 } : {}}
-                className={`p-5 rounded-2xl ${themeClasses.cardBg} border-2 ${themeClasses.border} ${themeClasses.textSecondary} hover:shadow-xl transition-all duration-300 shadow-lg backdrop-blur-sm ${isListening ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title="Sonraki kelime"
-              >
-                <ChevronRight className="w-7 h-7" />
-              </motion.button>
+                <motion.button
+                  onClick={nextWord}
+                  disabled={isListening}
+                  whileHover={!isListening ? { scale: 1.1 } : {}}
+                  whileTap={!isListening ? { scale: 0.95 } : {}}
+                  className={`p-5 rounded-full ${themeClasses.cardBg} border-2 ${themeClasses.border} ${themeClasses.textSecondary} hover:shadow-xl transition-all duration-300 shadow-lg backdrop-blur-sm ${isListening ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Sonraki kelime"
+                >
+                  <ChevronRight className="w-7 h-7" />
+                </motion.button>
+              </div>
             </div>
 
             {/* Geri bildirim */}
