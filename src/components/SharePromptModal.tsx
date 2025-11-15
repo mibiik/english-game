@@ -32,8 +32,18 @@ const SharePromptModal: React.FC<SharePromptModalProps> = ({ isOpen, onClose }) 
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative w-full max-w-md">
         <div className="absolute inset-0 bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)]"></div>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white transition hover:scale-110"
+          aria-label="Kapat"
+          title="Kapat"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <div className="relative p-8 text-white">
-          {/* Kapat butonu kaldırıldı: sadece kopyalama veya WhatsApp paylaşımı ile kapanır */}
           <h2 className="text-2xl font-semibold mb-2 bg-gradient-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">Paylaşmaya yardımcı olur musun?</h2>
           <p className="text-white/75 leading-relaxed mb-5">
             Sitemizi sınıf gruplarında ve arkadaşlarınla paylaşarak daha çok kişiye ulaşmamıza destek olabilirsin.

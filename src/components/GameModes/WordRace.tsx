@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Trophy, CheckCircle, XCircle } from 'lucide-react';
+import { Trophy, CheckCircle, XCircle, ChevronLeft } from 'lucide-react';
 import { WordDetail } from '../../data/intermediate';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gameStateManager } from '../../lib/utils';
@@ -9,6 +9,7 @@ import { Timer, Target, RotateCcw, CheckCircle as CheckCircleIcon, X } from 'luc
 import { supabaseGameScoreService } from '../../services/supabaseGameScoreService';
 import { awardPoints } from '../../services/scoreService';
 import { soundService } from '../../services/soundService';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface WordRaceProps {
   words: WordDetail[];
@@ -32,6 +33,10 @@ const RACE_DURATION = 90; // saniye
 const WORDS_IN_RACE = 30; // Yarıştaki toplam kelime sayısı
 
 export function WordRace({ words }: WordRaceProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const currentUnit = searchParams.get('unit') || '1';
+  const currentLevel = searchParams.get('level') || 'intermediate';
   const [raceWords, setRaceWords] = useState<WordDetail[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
@@ -44,6 +49,7 @@ export function WordRace({ words }: WordRaceProps) {
   const [feedback, setFeedback] = useState<{ message: string; isCorrect: boolean } | null>(null);
   const [usedWords, setUsedWords] = useState<WordDetail[]>([]);
   const [streak, setStreak] = useState(0);
+  const [theme, setTheme] = useState<'blue' | 'pink' | 'classic'>('blue');
 
   // Oyun anahtarı
   const GAME_KEY = 'wordRace';
@@ -57,6 +63,24 @@ export function WordRace({ words }: WordRaceProps) {
       setRaceWords(shuffled.slice(0, WORDS_IN_RACE));
     }
   }, [words]);
+
+  // Oyunu otomatik başlat
+  useEffect(() => {
+    if (raceWords.length > 0 && !isGameActive && !gameCompleted) {
+      gameStateManager.clearGameState(GAME_KEY);
+      setCurrentWordIndex(0);
+      setScore(0);
+      setTimeLeft(RACE_DURATION);
+      setCorrectCount(0);
+      setIncorrectCount(0);
+      setGameCompleted(false);
+      setIsGameActive(true);
+      setUserInput('');
+      setFeedback(null);
+      setUsedWords([]);
+      setStreak(0);
+    }
+  }, [raceWords.length, isGameActive, gameCompleted, GAME_KEY]);
 
   const startGame = useCallback(() => {
     gameStateManager.clearGameState(GAME_KEY); // Yeni oyun başlarken state'i temizle
@@ -131,10 +155,12 @@ export function WordRace({ words }: WordRaceProps) {
 
   useEffect(() => {
     if(isGameActive) {
-      inputRef.current?.focus();
       window.scrollTo(0, 0);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
-  }, [isGameActive]);
+  }, [isGameActive, currentWordIndex]);
 
   const endGame = useCallback(() => {
     setGameCompleted(true);
@@ -175,7 +201,7 @@ export function WordRace({ words }: WordRaceProps) {
 
     const currentWord = raceWords[currentWordIndex];
     const answer = userInput.trim().toLowerCase();
-    const isCorrect = answer === currentWord.turkish.toLowerCase();
+    const isCorrect = answer === currentWord.headword.toLowerCase();
 
     if (isCorrect) {
       setScore(prev => prev + 2);
@@ -190,7 +216,7 @@ export function WordRace({ words }: WordRaceProps) {
       setScore(prev => prev - 2);
       setStreak(0);
       awardPoints('word-race', -2, raceWords[0]?.unit || '1');
-      setFeedback({ message: `-2 | Doğru: ${currentWord.turkish}`, isCorrect: false });
+      setFeedback({ message: `-2 | Doğru: ${currentWord.headword}`, isCorrect: false });
       soundService.playWrong();
       setTimeout(nextWord, 1300);
     }
@@ -198,108 +224,187 @@ export function WordRace({ words }: WordRaceProps) {
   
   const timePercentage = (timeLeft / RACE_DURATION) * 100;
   
+  // Tema renkleri
+  const themeClasses = theme === 'blue' ? {
+    bg: 'bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100',
+    cardBg: 'bg-white/60 backdrop-blur-lg',
+    border: 'border-blue-200',
+    text: 'text-blue-800',
+    textSecondary: 'text-blue-600',
+    textDark: 'text-blue-900',
+    button: 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700',
+    progress: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+    inputBg: 'bg-white/80',
+    inputBorder: 'border-blue-200 focus:border-blue-400 focus:ring-blue-300',
+    placeholder: 'placeholder-blue-400'
+  } : theme === 'pink' ? {
+    bg: 'bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100',
+    cardBg: 'bg-white/60 backdrop-blur-lg',
+    border: 'border-pink-200',
+    text: 'text-pink-800',
+    textSecondary: 'text-pink-600',
+    textDark: 'text-pink-900',
+    button: 'bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700',
+    progress: 'bg-gradient-to-r from-pink-500 to-rose-600',
+    inputBg: 'bg-white/80',
+    inputBorder: 'border-pink-200 focus:border-pink-400 focus:ring-pink-300',
+    placeholder: 'placeholder-pink-400'
+  } : {
+    bg: 'bg-black',
+    cardBg: 'bg-gray-800/50 backdrop-blur-lg border border-gray-700',
+    border: 'border-gray-700',
+    text: 'text-gray-200',
+    textSecondary: 'text-cyan-400',
+    textDark: 'text-white',
+    button: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700',
+    progress: 'bg-gradient-to-r from-cyan-500 to-blue-600',
+    inputBg: 'bg-gray-900/50',
+    inputBorder: 'border-gray-600 focus:border-cyan-400 focus:ring-cyan-300',
+    placeholder: 'placeholder-gray-500'
+  };
+  
   // Güvenli erişim
   if (raceWords.length === 0) {
-    // Kelimeler henüz yüklenmediyse bir yükleme durumu gösterilebilir
-    return <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4" style={{ paddingTop: '64px', marginTop: '-128px' }}>Yarış için kelimeler hazırlanıyor...</div>;
+    return <div className={`flex items-start justify-center min-h-screen w-full ${themeClasses.bg} p-4 pt-8 ${themeClasses.text}`}>Yarış için kelimeler hazırlanıyor...</div>;
   }
 
   const currentWord = raceWords[currentWordIndex];
 
-  // Ana Ekran ve Oyun Bitiş Ekranı
-  if (!isGameActive) {
-      return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4" style={{ paddingTop: '64px', marginTop: '-128px' }}>
+  // Oyun bitti ekranı
+  if (gameCompleted && !isGameActive) {
+    return (
+      <div className={`flex items-start justify-center min-h-screen w-full ${themeClasses.bg} p-4 pt-8`}>
         <motion.div 
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="text-center bg-gray-800/50 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-purple-500/20 w-full max-w-md"
+            className={`text-center ${themeClasses.cardBg} rounded-2xl shadow-2xl w-full max-w-md border ${themeClasses.border} p-8`}
         >
-          <Trophy className="w-16 h-16 mx-auto text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)] mb-4" />
-          <h2 className="text-4xl font-extrabold text-white mb-2">Kelime Yarışı</h2>
-          {gameCompleted ? (
-            <>
-              <p className="text-lg text-gray-300 mt-4">Yarış bitti!</p>
-              <p className="text-5xl font-bold my-4 text-purple-400">{score}</p>
-              <div className="text-gray-400">
-                {correctCount} doğru kelime ile yarışı tamamladın.
-              </div>
-            </>
-          ) : (
-            <div className="text-gray-400 my-6 space-y-2">
-              <p>Ekrana gelen kelimenin Türkçe karşılığını yaz.</p>
-              <p>Süren dolmadan en yüksek puanı topla!</p>
-            </div>
-          )}
-          <button onClick={startGame} className="mt-8 w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl text-xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-purple-500/30 active:scale-95">
-            {gameCompleted ? 'Tekrar Yarış' : 'Yarışı Başlat'}
-          </button>
+          <h2 className={`text-4xl font-black mb-4 ${themeClasses.textSecondary}`}>Yarış Bitti!</h2>
+          <div className={`p-4 rounded-xl mb-6 border ${theme === 'classic' ? 'bg-gray-800/50 border-gray-700' : theme === 'pink' ? 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-100' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100'}`}>
+            <p className={`text-3xl font-bold ${themeClasses.textDark}`}>{score}</p>
+            <p className={`mt-2 ${themeClasses.text}`}>{correctCount} doğru kelime</p>
+          </div>
+          {/* Tema Seçimi */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <button
+              onClick={() => setTheme('classic')}
+              className={`w-8 h-8 rounded-full border-2 transition-all ${theme === 'classic' ? 'bg-gray-800 border-cyan-400' : 'bg-gray-600 border-gray-300'}`}
+              title="Klasik Tema"
+            />
+            <button
+              onClick={() => setTheme('blue')}
+              className={`w-8 h-8 rounded-full border-2 transition-all ${theme === 'blue' ? 'bg-blue-500 border-blue-600' : 'bg-blue-300 border-blue-400'}`}
+              title="Mavi Tema"
+            />
+            <button
+              onClick={() => setTheme('pink')}
+              className={`w-8 h-8 rounded-full border-2 transition-all ${theme === 'pink' ? 'bg-pink-400 border-pink-600' : 'bg-pink-300 border-pink-400'}`}
+              title="Pembe Tema"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => navigate(`/game-modes?unit=${currentUnit}&level=${currentLevel}`)} 
+              className={`flex-1 flex items-center justify-center gap-2 text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg bg-gray-500 hover:bg-gray-600 transition-all duration-200`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+              Geri Dön
+            </button>
+            <button onClick={startGame} className={`flex-1 text-center rounded-xl px-6 py-3 text-lg font-semibold text-white shadow-lg ${themeClasses.button} transition-all duration-200`}>
+              Tekrar Yarış
+            </button>
+          </div>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gray-900 text-white p-4 font-sans" style={{ paddingTop: '64px', marginTop: '-128px' }}>
-      <div className="w-full max-w-lg">
+    <div className={`flex items-start justify-center min-h-screen p-1 sm:p-2 md:p-4 ${themeClasses.bg} pt-8 md:pt-12`}>
+      <div className="w-full max-w-lg mx-auto relative">
           {/* Süre Çubuğu */}
-          <div className="w-full bg-gray-700/50 rounded-full h-3 mb-4 border border-gray-600">
+          <div className={`w-full ${themeClasses.cardBg} rounded-full h-3 mb-4 border ${themeClasses.border} shadow-sm`}>
             <motion.div
-              className="h-full rounded-full"
-              style={{
-                  background: `linear-gradient(90deg, ${
-                  timePercentage > 50 ? 'rgb(74 222 128)' : timePercentage > 20 ? 'rgb(250 204 21)' : 'rgb(239 68 68)'
-                  }, ${
-                  timePercentage > 50 ? 'rgb(34 197 94)' : timePercentage > 20 ? 'rgb(234 179 8)' : 'rgb(220 38 38)'
-                  })`
-              }}
+              className={`h-full rounded-full ${themeClasses.progress}`}
               initial={{ width: '100%' }}
               animate={{ width: `${timePercentage}%` }}
               transition={{ duration: 1, ease: 'linear' }}
             />
           </div>
 
+          {/* HUD */}
+          <div className={`flex justify-between items-center mb-4 ${themeClasses.cardBg} rounded-xl shadow border ${themeClasses.border} px-4 py-3`}>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => navigate(`/game-modes?unit=${currentUnit}&level=${currentLevel}`)} 
+                  className={`${themeClasses.textSecondary} hover:opacity-80 transition-all duration-200 p-1`}
+                  title="Oyun Modlarına Dön"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div className={`${themeClasses.text} font-semibold`}>Skor: <span className={`font-bold text-xl ${themeClasses.textDark}`}>{score}</span></div>
+              </div>
+              <div className={`${themeClasses.textSecondary} text-sm font-medium`}>{correctCount} / {WORDS_IN_RACE}</div>
+              <div className={`font-bold text-xl ${themeClasses.textDark}`}>{timeLeft}s</div>
+              {/* Tema Seçimi */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTheme('classic')}
+                  className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'classic' ? 'bg-gray-800 border-cyan-400' : 'bg-gray-600 border-gray-300'}`}
+                  title="Klasik Tema"
+                />
+                <button
+                  onClick={() => setTheme('blue')}
+                  className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'blue' ? 'bg-blue-500 border-blue-600' : 'bg-blue-300 border-blue-400'}`}
+                  title="Mavi Tema"
+                />
+                <button
+                  onClick={() => setTheme('pink')}
+                  className={`w-6 h-6 rounded-full border-2 transition-all ${theme === 'pink' ? 'bg-pink-400 border-pink-600' : 'bg-pink-300 border-pink-400'}`}
+                  title="Pembe Tema"
+                />
+              </div>
+          </div>
+
           {/* Kart */}
           <motion.div 
             key={currentWordIndex}
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gray-800/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-purple-500/20"
+            className={`${themeClasses.cardBg} rounded-2xl shadow-xl border ${themeClasses.border} p-6 md:p-8`}
           >
-            {/* HUD */}
-            <div className="flex justify-between items-center text-lg text-gray-300 mb-8">
-                <div>Skor: <span className="font-bold text-xl text-white">{score}</span></div>
-                <div>{correctCount} / {WORDS_IN_RACE}</div>
-                <div className="font-bold text-xl text-white">{timeLeft}s</div>
-            </div>
-            
             {/* Kelime */}
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={currentWord.headword}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    key={currentWord.turkish}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                 >
-                    <h3 className="text-5xl md:text-6xl font-extrabold text-center text-white" style={{textShadow: '0 0 15px rgba(255,255,255,0.2)'}}>
-                        {currentWord.headword}
+                    <h3 className={`text-4xl md:text-5xl font-black text-center ${themeClasses.textDark} mb-4`}>
+                        {currentWord.turkish}
                     </h3>
                 </motion.div>
             </AnimatePresence>
 
-            <p className="text-center text-purple-300/80 my-4 text-md">Türkçe karşılığını yaz</p>
+            {/* İpucu */}
+            {currentWord.headword && currentWord.headword.length > 0 && (
+              <p className={`text-center text-sm ${themeClasses.textSecondary} font-semibold mb-4`}>
+                İpucu: {currentWord.headword[0].toUpperCase()}...{currentWord.headword[currentWord.headword.length - 1].toUpperCase()}
+              </p>
+            )}
 
             {/* Geri bildirim */}
-            <div className="h-10 flex items-center justify-center">
+            <div className="h-10 flex items-center justify-center mb-4">
                 <AnimatePresence>
                     {feedback && (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className={`flex items-center gap-2 font-semibold px-4 py-2 rounded-full text-lg
-                            ${feedback.isCorrect ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}
+                            className={`flex items-center gap-2 font-bold px-4 py-2 rounded-full text-base
+                            ${feedback.isCorrect ? 'bg-green-500 text-white shadow-lg' : 'bg-red-500 text-white shadow-lg'}`}
                         >
                             {feedback.isCorrect ? <CheckCircleIcon size={20} /> : <X size={20} />}
                             {feedback.message}
@@ -309,14 +414,14 @@ export function WordRace({ words }: WordRaceProps) {
             </div>
             
             {/* Giriş Alanı */}
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit}>
               <input
                 ref={inputRef}
                 type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder="..."
-                className="w-full p-4 text-center text-2xl bg-gray-900/50 border-2 border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-purple-500/50 focus:border-purple-500 transition-all"
+                placeholder="İngilizce kelimeyi yaz..."
+                className={`w-full p-4 text-center text-xl ${themeClasses.inputBg} border-2 ${themeClasses.inputBorder} rounded-xl ${themeClasses.textDark} ${themeClasses.placeholder} focus:outline-none focus:ring-4 transition-all font-semibold shadow-sm`}
                 autoFocus
                 autoComplete="off"
               />

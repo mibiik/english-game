@@ -20,22 +20,13 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
       route: `/learning-mode?unit=${currentUnit}&level=${currentLevel}`
     },
     {
-      id: 'flashcard',
-      title: 'Flashcards',
-      description: 'Learn with word cards',
-      icon: HiCollection,
-      color: 'from-yellow-500 to-orange-500',
-      imgSrc: '/assets/aaaaaaaadwü/kelimekartlari.jpg',
-      route: `/flashcard?unit=${currentUnit}&level=${currentLevel}`
-    },
-    {
-      id: 'matching',
-      title: 'Matching',
-      description: 'Match words with meanings',
-      icon: HiSwitchHorizontal,
-      color: 'from-blue-500 to-cyan-500',
-      imgSrc: '/assets/aaaaaaaadwü/eşeştirme.jpg',
-      route: `/matching-game?unit=${currentUnit}&level=${currentLevel}`
+      id: 'definitionToWord',
+      title: 'Definition to Word',
+      description: 'Find word from definition',
+      icon: HiBookOpen,
+      color: 'from-lime-500 to-green-500',
+      imgSrc: '/assets/aaaaaaaadwü/tanım.jpg',
+      route: `/definition-to-word?unit=${currentUnit}&level=${currentLevel}`
     },
     {
       id: 'multiple-choice',
@@ -47,6 +38,24 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
       route: `/multiple-choice?unit=${currentUnit}&level=${currentLevel}`
     },
     {
+      id: 'matching',
+      title: 'Matching',
+      description: 'Match words with meanings',
+      icon: HiSwitchHorizontal,
+      color: 'from-blue-500 to-cyan-500',
+      imgSrc: '/assets/aaaaaaaadwü/eşeştirme.jpg',
+      route: `/matching-game?unit=${currentUnit}&level=${currentLevel}`
+    },
+    {
+      id: 'flashcard',
+      title: 'Flashcards',
+      description: 'Learn with word cards',
+      icon: HiCollection,
+      color: 'from-yellow-500 to-orange-500',
+      imgSrc: '/assets/aaaaaaaadwü/kelimekartlari.jpg',
+      route: `/flashcard?unit=${currentUnit}&level=${currentLevel}`
+    },
+    {
       id: 'prepositionMastery',
       title: 'Preposition Mastery',
       description: 'Use prepositions correctly',
@@ -54,15 +63,6 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
       color: 'from-violet-500 to-purple-500',
       imgSrc: '/assets/aaaaaaaadwü/preposition.jpg',
       route: `/preposition-mastery?unit=${currentUnit}&level=${currentLevel}`
-    },
-    {
-      id: 'paraphraseChallenge',
-      title: 'Paraphrase',
-      description: 'Rewrite sentences',
-      icon: HiDocumentText,
-      color: 'from-orange-500 to-red-500',
-      imgSrc: '/assets/aaaaaaaadwü/parapprase.jpg',
-      route: `/paraphrase?unit=${currentUnit}&level=${currentLevel}`
     },
     {
       id: 'sentence-completion',
@@ -83,15 +83,6 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
       route: `/speaking?unit=${currentUnit}&level=${currentLevel}`
     },
     {
-      id: 'essay-writing',
-      title: 'Essay Writing',
-      description: 'Write essays and improve writing',
-      icon: HiDocumentText,
-      color: 'from-teal-500 to-green-500',
-      imgSrc: '/assets/aaaaaaaadwü/essay.jpg',
-      route: `/essay-writing?unit=${currentUnit}&level=${currentLevel}`
-    },
-    {
       id: 'wordForms',
       title: 'Word Forms',
       description: 'Learn word forms',
@@ -108,15 +99,6 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
       color: 'from-red-500 to-pink-500',
       imgSrc: '/assets/aaaaaaaadwü/kelimeyarisi.jpg',
       route: `/word-race?unit=${currentUnit}&level=${currentLevel}`
-    },
-    {
-      id: 'definitionToWord',
-      title: 'Definition to Word',
-      description: 'Find word from definition',
-      icon: HiBookOpen,
-      color: 'from-lime-500 to-green-500',
-      imgSrc: '/assets/aaaaaaaadwü/tanım.jpg',
-      route: `/definition-to-word?unit=${currentUnit}&level=${currentLevel}`
     },
   ], [currentUnit, currentLevel]);
 

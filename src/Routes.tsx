@@ -295,7 +295,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 currentLevel={currentLevel}
                 setCurrentLevel={setCurrentLevel}
               />
-              <div className="pt-32">
+              <div>
                 <GameWrapperWithParams component={SpeakingGame} />
               </div>
             </>
@@ -311,7 +311,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 currentLevel={currentLevel}
                 setCurrentLevel={setCurrentLevel}
               />
-              <div className="pt-32">
+              <div>
                 <GameWrapperWithParams component={WordRace} />
               </div>
             </>
