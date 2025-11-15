@@ -1,6 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiClipboardList, HiCollection, HiDocumentText, HiSwitchHorizontal, HiPuzzle, HiSpeakerphone, HiBookOpen, HiLightningBolt, HiHome } from 'react-icons/hi';
+import { Star } from 'lucide-react';
+import { supabaseGameScoreService } from '../services/supabaseGameScoreService';
 
 interface GameModesPageProps {
   currentUnit: string;
@@ -8,6 +10,84 @@ interface GameModesPageProps {
 }
 
 const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel }) => {
+  const [topPlayedGames, setTopPlayedGames] = useState<Set<string>>(new Set());
+  
+  // Yenilenen oyun modları
+  const renewedGames = useMemo(() => new Set(['word-race', 'speaking']), []);
+
+  // Oyun modu ID'lerini GameMode type'ına map et
+  const gameModeIdMap: Record<string, string> = {
+    'vocabulary': 'vocabulary',
+    'definitionToWord': 'definitionToWord',
+    'multiple-choice': 'multiple-choice',
+    'matching': 'matching',
+    'flashcard': 'flashcard',
+    'prepositionMastery': 'prepositionMastery',
+    'sentence-completion': 'sentence-completion',
+    'speaking': 'speaking',
+    'wordForms': 'wordForms',
+    'word-race': 'word-race' // veya 'speedGame' olabilir
+  };
+
+  // Ters map: GameMode'dan game mode ID'sine
+  const reverseGameModeMap: Record<string, string> = {
+    'vocabulary': 'vocabulary',
+    'definitionToWord': 'definitionToWord',
+    'multiple-choice': 'multiple-choice',
+    'matching': 'matching',
+    'flashcard': 'flashcard',
+    'prepositionMastery': 'prepositionMastery',
+    'sentence-completion': 'sentence-completion',
+    'speaking': 'speaking',
+    'wordForms': 'wordForms',
+    'word-race': 'word-race',
+    'speedGame': 'word-race' // speedGame de word-race'e map ediliyor
+  };
+
+  // En çok oynanan oyunları yükle
+  useEffect(() => {
+    const loadTopPlayedGames = async () => {
+      try {
+        const stats = await supabaseGameScoreService.getUserStats();
+        const gameModeStats = stats.gameModeStats;
+
+        // Oyun modlarını oynanma sayısına göre sırala
+        const sortedGames = Object.entries(gameModeStats)
+          .map(([gameMode, data]) => ({
+            gameMode,
+            gamesPlayed: data.gamesPlayed
+          }))
+          .filter(game => game.gamesPlayed > 0)
+          .sort((a, b) => b.gamesPlayed - a.gamesPlayed)
+          .slice(0, 3); // En çok oynanan 3 oyun
+
+        // GameMode'u game mode ID'sine çevir
+        const topGameIds = new Set<string>();
+        sortedGames.forEach(({ gameMode }) => {
+          // Önce doğrudan map'te ara
+          const gameModeId = reverseGameModeMap[gameMode];
+          if (gameModeId) {
+            topGameIds.add(gameModeId);
+          } else {
+            // Eğer bulunamazsa, gameModeIdMap'te ara
+            const foundId = Object.entries(gameModeIdMap).find(
+              ([_, mappedMode]) => mappedMode === gameMode
+            )?.[0];
+            if (foundId) {
+              topGameIds.add(foundId);
+            }
+          }
+        });
+
+        setTopPlayedGames(topGameIds);
+      } catch (error) {
+        console.error('En çok oynanan oyunlar yüklenirken hata:', error);
+      }
+    };
+
+    loadTopPlayedGames();
+  }, []);
+
   // Memoized game modes
   const gameModes = useMemo(() => [
     {
@@ -144,8 +224,22 @@ const GameModesPage: React.FC<GameModesPageProps> = ({ currentUnit, currentLevel
                 to={mode.route}
                 className="group relative bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-lg border border-gray-700/50 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:border-gray-600/50 cursor-pointer"
               >
+                {/* Yıldız Rozeti - En çok oynanan oyunlar için */}
+                {topPlayedGames.has(mode.id) && (
+                  <div className="absolute top-2 right-2 z-20 bg-gradient-to-br from-yellow-400 to-yellow-500 backdrop-blur-sm rounded-full p-2 shadow-xl border-2 border-yellow-300/80 animate-pulse">
+                    <Star className="w-5 h-5 text-yellow-900 fill-yellow-900 drop-shadow-md" />
+                  </div>
+                )}
+
+                {/* Yenilendi Şeridi */}
+                {renewedGames.has(mode.id) && (
+                  <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold py-1.5 px-3 shadow-lg text-center">
+                    ✨ YENİLENDİ
+                  </div>
+                )}
+
                 {/* Görsel ve başlık */}
-                <div className="relative w-full aspect-[1/1] min-h-[120px] md:min-h-[160px] overflow-hidden flex flex-col justify-center items-center"> 
+                <div className={`relative w-full aspect-[1/1] min-h-[120px] md:min-h-[160px] overflow-hidden flex flex-col justify-center items-center ${renewedGames.has(mode.id) ? 'pt-8' : ''}`}> 
                   {/* Blurlu ve karartılmış arkaplan resmi */}
                   <img 
                     src={imgSrc} 

@@ -58,6 +58,13 @@ export function WordRace({ words }: WordRaceProps) {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Sayfa açıldığında en üste kaydır
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
+  useEffect(() => {
     if (words.length > 0) {
       const shuffled = [...words].sort(() => 0.5 - Math.random());
       setRaceWords(shuffled.slice(0, WORDS_IN_RACE));
