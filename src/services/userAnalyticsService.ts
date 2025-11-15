@@ -99,7 +99,6 @@ export interface UserInsights {
 }
 
 class UserAnalyticsService {
-  private unsubscribe: any = null;
 
   // Kullanıcı istatistiklerini getir
   async getUserStats(userId: string): Promise<UserStats> {
@@ -423,54 +422,6 @@ class UserAnalyticsService {
     }
   }
 
-  // Real-time monitoring başlat
-  async startMonitoring(userId: string, onUpdate: (data: any) => void): Promise<void> {
-    try {
-      const channel = supabase
-        .channel('user_analytics')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'game_scores',
-            filter: `user_id=eq.${userId}`
-          },
-          (payload) => {
-            console.log('📊 Game score değişikliği:', payload);
-            onUpdate(payload);
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'season_scores',
-            filter: `user_id=eq.${userId}`
-          },
-          (payload) => {
-            console.log('📈 Season score değişikliği:', payload);
-            onUpdate(payload);
-          }
-        )
-        .subscribe((status) => {
-          console.log('📡 Analytics monitoring durumu:', status);
-        });
-
-      this.unsubscribe = channel;
-    } catch (error) {
-      console.error('Monitoring başlatma hatası:', error);
-    }
-  }
-
-  // Monitoring durdur
-  stopMonitoring(): void {
-    if (this.unsubscribe) {
-      supabase.removeChannel(this.unsubscribe);
-      this.unsubscribe = null;
-    }
-  }
 
   // Yardımcı fonksiyonlar
   private async calculateStreaks(userId: string): Promise<{ currentStreak: number; longestStreak: number }> {

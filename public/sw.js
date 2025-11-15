@@ -33,10 +33,6 @@ const firebaseConfig = {
   measurementId: "G-ND05BVBP39"
 };
 
-// Monitoring sistemi
-let monitoringInterval;
-let scoreHistory = new Map();
-const ANOMALY_THRESHOLD = 100; // Anomali eşiği
 
 // Firebase Firestore bağlantısı
 async function initializeFirebase() {
@@ -51,164 +47,6 @@ async function initializeFirebase() {
   }
 }
 
-// Puan değişikliğini kontrol et
-async function checkScoreChanges(db) {
-  try {
-    const usersRef = db.collection('userProfiles');
-    const snapshot = await usersRef.orderBy('totalScore', 'desc').get();
-    
-    snapshot.forEach((doc) => {
-      const userData = doc.data();
-      const userId = doc.id;
-      const newScore = userData.totalScore || 0;
-      const userName = userData.displayName || 'Bilinmeyen Kullanıcı';
-      
-      // Kullanıcının geçmiş puanını al
-      const history = scoreHistory.get(userId);
-      const oldScore = history?.scores[history.scores.length - 1]?.score || 0;
-      
-      // Puan değişikliğini hesapla
-      const change = newScore - oldScore;
-      
-      // Eğer puan düştüyse ve anomali eşiğini geçtiyse
-      if (change < -ANOMALY_THRESHOLD) {
-        console.warn('🚨 ARKA PLAN ANOMALİ ALGILANDI:', {
-          userId,
-          userName,
-          oldScore,
-          newScore,
-          change,
-          timestamp: new Date()
-        });
-        
-        // Anomaliyi kaydet
-        saveAnomaly(db, {
-          userId,
-          userName,
-          oldScore,
-          newScore,
-          change,
-          timestamp: new Date(),
-          reason: 'Arka plan monitoring - ani puan düşüşü',
-          isAnomaly: true
-        });
-        
-        // Admin'e bildir
-        notifyAdmin(db, {
-          userId,
-          userName,
-          oldScore,
-          newScore,
-          change,
-          timestamp: new Date(),
-          type: 'score_anomaly',
-          title: 'Puan Anomalisi Algılandı',
-          message: `${userName} kullanıcısının puanı ${oldScore}'den ${newScore}'e düştü (${change} puan)`
-        });
-        
-        // Son puanı yedekle
-        backupLastScore(db, userId, userName, oldScore);
-      }
-      
-      // Puan geçmişini güncelle
-      updateScoreHistory(userId, userName, newScore);
-    });
-  } catch (error) {
-    console.error('Puan kontrolü sırasında hata:', error);
-  }
-}
-
-// Puan geçmişini güncelle
-function updateScoreHistory(userId, userName, score) {
-  const history = scoreHistory.get(userId) || { userId, userName, scores: [] };
-  history.scores.push({ score, timestamp: new Date() });
-  
-  // Son 10 puanı tut
-  if (history.scores.length > 10) {
-    history.scores = history.scores.slice(-10);
-  }
-  
-  scoreHistory.set(userId, history);
-}
-
-// Anomaliyi kaydet
-async function saveAnomaly(db, scoreChange) {
-  try {
-    await db.collection('scoreAnomalies').add({
-      ...scoreChange,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  } catch (error) {
-    console.error('Anomali kaydedilirken hata:', error);
-  }
-}
-
-// Admin'e bildir
-async function notifyAdmin(db, notification) {
-  try {
-    await db.collection('adminNotifications').add({
-      ...notification,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      isRead: false
-    });
-  } catch (error) {
-    console.error('Admin bildirimi gönderilirken hata:', error);
-  }
-}
-
-// Son puanı yedekle
-async function backupLastScore(db, userId, userName, score) {
-  try {
-    await db.collection('scoreBackups').add({
-      userId,
-      userName,
-      score,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-  } catch (error) {
-    console.error('Puan yedeklenirken hata:', error);
-  }
-}
-
-// Monitoring'i başlat
-async function startBackgroundMonitoring() {
-  // Eğer zaten çalışıyorsa tekrar başlatma
-  if (monitoringInterval) {
-    console.log('⚠️ Monitoring zaten aktif');
-    return;
-  }
-  
-  console.log('🔄 Arka plan monitoring başlatılıyor...');
-  
-  const db = await initializeFirebase();
-  if (!db) {
-    console.log('Firebase devre dışı, monitoring sadece local olarak çalışıyor');
-    // Firebase olmadan da monitoring'i başlat
-    monitoringInterval = setInterval(async () => {
-      console.log('📊 Local monitoring aktif (Firebase olmadan)');
-    }, 300000); // 5 dakika
-    return;
-  }
-  
-  // İlk kontrol
-  await checkScoreChanges(db);
-  
-  // Her 5 dakikada bir kontrol et (daha az sıklık)
-  monitoringInterval = setInterval(async () => {
-    await checkScoreChanges(db);
-  }, 300000); // 5 dakika
-  
-  console.log('✅ Arka plan monitoring aktif');
-}
-
-// Monitoring'i durdur
-function stopBackgroundMonitoring() {
-  if (monitoringInterval) {
-    clearInterval(monitoringInterval);
-    monitoringInterval = null;
-    console.log('🛑 Arka plan monitoring durduruldu');
-  }
-}
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -326,33 +164,18 @@ self.addEventListener('activate', (event) => {
       console.log('✅ Eski cache\'ler temizlendi');
       // Tüm client'ları kontrol et
       return self.clients.claim();
-    }).then(() => {
-      // Monitoring'i sadece bir kez başlat
-      setTimeout(() => {
-        startBackgroundMonitoring();
-      }, 5000); // 5 saniye sonra başlat
     })
   );
 });
 
 // Message event - ana uygulamadan gelen mesajları dinle
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'START_MONITORING') {
-    startBackgroundMonitoring();
-  } else if (event.data && event.data.type === 'STOP_MONITORING') {
-    stopBackgroundMonitoring();
-  } else if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
     // Yeni service worker'ı hemen aktif et
     self.skipWaiting();
   }
 });
 
-// Sync event - arka plan senkronizasyonu
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'background-monitoring') {
-    event.waitUntil(checkScoreChanges());
-  }
-});
 
 // Push event - push notification'ları
 self.addEventListener('push', (event) => {
@@ -446,9 +269,7 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('sync', (event) => {
   console.log('🔄 Background sync:', event.tag);
   
-  if (event.tag === 'background-monitoring') {
-    event.waitUntil(startBackgroundMonitoring());
-  } else if (event.tag === 'daily-reminder') {
+  if (event.tag === 'daily-reminder') {
     event.waitUntil(sendDailyReminder());
   }
 });

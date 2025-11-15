@@ -5,10 +5,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { supabaseAuthService } from './services/supabaseAuthService';
 import { supabase } from './config/supabase';
 import MehmetModal from './components/MehmetModal';
-import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import NotificationPermission from './components/NotificationPermission';
-import { userAnalyticsService } from './services/userAnalyticsService';
 import { deviceDetectionService } from './services/deviceDetectionService';
 import { analyticsCollector } from './services/analyticsCollector';
 import { notificationService } from './services/notificationService';
@@ -90,6 +88,19 @@ function AppContent() {
         console.log('✅ Puter servisi başarıyla başlatıldı');
       } catch (error) {
         console.error('❌ Puter servisi başlatılamadı:', error);
+        // Local storage'ı temizle ve sayfayı yeniden başlat
+        try {
+          console.log('🧹 Local storage temizleniyor ve sayfa yeniden başlatılıyor...');
+          localStorage.clear();
+          sessionStorage.clear();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } catch (clearError) {
+          console.error('❌ Local storage temizlenirken hata:', clearError);
+          // Yine de sayfayı yeniden başlat
+          window.location.reload();
+        }
       }
     };
 
@@ -179,48 +190,12 @@ function AppContent() {
     initializeNotifications();
   }, []);
 
-  // Ana uygulama monitoring'i
+  // Analiz veri toplamayı başlat
   useEffect(() => {
-    console.log('🚀 Uygulama başlatılıyor - Monitoring başlatılıyor...');
-    
-    // Ana uygulama monitoring'i
-    if (isAuthenticated) {
-      const userId = localStorage.getItem('authUserId');
-      if (userId) {
-        userAnalyticsService.startMonitoring(userId, (data) => {
-          console.log('Analytics update:', data);
-        });
-      }
-    }
-    
-    // Analiz veri toplamayı başlat
     analyticsCollector.startCollection();
     
-    // Service Worker ile iletişim kur
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        // Service Worker'a monitoring başlatma mesajı gönder
-        registration.active?.postMessage({
-          type: 'START_MONITORING'
-        });
-        console.log('✅ Service Worker monitoring başlatıldı');
-      });
-    }
-    
-    // Uygulama kapanırken monitoring'i durdur
     return () => {
-      console.log('🛑 Uygulama kapanıyor - Monitoring durduruluyor...');
-      userAnalyticsService.stopMonitoring();
       analyticsCollector.stopCollection();
-      
-      // Service Worker'a monitoring durdurma mesajı gönder
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.active?.postMessage({
-            type: 'STOP_MONITORING'
-          });
-        });
-      }
     };
   }, []);
 
@@ -520,7 +495,6 @@ function AppContent() {
       
       <PWAInstallPrompt />
       <NotificationPermission />
-      <PerformanceMonitor />
     </div>
   );
 }

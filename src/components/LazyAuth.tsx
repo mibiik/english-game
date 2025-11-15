@@ -10,14 +10,14 @@ interface LazyAuthProps {
   onSuccess: () => void;
 }
 
-const LazyAuth: React.FC<LazyAuthProps> = React.memo(({ mode, onClose, onSuccess }) => {
+const LazyAuth: React.FC<LazyAuthProps> = ({ mode, onClose, onSuccess }) => {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Auth mode={mode} onClose={onClose} onSuccess={onSuccess} />
     </Suspense>
   );
-});
+};
 
 LazyAuth.displayName = 'LazyAuth';
 
-export default LazyAuth;
+export default React.memo(LazyAuth);

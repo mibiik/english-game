@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { WordDetail, detailedWords_pathways3_part1 as intermediateWords } from '../../data/intermediate';
-import { Lightbulb, Loader2, Volume2, ChevronLeft, ChevronRight, Sparkles, Zap, CheckCircle, Star } from 'lucide-react';
+import { Loader2, Volume2, ChevronLeft, ChevronRight, Sparkles, Zap, CheckCircle, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 // Tüm kelimeler için import
 // import { allWordsWithTranslations } from '../../data/allWords';
@@ -35,7 +35,7 @@ const getThemeClasses = (theme: Theme) => {
                 cardBg: 'bg-white/60 backdrop-blur-lg',
                 text: 'text-slate-800',
                 headerText: 'text-blue-700',
-                button: 'bg-blue-500 hover:bg-blue-600 text-white',
+                button: 'bg-blue-400 hover:bg-blue-500 text-white',
                 secondaryButton: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
                 formButton: 'bg-blue-100/60 hover:bg-blue-200/80 text-blue-800',
                 popoverBg: 'bg-white border-blue-300',
@@ -48,7 +48,7 @@ const getThemeClasses = (theme: Theme) => {
                 cardBg: 'bg-white/60 backdrop-blur-lg',
                 text: 'text-slate-800',
                 headerText: 'text-pink-700',
-                button: 'bg-pink-500 hover:bg-pink-600 text-white',
+                button: 'bg-pink-400 hover:bg-pink-500 text-white',
                 secondaryButton: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
                 formButton: 'bg-pink-100/60 hover:bg-pink-200/80 text-pink-800',
                 popoverBg: 'bg-white border-pink-300',
@@ -61,7 +61,7 @@ const getThemeClasses = (theme: Theme) => {
                 cardBg: 'bg-gray-800/50 backdrop-blur-lg border border-gray-700',
                 text: 'text-gray-200',
                 headerText: 'text-cyan-400',
-                button: 'bg-cyan-500 hover:bg-cyan-600 text-white',
+                button: 'bg-cyan-400 hover:bg-cyan-500 text-white',
                 secondaryButton: 'bg-gray-700 hover:bg-gray-600 text-white',
                 formButton: 'bg-gray-700/60 hover:bg-gray-700 text-cyan-200',
                 popoverBg: 'bg-gray-900 border-cyan-500',
@@ -114,10 +114,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   const wordsToDisplay = useMemo(() => {
     if (showOnlyDifficult) {
       const difficultWordsList = allDetailedWords.filter(word => difficultWords.includes(word.headword));
-      if (difficultWordsList.length === 0) {
-        const shuffledWords = [...allDetailedWords].sort(() => 0.5 - Math.random());
-        return shuffledWords.slice(0, 10);
-      }
+      // Boş liste olduğunda boş array döndür - özel kart gösterilecek
       return difficultWordsList;
     }
     return words;
@@ -152,11 +149,13 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
   }, [definitionState.targetId]);
 
   const handleNext = useCallback(() => {
+    if (wordsToDisplay.length === 0) return;
     setCurrentIndex((prev) => (prev + 1) % wordsToDisplay.length);
     setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
   }, [wordsToDisplay.length]);
 
   const handlePrev = useCallback(() => {
+    if (wordsToDisplay.length === 0) return;
     setCurrentIndex((prev) => (prev - 1 + wordsToDisplay.length) % wordsToDisplay.length);
     setDefinitionState({ word: null, definition: null, isLoading: false, error: null, targetId: null });
   }, [wordsToDisplay.length]);
@@ -274,6 +273,46 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     }
   }, []);
 
+  // SWIPE/KLAVYE HOOKLARI - Tüm hook'lar koşullu return'lardan önce olmalı
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
+  
+  const triggerSwipe = useCallback((dir: 'left' | 'right') => {
+    setSwipeDir(dir);
+    setTimeout(() => setSwipeDir(null), 180);
+  }, []);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    if (touchStartX.current !== null && touchEndX.current !== null) {
+      const diff = touchEndX.current - touchStartX.current;
+      if (diff > 50 && wordsToDisplay.length > 0) {
+        triggerSwipe('right');
+        handlePrev();
+      } else if (diff < -50 && wordsToDisplay.length > 0) {
+        triggerSwipe('left');
+        handleNext();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  }, [wordsToDisplay.length, triggerSwipe, handlePrev, handleNext]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (wordsToDisplay.length === 0) return;
+      if (e.key === 'ArrowLeft') { triggerSwipe('right'); handlePrev(); }
+      if (e.key === 'ArrowRight') { triggerSwipe('left'); handleNext(); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrev, handleNext, wordsToDisplay.length, triggerSwipe]);
+
   const renderWordForms = useCallback(() => {
     if (!currentWord || !currentWord.forms || Object.keys(currentWord.forms).length === 0) {
       return null;
@@ -355,7 +394,7 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
     );
   }, [currentWord, themeClasses, theme]);
 
-  // 2. Koşullu return'lar hook'lardan sonra olacak.
+  // Koşullu return'lar tüm hook'lardan sonra olacak.
   if (!words || words.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-white bg-gray-900 p-8 rounded-lg">
@@ -364,63 +403,6 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
       </div>
     );
   }
-
-  if (showOnlyDifficult && totalDifficultWordsCount === 0) {
-      return (
-    <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 0.5rem)', marginTop: '-128px' }}>
-        <div className="w-full max-w-2xl mx-auto">
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center">
-            <div className="flex items-center justify-center gap-2 text-blue-700">
-              <Lightbulb className="w-5 h-5" />
-              <span className="text-sm font-medium">
-                Henüz zorlandığınız kelime yok. Size rastgele kelimeler gösteriyoruz. 
-                Bir kelimeyi zor olarak işaretlemek için yıldız ikonuna tıklayın.
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-
-  const progress = wordsToDisplay.length > 0 ? Math.round(((currentIndex + 1) / wordsToDisplay.length) * 100) : 0;
-
-  // 1. Tüm hook'lar ve swipe/klavye ile ilgili state/fonksiyonlar component fonksiyonunun en başında olacak:
-  // SWIPE/KLAVYE HOOKLARI EN BAŞA ALINDI
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
-  const triggerSwipe = (dir: 'left' | 'right') => {
-    setSwipeDir(dir);
-    setTimeout(() => setSwipeDir(null), 180);
-  };
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    if (touchStartX.current !== null && touchEndX.current !== null) {
-      const diff = touchEndX.current - touchStartX.current;
-      if (diff > 50) {
-        triggerSwipe('right');
-        handlePrev();
-      } else if (diff < -50) {
-        triggerSwipe('left');
-        handleNext();
-      }
-    }
-    touchStartX.current = null;
-    touchEndX.current = null;
-  };
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') { triggerSwipe('right'); handlePrev(); }
-      if (e.key === 'ArrowRight') { triggerSwipe('left'); handleNext(); }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrev, handleNext]);
 
   return (
     <div className={`w-full min-h-screen p-2 md:p-6 transition-colors duration-500 ${themeClasses.bg}`} style={{ paddingTop: 'calc(64px + 0.5rem)', marginTop: '-128px' }}>
@@ -439,10 +421,10 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         </div>
 
         <div className={`flex items-center justify-center gap-2 p-1.5 rounded-xl mb-4 ${theme === 'classic' ? 'bg-gray-900' : 'bg-white/50'}`}>
-            <button onClick={() => setShowOnlyDifficult(false)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-lg transition-colors ${!showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
+            <button onClick={() => setShowOnlyDifficult(false)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-xl transition-all duration-300 ${!showOnlyDifficult ? `${themeClasses.button} opacity-90 shadow-md` : 'text-gray-500'}`}>
                 Tüm Kelimeler
             </button>
-            <button onClick={() => setShowOnlyDifficult(true)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-lg transition-colors relative ${showOnlyDifficult ? themeClasses.button : 'text-gray-500'}`}>
+            <button onClick={() => setShowOnlyDifficult(true)} className={`flex-1 text-center px-3 py-2 text-sm font-bold rounded-xl transition-all duration-300 relative ${showOnlyDifficult ? `${themeClasses.button} opacity-90 shadow-md` : 'text-gray-500'}`}>
                 Zorlandıklarım
                 {totalDifficultWordsCount > 0 && (
                     <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
@@ -452,18 +434,6 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
             </button>
         </div>
 
-        {/* Zorlandıklarım sekmesinde rastgele kelimeler gösterildiğinde bilgi mesajı */}
-        {showOnlyDifficult && totalDifficultWordsCount === 0 && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center">
-            <div className="flex items-center justify-center gap-2 text-blue-700">
-              <Lightbulb className="w-5 h-5" />
-              <span className="text-sm font-medium">
-                Henüz zorlandığınız kelime yok. Size rastgele kelimeler gösteriyoruz. 
-                Bir kelimeyi zor olarak işaretlemek için yıldız ikonuna tıklayın.
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Kelime kaldırma bildirimi */}
         <AnimatePresence>
@@ -558,6 +528,26 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
               </motion.div>
             </AnimatePresence>
           </motion.div>
+        ) : showOnlyDifficult && wordsToDisplay.length === 0 ? (
+          <motion.div
+            className={`relative p-5 md:p-8 rounded-2xl shadow-lg transition-colors duration-500 bg-white/80 dark:bg-gray-900/80 min-h-[320px] md:min-h-[440px] min-w-[280px] min-w-[320px] md:min-w-[560px] max-w-[720px] flex flex-col items-center justify-center`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="text-center">
+              <Star className={`w-16 h-16 mx-auto mb-4 ${themeClasses.text} opacity-50`} />
+              <h2 className={`text-3xl md:text-4xl font-extrabold ${themeClasses.text} tracking-tight mb-3`}>
+                Henüz Kelime Eklenmedi
+              </h2>
+              <p className={`text-lg md:text-xl ${themeClasses.headerText} mb-2`}>
+                Zorlandığınız kelimeleri eklemek için
+              </p>
+              <p className={`text-base md:text-lg ${themeClasses.text} opacity-80`}>
+                "Tüm Kelimeler" sekmesindeki yıldız ikonuna tıklayın
+              </p>
+            </div>
+          </motion.div>
         ) : (
           <div className={`p-6 md:p-8 rounded-2xl shadow-2xl transition-colors duration-500 ${themeClasses.cardBg} text-center`}>
             <h2 className={`text-2xl font-bold ${themeClasses.text}`}>Kelime yükleniyor...</h2>
@@ -565,30 +555,32 @@ export const LearningMode: React.FC<LearningModeProps> = ({ words }) => {
         )}
 
         {/* Oklar: her zaman sayfanın en altında ortada, sticky/fixed */}
-        <div className="fixed left-0 right-0 bottom-0 z-40 flex flex-col items-center justify-center pb-4 pointer-events-none select-none">
-          <div className="mb-1 flex flex-col items-center gap-1 pointer-events-auto">
-            <div className="text-base md:text-lg font-semibold text-blue-700 bg-white/80 dark:bg-gray-900/80 rounded-full px-4 py-1 shadow">
-              {currentIndex + 1} / {wordsToDisplay.length}
+        {wordsToDisplay.length > 0 && (
+          <div className="fixed left-0 right-0 bottom-0 z-40 flex flex-col items-center justify-center pb-4 pointer-events-none select-none">
+            <div className="mb-1 flex flex-col items-center gap-1 pointer-events-auto">
+              <div className="text-base md:text-lg font-semibold text-blue-700 bg-white/80 dark:bg-gray-900/80 rounded-full px-4 py-1 shadow">
+                {currentIndex + 1} / {wordsToDisplay.length}
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={wordsToDisplay.length}
+                value={currentIndex + 1}
+                onChange={e => setCurrentIndex(Number(e.target.value) - 1)}
+                className="w-40 md:w-64 accent-blue-500 cursor-pointer"
+                style={{ touchAction: 'none' }}
+              />
             </div>
-            <input
-              type="range"
-              min={1}
-              max={wordsToDisplay.length}
-              value={currentIndex + 1}
-              onChange={e => setCurrentIndex(Number(e.target.value) - 1)}
-              className="w-40 md:w-64 accent-blue-500 cursor-pointer"
-              style={{ touchAction: 'none' }}
-            />
+            <div className="flex gap-8 bg-white/80 dark:bg-gray-900/80 rounded-full shadow-lg px-6 py-3 pointer-events-auto mt-1">
+              <button onClick={handlePrev} className="text-2xl md:text-3xl text-blue-500 hover:text-blue-700 transition-colors font-bold" aria-label="Önceki kelime">
+                <ChevronLeft size={36} />
+              </button>
+              <button onClick={handleNext} className="text-2xl md:text-3xl text-blue-500 hover:text-blue-700 transition-colors font-bold" aria-label="Sonraki kelime">
+                <ChevronRight size={36} />
+              </button>
+            </div>
           </div>
-          <div className="flex gap-8 bg-white/80 dark:bg-gray-900/80 rounded-full shadow-lg px-6 py-3 pointer-events-auto mt-1">
-            <button onClick={handlePrev} className="text-2xl md:text-3xl text-blue-500 hover:text-blue-700 transition-colors font-bold" aria-label="Önceki kelime">
-              <ChevronLeft size={36} />
-            </button>
-            <button onClick={handleNext} className="text-2xl md:text-3xl text-blue-500 hover:text-blue-700 transition-colors font-bold" aria-label="Sonraki kelime">
-              <ChevronRight size={36} />
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

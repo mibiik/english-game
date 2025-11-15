@@ -17,7 +17,7 @@ import DarkVeil from '../components/DarkVeil';
 import RotatingText from '../components/RotatingText';
 import { originalCategories, stats, rotatingTextProps, fadeUpAnimation } from '../data/welcomePageData';
 
-const WelcomePage: React.FC = React.memo(() => {
+const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -582,7 +582,7 @@ const WelcomePage: React.FC = React.memo(() => {
 			)}
     </div>
   );
-});
+};
 
 export { WelcomePage };
-export default WelcomePage; 
+export default React.memo(WelcomePage); 

@@ -73,6 +73,19 @@ class PuterService {
           this.performInitialization();
         }, 2000 * this.retryCount);
       } else {
+        console.error('❌ Puter servisi başlatılamadı - maksimum deneme sayısı aşıldı');
+        // Local storage'ı temizle ve sayfayı yeniden başlat
+        try {
+          console.log('🧹 Local storage temizleniyor ve sayfa yeniden başlatılıyor...');
+          localStorage.clear();
+          sessionStorage.clear();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } catch (clearError) {
+          console.error('❌ Local storage temizlenirken hata:', clearError);
+          window.location.reload();
+        }
         throw new Error('Puter servisi başlatılamadı - maksimum deneme sayısı aşıldı');
       }
     }

@@ -9,7 +9,7 @@ interface AuthProps {
   onSuccess: () => void;
 }
 
-export const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
+const Auth: React.FC<AuthProps> = ({ mode, onClose, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
