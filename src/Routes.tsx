@@ -5,6 +5,8 @@ import { WordDetail, detailedWords_pathways3_part1 as intermediateWordsRaw } fro
 import { detailedWords_part1 as upperIntermediateWordsRaw } from './data/upperIntermediate';
 import { detailedWords_part1 as foundationWordsRaw } from './data/foundation';
 import { detailedWords_part1 as preIntermediateWordsRaw } from './data/preintermediate';
+import AdSense from './components/AdSense';
+import { ADSENSE_SLOTS } from './config/apiKeys';
 
 // Lazy loading için bileşenleri import et
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -53,7 +55,7 @@ const ProtectedRoute: React.FC<{
   children: React.ReactNode;
   isAuthenticated: boolean | null;
 }> = ({ children, isAuthenticated }) => {
-  const [authModalShown, setAuthModalShown] = useState(false);
+  
 
   // useEffect must be called unconditionally (Rules of Hooks).
   // If the user is explicitly unauthenticated, redirect to /welcome.
@@ -110,7 +112,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
   isAuthenticated,
 }) => {
   return (
-      <Routes>
+    <Routes>
         {/* <Route path="/subscription-info" element={<SubscriptionInfo />} /> */}
         <Route path="/" element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
@@ -127,7 +129,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 </Suspense>
               </div>
           </ProtectedRoute>
-        } />
+  } />
         <Route path="/welcome" element={
           <Suspense fallback={<LoadingSpinner />}>
             <WelcomePage />
@@ -213,9 +215,9 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
                 currentLevel={currentLevel}
                 setCurrentLevel={setCurrentLevel}
               />
-              <div>
+              <div className="pt-32">
                 <Suspense fallback={<LoadingSpinner />}>
-                  <PrepositionMasteryGame />
+                  <GameWrapperWithParams component={PrepositionMasteryGame} />
                 </Suspense>
               </div>
             </>
@@ -595,8 +597,16 @@ function MatchingGameWrapperWithParams() {
     unitWords: unitWords.length 
   });
 
-  return <MatchingGame words={words} />;
+  return (
+    <>
+      <MatchingGame words={words} />
+      <div className="w-full flex justify-center mt-6 mb-6">
+        <AdSense slot={ADSENSE_SLOTS.HOME_FOOTER} className="w-full max-w-3xl" />
+      </div>
+    </>
+  );
 }
+
 
 function GameWrapperWithParams({ component }: { component: React.ComponentType<any> }) {
   const { unit, level } = useGameParams();
@@ -634,10 +644,18 @@ function GameWrapperWithParams({ component }: { component: React.ComponentType<a
   
   try {
     // LearningMode sadece words prop'u alıyor
-    if (component.name === 'LearningMode') {
-      return React.createElement(component, { words });
-    }
-    return React.createElement(component, { words, unit, level });
+    const compElement = component.name === 'LearningMode'
+      ? React.createElement(component, { words })
+      : React.createElement(component, { words, unit, level });
+
+    return (
+      <>
+        {compElement}
+        <div className="w-full flex justify-center mt-6 mb-6">
+          <AdSense slot={ADSENSE_SLOTS.HOME_FOOTER} className="w-full max-w-3xl" />
+        </div>
+      </>
+    );
   } catch (error) {
     console.error('GameWrapper: Error rendering component:', component.name, error);
     return (

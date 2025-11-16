@@ -5,14 +5,16 @@ import { Analytics } from '@vercel/analytics/react';
 import { supabaseAuthService } from './services/supabaseAuthService';
 import { supabase } from './config/supabase';
 import MehmetModal from './components/MehmetModal';
+import { PerformanceMonitor } from './components/PerformanceMonitor';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import NotificationPermission from './components/NotificationPermission';
+import { userAnalyticsService } from './services/userAnalyticsService';
 import { deviceDetectionService } from './services/deviceDetectionService';
 import { analyticsCollector } from './services/analyticsCollector';
 import { notificationService } from './services/notificationService';
 import { puterService } from './services/puterService';
 import LazyAuth from './components/LazyAuth';
-import SharePromptModal from './components/SharePromptModal';
+import CookieConsent from './components/CookieConsent';
 
 
 function AppContent() {
@@ -28,7 +30,7 @@ function AppContent() {
     try { localStorage.setItem(key, value); } catch { /* ignore */ }
   };
 
-  // Authentication durumu - null: yükleniyor, true: giriş yapmış, false: giriş yapmamış
+  // Firebase Authentication durumu
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const [currentLevel, setCurrentLevel] = useState<'intermediate' | 'upper-intermediate' | 'pre-intermediate' | 'foundation' | 'kuepe'>(() => {
@@ -53,13 +55,52 @@ function AppContent() {
 
   const [showMehmetModal, setShowMehmetModal] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
-  // Platform tespiti kaldırıldı (oturum korunumu için agresif temizlik devre dışı)
+  // iOS/Safari tespiti
+  const isIOS = /iP(hone|od|ad)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   // Cache temizleme fonksiyonu
-  // Oturumun korunması adına agresif cache temizleme kaldırıldı.
+  const clearAllCaches = async () => {
+    try {
+      // iOS Safari'de agresif cache temizleme oturumu düşürebilir; atla
+      if (isIOS && isSafari) {
+        console.warn('iOS Safari tespit edildi: cache temizleme atlanıyor.');
+        return;
+      }
+      // Service Worker cache'lerini temizle
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+      }
+
+      // Service Worker'ı yeniden yükle
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      }
+
+      // IndexedDB'yi temizle
+      if ('indexedDB' in window) {
+        const databases = await indexedDB.databases();
+        for (const db of databases) {
+          if (db.name) {
+            indexedDB.deleteDatabase(db.name);
+          }
+        }
+      }
+
+      // Sayfayı yenile
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ Cache temizleme hatası:', error);
+    }
+  };
 
   // Uygulama başlangıcında cache kontrolü
   useEffect(() => {
@@ -68,8 +109,10 @@ function AppContent() {
     const lastBuildTime = safeGetItem('lastBuildTime');
     
     if (buildTime && lastBuildTime && buildTime !== lastBuildTime) {
-      console.log('🔄 Yeni build tespit edildi, otomatik yenileme yapılmıyor (oturum korunuyor).');
+      console.log('🔄 Yeni build tespit edildi, cache temizleniyor...');
       safeSetItem('lastBuildTime', buildTime);
+      clearAllCaches();
+      return;
     }
 
     // İlk yüklemede build time'ı kaydet
@@ -78,7 +121,15 @@ function AppContent() {
     }
 
     // Kullanıcılar için otomatik bir kez cache temizleme (iOS Safari'de devre dışı)
-    // Oturumu riske atmamak için otomatik cache temizleme KAPATILDI
+    const hasClearedCache = safeGetItem('hasClearedCache');
+    if (!hasClearedCache && !(isIOS && isSafari)) {
+      console.log('🔄 İlk kez cache temizleme yapılıyor...');
+      safeSetItem('hasClearedCache', 'true');
+      setTimeout(() => {
+        clearAllCaches();
+      }, 3000);
+      return;
+    }
 
     // Puter servisini başlat
     const initializePuter = async () => {
@@ -88,78 +139,11 @@ function AppContent() {
         console.log('✅ Puter servisi başarıyla başlatıldı');
       } catch (error) {
         console.error('❌ Puter servisi başlatılamadı:', error);
-        // Local storage'ı temizle ve sayfayı yeniden başlat
-        try {
-          console.log('🧹 Local storage temizleniyor ve sayfa yeniden başlatılıyor...');
-          localStorage.clear();
-          sessionStorage.clear();
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } catch (clearError) {
-          console.error('❌ Local storage temizlenirken hata:', clearError);
-          // Yine de sayfayı yeniden başlat
-          window.location.reload();
-        }
       }
     };
 
     initializePuter();
   }, []);
-
-  // Paylaşım modali zamanlayıcı (Supabase + localStorage fallback)
-  useEffect(() => {
-    const INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 gün (haftada bir)
-
-    let intervalId: number | undefined;
-
-    const checkFromProfileAndMaybeShow = async () => {
-      try {
-        if (!isAuthenticated) return;
-        const userId = localStorage.getItem('authUserId');
-        if (!userId) return;
-
-        const { data, error } = await supabase
-          .from('users')
-          .select('sharePromptLastShownAt')
-          .eq('id', userId)
-          .single();
-
-        // Supabase başarısızsa local fallback kullan
-        let last = 0;
-        if (!error && data?.sharePromptLastShownAt) {
-          last = new Date(data.sharePromptLastShownAt).getTime();
-        } else {
-          const localLast = safeGetItem('shareModalLastShownLocal');
-          last = localLast ? parseInt(localLast, 10) : 0;
-        }
-
-        console.log('SharePrompt kontrolü:', { lastFrom: error ? 'local' : 'remote', last, now: Date.now() });
-        if (Date.now() - last >= INTERVAL_MS) {
-          setShowShareModal(true);
-        }
-      } catch (e) {
-        console.warn('Share modal profil kontrol hatası, local fallback kullanılacak:', e);
-        const localLast = safeGetItem('shareModalLastShownLocal');
-        const last = localLast ? parseInt(localLast, 10) : 0;
-        if (Date.now() - last >= INTERVAL_MS) {
-          setShowShareModal(true);
-        }
-      }
-    };
-
-    // Açılışta hemen kontrol et
-    checkFromProfileAndMaybeShow();
-
-    // Düzenli aralıklarla kontrol et (5 dk)
-    intervalId = window.setInterval(() => {
-      checkFromProfileAndMaybeShow();
-    }, 5 * 60 * 1000);
-
-    return () => {
-      if (intervalId) window.clearInterval(intervalId);
-    };
-  }, [isAuthenticated]);
 
   // Bildirim servisini başlat
   useEffect(() => {
@@ -190,61 +174,109 @@ function AppContent() {
     initializeNotifications();
   }, []);
 
-  // Analiz veri toplamayı başlat
+  // Ana uygulama monitoring'i
   useEffect(() => {
+    console.log('🚀 Uygulama başlatılıyor - Monitoring başlatılıyor...');
+    
+    // Ana uygulama monitoring'i
+    if (isAuthenticated) {
+      const userId = localStorage.getItem('authUserId');
+      if (userId) {
+        userAnalyticsService.startMonitoring(userId, (data) => {
+          console.log('Analytics update:', data);
+        });
+      }
+    }
+    
+    // Analiz veri toplamayı başlat
     analyticsCollector.startCollection();
     
+    // Service Worker ile iletişim kur
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        // Service Worker'a monitoring başlatma mesajı gönder
+        registration.active?.postMessage({
+          type: 'START_MONITORING'
+        });
+        console.log('✅ Service Worker monitoring başlatıldı');
+      });
+    }
+    
+    // Uygulama kapanırken monitoring'i durdur
     return () => {
+      console.log('🛑 Uygulama kapanıyor - Monitoring durduruluyor...');
+      userAnalyticsService.stopMonitoring();
       analyticsCollector.stopCollection();
+      
+      // Service Worker'a monitoring durdurma mesajı gönder
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.active?.postMessage({
+            type: 'STOP_MONITORING'
+          });
+        });
+      }
     };
   }, []);
 
-  // Sayfa yüklendiğinde Supabase üzerinden authentication durumunu kontrol et (SADECE İLK YÜKLEMEDE)
+  // Sayfa yüklendiğinde localStorage'dan authentication durumunu kontrol et
   useEffect(() => {
     const checkStoredAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setIsAuthenticated(true);
-          localStorage.setItem('authUserId', user.id);
-          console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
-          if (location.pathname === '/welcome') {
-            navigate('/', { replace: true });
-          }
-        } else {
+      const storedUser = localStorage.getItem('supabase.auth.token');
+      const authUserId = localStorage.getItem('authUserId');
+      const lastAuthCheck = localStorage.getItem('lastAuthCheck');
+      
+      if (storedUser && authUserId && lastAuthCheck) {
+        try {
+          // Önce Supabase session'ını kontrol et
+          const isSessionValid = await supabaseAuthService.isSessionValid();
+          
+          if (isSessionValid) {
+            setIsAuthenticated(true);
+            console.log('✅ Kullanıcı session geçerli, authenticated olarak yüklendi');
+            
+            // Eğer welcome sayfasındaysa ana sayfaya yönlendir
+            if (location.pathname === '/welcome') {
+              navigate('/', { replace: true });
+            }
+      } else {
+        // Session geçersiz, localStorage'ı temizle
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('authUserId');
+        localStorage.removeItem('lastAuthCheck');
+        setIsAuthenticated(false);
+        
+        // Eğer ana sayfadaysa welcome sayfasına yönlendir
+        if (location.pathname === '/') {
+          navigate('/welcome', { replace: true });
+        }
+      }
+        } catch (error) {
+          console.error('Session validation error:', error);
           setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error('❌ Session validation error:', error);
+      } else {
         setIsAuthenticated(false);
       }
     };
 
     checkStoredAuth();
-  }, []); // Sadece component mount olduğunda çalışsın
+  }, [navigate, location.pathname]);
 
   // Supabase Authentication durumunu dinle
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth state changed:', event, session ? 'User logged in' : 'User logged out');
+      console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
       const user = session?.user || null;
       setIsAuthenticated(!!user);
       
       if (user) {
         // Kullanıcı giriş yapmış
-        console.log('✅ User is authenticated:', user.email);
+        console.log('User is authenticated:', user.email);
         
         // Oturum bilgilerini localStorage'a kaydet
         localStorage.setItem('lastAuthCheck', new Date().toISOString());
         localStorage.setItem('authUserId', user.id);
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('supabase.auth.token', JSON.stringify({
-          id: user.id,
-          email: user.email,
-          displayName: user.user_metadata?.display_name,
-          photoURL: user.user_metadata?.avatar_url,
-          lastLogin: new Date().toISOString()
-        }));
         
         // Cihaz bilgisini tespit et ve kaydet
         deviceDetectionService.saveDeviceInfo(user.id).then(() => {
@@ -268,9 +300,15 @@ function AppContent() {
         }
       } else {
         // Kullanıcı çıkış yapmış
-        console.log('❌ User is not authenticated');
-        // localStorage temizliği yok; gereksiz çıkışa sebep olmasın
-        const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari', '/about-founder'];
+        console.log('User is not authenticated');
+        
+        // localStorage'dan oturum bilgilerini temizle
+        localStorage.removeItem('lastAuthCheck');
+        localStorage.removeItem('authUserId');
+        
+        // Eğer korumalı bir sayfadaysa welcome sayfasına yönlendir
+        // Footer linkleri (hakkımızda, iletişim, sss, destek, gizlilik, kullanım şartları) korumalı değil
+        const publicPages = ['/welcome', '/hakkimizda', '/iletisim', '/sss', '/destek', '/gizlilik', '/kullanim-sartlari'];
         if (!publicPages.includes(location.pathname)) {
           navigate('/welcome', { replace: true });
         }
@@ -296,14 +334,11 @@ function AppContent() {
         setIsAuthenticated(false);
         console.log('Auth state synchronized - user is not authenticated');
       } else {
-        // Tutarsız durumda temizleme yapmadan Supabase state'ine senkronize ol
-        console.log('Auth state inconsistency detected, syncing without clearing');
-        if (user) {
-          localStorage.setItem('authUserId', user.id);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
+        // Tutarsız durum - localStorage'ı temizle ve Supabase state'ini kullan
+        console.log('Auth state inconsistency detected, clearing localStorage');
+        localStorage.removeItem('lastAuthCheck');
+        localStorage.removeItem('authUserId');
+        setIsAuthenticated(!!user);
       }
     };
 
@@ -432,28 +467,6 @@ function AppContent() {
         isOpen={showMehmetModal} 
         onClose={() => setShowMehmetModal(false)} 
       />
-      <SharePromptModal
-        isOpen={showShareModal}
-        onClose={() => {
-          (async () => {
-            try {
-              const userId = localStorage.getItem('authUserId');
-              if (userId) {
-                await supabase
-                  .from('users')
-                  .update({ sharePromptLastShownAt: new Date().toISOString() })
-                  .eq('id', userId);
-              }
-            } catch (e) {
-              console.warn('sharePromptLastShownAt güncellenemedi:', e);
-            } finally {
-              // Her durumda local fallback timestamp güncelle
-              safeSetItem('shareModalLastShownLocal', String(Date.now()));
-              setShowShareModal(false);
-            }
-          })();
-        }}
-      />
       
       {/* Auth Modal */}
       {showAuth && (
@@ -494,7 +507,9 @@ function AppContent() {
       )}
       
       <PWAInstallPrompt />
+  <CookieConsent />
       <NotificationPermission />
+      <PerformanceMonitor />
     </div>
   );
 }
